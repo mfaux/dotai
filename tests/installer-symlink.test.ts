@@ -18,6 +18,26 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { installSkillForAgent } from '../src/skill-installer.ts';
 
+/**
+ * Check whether the OS allows creating symlinks without elevated privileges.
+ * On Windows, unprivileged users typically cannot create symlinks.
+ * Resolved at module level so it can be used synchronously in skipIf().
+ */
+const symlinkSupported = await (async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'dotai-symtest-'));
+  const target = join(dir, 'target');
+  const link = join(dir, 'link');
+  try {
+    await mkdir(target);
+    await symlink(target, link);
+    return true;
+  } catch {
+    return false;
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+})();
+
 async function makeSkillSource(root: string, name: string): Promise<string> {
   const dir = join(root, 'source-skill');
   await mkdir(dir, { recursive: true });
@@ -57,95 +77,101 @@ describe('installer symlink regression', () => {
     }
   });
 
-  it('cleans pre-existing self-loop symlink in canonical dir', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'dotai-'));
-    const projectDir = join(root, 'project');
-    await mkdir(projectDir, { recursive: true });
+  it.skipIf(!symlinkSupported)(
+    'cleans pre-existing self-loop symlink in canonical dir',
+    async () => {
+      const root = await mkdtemp(join(tmpdir(), 'dotai-'));
+      const projectDir = join(root, 'project');
+      await mkdir(projectDir, { recursive: true });
 
-    const skillName = 'self-loop-skill';
-    const skillDir = await makeSkillSource(root, skillName);
-    const canonicalDir = join(projectDir, '.agents/skills', skillName);
+      const skillName = 'self-loop-skill';
+      const skillDir = await makeSkillSource(root, skillName);
+      const canonicalDir = join(projectDir, '.agents/skills', skillName);
 
-    try {
-      await mkdir(join(projectDir, '.agents/skills'), { recursive: true });
-      await symlink(skillName, canonicalDir);
-      const preStats = await lstat(canonicalDir);
-      expect(preStats.isSymbolicLink()).toBe(true);
+      try {
+        await mkdir(join(projectDir, '.agents/skills'), { recursive: true });
+        await symlink(skillName, canonicalDir);
+        const preStats = await lstat(canonicalDir);
+        expect(preStats.isSymbolicLink()).toBe(true);
 
-      const result = await installSkillForAgent(
-        { name: skillName, description: 'test', path: skillDir },
-        'amp',
-        { cwd: projectDir, mode: 'symlink', global: false }
-      );
+        const result = await installSkillForAgent(
+          { name: skillName, description: 'test', path: skillDir },
+          'amp',
+          { cwd: projectDir, mode: 'symlink', global: false }
+        );
 
-      expect(result.success).toBe(true);
+        expect(result.success).toBe(true);
 
-      const postStats = await lstat(canonicalDir);
-      expect(postStats.isSymbolicLink()).toBe(false);
-      expect(postStats.isDirectory()).toBe(true);
-    } finally {
-      await rm(root, { recursive: true, force: true });
+        const postStats = await lstat(canonicalDir);
+        expect(postStats.isSymbolicLink()).toBe(false);
+        expect(postStats.isDirectory()).toBe(true);
+      } finally {
+        await rm(root, { recursive: true, force: true });
+      }
     }
-  });
+  );
 
   // Regression test for #293: when agent skills dir is a symlink to canonical dir
-  it('handles agent skills dir being a symlink to canonical dir', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'dotai-'));
-    const projectDir = join(root, 'project');
-    await mkdir(projectDir, { recursive: true });
+  it.skipIf(!symlinkSupported)(
+    'handles agent skills dir being a symlink to canonical dir',
+    async () => {
+      const root = await mkdtemp(join(tmpdir(), 'dotai-'));
+      const projectDir = join(root, 'project');
+      await mkdir(projectDir, { recursive: true });
 
-    const skillName = 'symlinked-dir-skill';
-    const skillDir = await makeSkillSource(root, skillName);
+      const skillName = 'symlinked-dir-skill';
+      const skillDir = await makeSkillSource(root, skillName);
 
-    // Create canonical dir: .agents/skills
-    const canonicalBase = join(projectDir, '.agents', 'skills');
-    await mkdir(canonicalBase, { recursive: true });
+      // Create canonical dir: .agents/skills
+      const canonicalBase = join(projectDir, '.agents', 'skills');
+      await mkdir(canonicalBase, { recursive: true });
 
-    // Create .claude directory and symlink .claude/skills -> .agents/skills
-    const claudeDir = join(projectDir, '.claude');
-    await mkdir(claudeDir, { recursive: true });
-    const claudeSkillsDir = join(claudeDir, 'skills');
-    await symlink(canonicalBase, claudeSkillsDir);
+      // Create .claude directory and symlink .claude/skills -> .agents/skills
+      const claudeDir = join(projectDir, '.claude');
+      await mkdir(claudeDir, { recursive: true });
+      const claudeSkillsDir = join(claudeDir, 'skills');
+      await symlink(canonicalBase, claudeSkillsDir);
 
-    try {
-      // Install for claude-code, which has skillsDir: '.claude/skills'
-      const result = await installSkillForAgent(
-        { name: skillName, description: 'test', path: skillDir },
-        'claude-code',
-        { cwd: projectDir, mode: 'symlink', global: false }
-      );
+      try {
+        // Install for claude-code, which has skillsDir: '.claude/skills'
+        const result = await installSkillForAgent(
+          { name: skillName, description: 'test', path: skillDir },
+          'claude-code',
+          { cwd: projectDir, mode: 'symlink', global: false }
+        );
 
-      expect(result.success).toBe(true);
-      expect(result.symlinkFailed).toBeUndefined();
+        expect(result.success).toBe(true);
+        expect(result.symlinkFailed).toBeUndefined();
 
-      // The skill should exist in the canonical location
-      const canonicalSkillDir = join(canonicalBase, skillName);
-      const stats = await lstat(canonicalSkillDir);
-      expect(stats.isDirectory()).toBe(true);
+        // The skill should exist in the canonical location
+        const canonicalSkillDir = join(canonicalBase, skillName);
+        const stats = await lstat(canonicalSkillDir);
+        expect(stats.isDirectory()).toBe(true);
 
-      // It should NOT be a broken symlink - it should be a real directory
-      const contents = await readFile(join(canonicalSkillDir, 'SKILL.md'), 'utf-8');
-      expect(contents).toContain(`name: ${skillName}`);
+        // It should NOT be a broken symlink - it should be a real directory
+        const contents = await readFile(join(canonicalSkillDir, 'SKILL.md'), 'utf-8');
+        expect(contents).toContain(`name: ${skillName}`);
 
-      // The skill should also be accessible via the symlinked path
-      const claudeSkillDir = join(claudeSkillsDir, skillName);
-      const claudeContents = await readFile(join(claudeSkillDir, 'SKILL.md'), 'utf-8');
-      expect(claudeContents).toContain(`name: ${skillName}`);
+        // The skill should also be accessible via the symlinked path
+        const claudeSkillDir = join(claudeSkillsDir, skillName);
+        const claudeContents = await readFile(join(claudeSkillDir, 'SKILL.md'), 'utf-8');
+        expect(claudeContents).toContain(`name: ${skillName}`);
 
-      // There should be no broken symlinks in canonical dir
-      const canonicalEntries = await readdir(canonicalBase, { withFileTypes: true });
-      for (const entry of canonicalEntries) {
-        if (entry.name === skillName) {
-          const entryPath = join(canonicalBase, entry.name);
-          const entryStats = await lstat(entryPath);
-          // Should be a real directory, not a symlink
-          expect(entryStats.isDirectory()).toBe(true);
+        // There should be no broken symlinks in canonical dir
+        const canonicalEntries = await readdir(canonicalBase, { withFileTypes: true });
+        for (const entry of canonicalEntries) {
+          if (entry.name === skillName) {
+            const entryPath = join(canonicalBase, entry.name);
+            const entryStats = await lstat(entryPath);
+            // Should be a real directory, not a symlink
+            expect(entryStats.isDirectory()).toBe(true);
+          }
         }
+      } finally {
+        await rm(root, { recursive: true, force: true });
       }
-    } finally {
-      await rm(root, { recursive: true, force: true });
     }
-  });
+  );
 
   // Regression test for #294: universal-only global install should not create agent-specific symlinks
   it('does not create agent-specific symlinks for universal agents on global install', async () => {

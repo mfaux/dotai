@@ -90,7 +90,7 @@ npx dotai add ./my-local-context                        # local path
 | `add <package>` | Discover, select, transpile, and install context       |
 | `remove [name]` | Remove installed context                               |
 | `list`          | List installed items                                   |
-| `find [query]`  | Search for skills interactively                        |
+| `find [query]`  | Search for skills & preview all context in a repo      |
 | `check`         | Check for available updates                            |
 | `update`        | Update installed items to latest versions              |
 | `init [name]`   | Create a context template (skill, rule, prompt, agent) |

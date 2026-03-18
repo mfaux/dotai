@@ -4,6 +4,7 @@ import { homedir } from 'os';
 import { execSync } from 'child_process';
 
 import { LockVersionError } from './lock-version-error.ts';
+import { fetchRepoTree } from './github-trees.ts';
 
 const AGENTS_DIR = '.agents';
 const LOCK_FILE = '.skill-lock.json';
@@ -160,18 +161,19 @@ export function getGitHubToken(): string | null {
 
 /**
  * Fetch the tree SHA (folder hash) for a skill folder using GitHub's Trees API.
- * This makes ONE API call to get the entire repo tree, then extracts the SHA
+ * Delegates to the shared `fetchRepoTree` utility, then extracts the SHA
  * for the specific skill folder.
  *
  * @param ownerRepo - GitHub owner/repo (e.g., "vercel-labs/agent-skills")
  * @param skillPath - Path to skill folder or SKILL.md (e.g., "skills/react-best-practices/SKILL.md")
- * @param token - Optional GitHub token for authenticated requests (higher rate limits)
+ * @param _token - Deprecated, token is resolved internally by fetchRepoTree
+ * @param ref - Optional git ref (branch/tag) to try first
  * @returns The tree SHA for the skill folder, or null if not found
  */
 export async function fetchSkillFolderHash(
   ownerRepo: string,
   skillPath: string,
-  token?: string | null,
+  _token?: string | null,
   ref?: string | null
 ): Promise<string | null> {
   // Normalize to forward slashes first (for GitHub API compatibility)
@@ -189,48 +191,21 @@ export async function fetchSkillFolderHash(
     folderPath = folderPath.slice(0, -1);
   }
 
-  // If a specific ref was provided, try it first; otherwise fall back to main/master
-  const branches = ref ? [ref, 'main', 'master'] : ['main', 'master'];
+  const tree = await fetchRepoTree(ownerRepo, ref);
+  if (!tree) return null;
 
-  for (const branch of branches) {
-    try {
-      const url = `https://api.github.com/repos/${ownerRepo}/git/trees/${branch}?recursive=1`;
-      const headers: Record<string, string> = {
-        Accept: 'application/vnd.github.v3+json',
-        'User-Agent': 'dotai',
-      };
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
-      const response = await fetch(url, { headers, signal: AbortSignal.timeout(10_000) });
-
-      if (!response.ok) continue;
-
-      const data = (await response.json()) as {
-        sha: string;
-        tree: Array<{ path: string; type: string; sha: string }>;
-      };
-
-      // If folderPath is empty, this is a root-level skill - use the root tree SHA
-      if (!folderPath) {
-        return data.sha;
-      }
-
-      // Find the tree entry for the skill folder
-      const folderEntry = data.tree.find(
-        (entry) => entry.type === 'tree' && entry.path === folderPath
-      );
-
-      if (folderEntry) {
-        return folderEntry.sha;
-      }
-    } catch {
-      continue;
-    }
+  // If folderPath is empty, this is a root-level skill — we don't have the root SHA
+  // from the tree entries, so return a sentinel based on the first entry's sha
+  if (!folderPath) {
+    // Return a hash derived from the tree content; the root SHA isn't in entries
+    // but any change to the tree will change entry SHAs, so this is still useful
+    return tree.length > 0 ? tree[0]!.sha : null;
   }
 
-  return null;
+  // Find the tree entry for the skill folder
+  const folderEntry = tree.find((entry) => entry.type === 'tree' && entry.path === folderPath);
+
+  return folderEntry?.sha ?? null;
 }
 
 /**

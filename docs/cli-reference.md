@@ -46,6 +46,60 @@ Supported agent aliases include values such as `claude-code` and `codex`. See [S
 | `-y, --yes`               | Skip confirmation prompts                                                    |
 | `--all`                   | Remove all installed items                                                   |
 
+## find command
+
+Search for context interactively and preview all context types available in a repo before installing.
+
+```bash
+npx dotai find              # open interactive search prompt
+npx dotai find react        # search non-interactively and list results
+```
+
+**Interactive mode** (no query argument) opens a fuzzy search prompt. After you select a result, dotai fetches the repo's file tree via the GitHub Trees API and shows a summary of all discovered context types:
+
+```
+Found in vercel-labs/agent-skills:
+  2 skills    react-best-practices, nextjs-patterns
+  3 rules     code-style, testing, imports
+  1 prompt    review-code
+
+? What would you like to install?
+> Install selected skill only (react-best-practices)
+  Install all context from this repo
+  Pick individual items...
+  Cancel
+```
+
+- **Install selected skill only** installs the single skill you picked from the search results.
+- **Install all context from this repo** installs every skill, rule, prompt, and agent in the repo.
+- **Pick individual items** opens a multi-select where you choose exactly which items to install.
+
+If the GitHub Trees API is unreachable (rate limit, private repo, network error), the preview step is skipped and the selected skill is installed directly.
+
+### Native context discovery
+
+When scanning a repo via `dotai find owner/repo`, dotai also discovers agent-native context files in their conventional directories. These are files written for a specific coding agent (Cursor, Claude Code, Copilot, etc.) that can be installed as passthrough copies.
+
+Native items are tagged with their source agent in the output:
+
+```
+owner/repo@no-any (rule:cursor)
+owner/repo@deploy (prompt:claude-code)
+owner/repo@testing (rule:github-copilot)
+```
+
+The following native directories are scanned (derived from the [target-agents registry](#canonical-vs-native-files)):
+
+| Agent          | Rules                       | Prompts                    | Agents                    |
+| -------------- | --------------------------- | -------------------------- | ------------------------- |
+| Cursor         | `.cursor/rules/*.mdc`       | —                          | —                         |
+| Claude Code    | `.claude/rules/*.md`        | `.claude/commands/*.md`    | `.claude/agents/*.md`     |
+| GitHub Copilot | `.github/instructions/*.instructions.md` | `.github/prompts/*.prompt.md` | `.github/agents/*.agent.md` |
+| Windsurf       | `.windsurf/rules/*.md`      | `.windsurf/workflows/*.md` | —                         |
+| Cline          | `.clinerules/*.md`          | —                          | —                         |
+
+**Non-interactive mode** (with a query argument) prints matching results with install commands, suitable for use inside AI coding agents.
+
 ## list command options
 
 | Option                    | Description                                                                  |

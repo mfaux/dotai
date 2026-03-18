@@ -2,30 +2,30 @@
 
 `dotai` is a CLI tool for universal context distribution to AI coding agents. It installs "skills" (SKILL.md), "rules" (RULES.md), "prompts" (PROMPT.md), and "agents" (AGENT.md) into the configuration directories of 40+ supported AI agents. It is a divergent fork of `vercel-labs/skills`.
 
-## LEARNINGS.md
+# Agent Instructions
 
-**Always read `LEARNINGS.md` into context at the start of every session.** This file tracks mistakes made during development so they are not repeated. When you make an error — a wrong assumption, a broken build, a misunderstood requirement, a flawed approach — log it in `LEARNINGS.md` with the date, what went wrong, the root cause, and how to prevent it in the future.
+Project-specific guidance for AI coding agents working in this codebase.
 
-## AI-REQUESTS.md
+## Guiding Principles
 
-**Log requests for unavailable tools or capabilities to `AI-REQUESTS.md`.** If a tool you need to complete your work is unavailable (e.g., a file search tool, a web fetch tool, or a shell capability), record the request in `AI-REQUESTS.md`. This does **not** apply to package libraries -- you may freely install those to complete development tasks.
+- **Great DX.** Every decision, from CLI design and defaults to error messages and docs, should minimize the time from install to "wow, that worked."
 
-## Guidelines
+## Documentation Style
 
-- **Bug fixes require a failing test first.** When fixing a bug, write a test that reproduces the bug and confirms it fails, then fix the code to make the test pass.
-- **No unused code.** Do not leave unused functions, unused imports, or unused exports in source files. When you remove the last caller of a function, remove the function. When you remove a function, remove its `import` from any file that imported it. Do not add `export` to symbols that are only used within their own file.
+- **User-first perspective.** Write for people using Ralphai, not maintainers of this repo.
+- **Active voice.** "Ralphai creates a branch" not "a branch is created by Ralphai."
+- **Keep it scannable.** Short paragraphs, bullet lists, code examples. Avoid walls of text.
+- **Bold for emphasis.** Use `**bold**` to highlight key terms and concepts.
+- **No em dashes in prose.** Use em dashes only in list item labels (e.g., `- **Key** — explanation`). In sentences, restructure or use commas instead.
 
-## Development
+## File Size Limits
 
-```bash
-pnpm dev <command>     # Run CLI locally (e.g. pnpm dev add, pnpm dev list)
-pnpm test              # Run all tests (vitest)
-pnpm type-check        # TypeScript type check
-pnpm format            # Prettier — always run before committing
-```
+- **Test files: max ~500 lines.** When a test file approaches this limit, split it by feature domain before adding more tests. When adding tests for a new feature, create a new `<feature>.test.ts` file rather than appending to an existing one.
+- **Source files: max ~300 lines.** Extract modules when a file grows beyond this. Note: `src/ralphai.ts` currently exceeds this limit and is a candidate for decomposition. Follow this guideline for new files and when refactoring.
+- Before appending to any file, check its current size. If adding your changes would push it past the limit, split first.
 
-## Adding a New Agent
+## Ralphai
 
-1. Add the agent definition to `src/agents.ts`
-2. Run `pnpm run -C scripts validate-agents.ts` to validate
-3. Run `pnpm run -C scripts sync-agents.ts` to update README.md
+This project uses [Ralphai](https://github.com/mfaux/ralphai) for autonomous task execution.
+Plan files go in `.ralphai/pipeline/backlog/` as flat `.md` files (e.g., `backlog/my-plan.md`).
+See `.ralphai/PLANNING.md` for the plan writing guide.

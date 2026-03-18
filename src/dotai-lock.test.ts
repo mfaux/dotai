@@ -54,7 +54,7 @@ afterEach(async () => {
 
 describe('getDotaiLockPath', () => {
   it('returns .dotai-lock.json in the project root', () => {
-    expect(getDotaiLockPath('/my/project')).toBe('/my/project/.dotai-lock.json');
+    expect(getDotaiLockPath('/my/project')).toBe(join('/my/project', '.dotai-lock.json'));
   });
 });
 

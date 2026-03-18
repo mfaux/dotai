@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
+import { relative } from 'path';
 import { addRules, addPrompts } from '../src/rule-add.ts';
 import { runCli } from '../src/test-utils.ts';
 import { readManagedPaths } from '../src/gitignore.ts';
@@ -13,6 +14,10 @@ import {
   createTestSourceRepo,
   readLockFileFromDisk,
 } from './e2e-utils.ts';
+
+function toManagedPath(projectRoot: string, outputPath: string): string {
+  return relative(projectRoot, outputPath).replace(/\\/g, '/');
+}
 
 // ---------------------------------------------------------------------------
 // addRules --gitignore integration tests
@@ -59,7 +64,7 @@ describe('addRules --gitignore integration', () => {
 
     // Each output path should be in .gitignore as a relative path
     for (const outputPath of lock.items[0]!.outputs) {
-      const relativePath = outputPath.replace(projectDir + '/', '');
+      const relativePath = toManagedPath(projectDir, outputPath);
       expect(managedPaths).toContain(relativePath);
     }
 
@@ -138,7 +143,7 @@ describe('addRules --gitignore integration', () => {
     const managedPaths = await readManagedPaths(projectDir);
     const allOutputs = lock.items.flatMap((e) => e.outputs);
     for (const outputPath of allOutputs) {
-      const relativePath = outputPath.replace(projectDir + '/', '');
+      const relativePath = toManagedPath(projectDir, outputPath);
       expect(managedPaths).toContain(relativePath);
     }
   });

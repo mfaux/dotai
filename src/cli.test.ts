@@ -8,22 +8,16 @@ describe('dotai CLI', () => {
     it('should display help message', () => {
       const output = runCliOutput(['--help']);
       expect(output).toContain('Usage: dotai <command> [options]');
-      expect(output).toContain('Manage Context:');
-      expect(output).toContain('init [name]');
+      expect(output).toContain('Commands:');
       expect(output).toContain('add <package>');
+      expect(output).toContain('remove [names]');
+      expect(output).toContain('list, ls');
+      expect(output).toContain('find [query]');
       expect(output).toContain('check');
       expect(output).toContain('update');
-      expect(output).toContain('Add Options:');
-      expect(output).toContain('-g, --global');
-      expect(output).toContain('-a, --agent');
-      expect(output).toContain('-s, --skill');
-      expect(output).toContain('-r, --rule');
-      expect(output).toContain('--targets');
-      expect(output).toContain('--dry-run');
-      expect(output).toContain('--force');
-      expect(output).toContain('-l, --list');
-      expect(output).toContain('-y, --yes');
-      expect(output).toContain('--all');
+      expect(output).toContain('restore');
+      expect(output).toContain('init [name]');
+      expect(output).toContain('dotai <command> --help');
     });
 
     it('should show same output for -h alias', () => {
@@ -32,53 +26,45 @@ describe('dotai CLI', () => {
       expect(hOutput).toBe(helpOutput);
     });
 
-    it('should describe check command with all four context types', () => {
+    it('should show examples', () => {
       const output = runCliOutput(['--help']);
-      expect(output).toContain('Check for available updates (skills, rules, prompts, agents)');
+      expect(output).toContain('Examples:');
+      expect(output).toContain('dotai add');
+      expect(output).toContain('dotai remove');
+    });
+  });
+
+  describe('add --help', () => {
+    it('should display add-specific options', () => {
+      const output = runCliOutput(['add', '--help']);
+      expect(output).toContain('Usage: dotai add <package> [options]');
+      expect(output).toContain('-s, --skill');
+      expect(output).toContain('-r, --rule');
+      expect(output).toContain('-p, --prompt');
+      expect(output).toContain('--targets');
+      expect(output).toContain('-a, --agent');
+      expect(output).toContain('--dry-run');
+      expect(output).toContain('--force');
+      expect(output).toContain('--append');
+      expect(output).toContain('--gitignore');
+      expect(output).toContain('-y, --yes');
+      expect(output).toContain('--all');
     });
 
-    it('should describe init as creating any context template', () => {
-      const output = runCliOutput(['--help']);
-      expect(output).toContain('Create a new context template (skill, rule, prompt, or agent)');
+    it('should show same output for -h alias', () => {
+      const helpOutput = runCliOutput(['add', '--help']);
+      const hOutput = runCliOutput(['add', '-h']);
+      expect(hOutput).toBe(helpOutput);
     });
+  });
 
-    it('should include --type in Remove Options', () => {
-      const output = runCliOutput(['--help']);
-      // Verify --type appears in Remove Options section
-      const removeSection = output.split('Remove Options:')[1]?.split(/\n\n/)[0] ?? '';
-      expect(removeSection).toContain('-t, --type');
-      expect(removeSection).toContain('skill, rule, prompt, agent');
-    });
-
-    it('should use generic remove argument name', () => {
-      const output = runCliOutput(['--help']);
-      expect(output).toContain('remove [names]');
-    });
-
-    it('should list install and i as aliases of add', () => {
-      const output = runCliOutput(['--help']);
-      expect(output).toContain('(alias: a, install, i)');
-    });
-
-    it('should show restore in the Project section', () => {
-      const output = runCliOutput(['--help']);
-      const projectSection = output.split('Project:')[1]?.split(/\n\n/)[0] ?? '';
-      expect(projectSection).toContain('restore');
-      expect(projectSection).toContain(
-        'Restore skills, rules, prompts, and agents from lock files'
-      );
-    });
-
-    it('should show experimental_install as alias of restore', () => {
-      const output = runCliOutput(['--help']);
-      const projectSection = output.split('Project:')[1]?.split(/\n\n/)[0] ?? '';
-      expect(projectSection).toContain('(alias: experimental_install)');
-    });
-
-    it('should show restore example in examples section', () => {
-      const output = runCliOutput(['--help']);
-      expect(output).toContain('dotai restore');
-      expect(output).toContain('restore from lock files');
+  describe('list --help', () => {
+    it('should display list-specific options', () => {
+      const output = runCliOutput(['list', '--help']);
+      expect(output).toContain('Usage: dotai list [options]');
+      expect(output).toContain('-g, --global');
+      expect(output).toContain('-a, --agent');
+      expect(output).toContain('-t, --type');
     });
   });
 

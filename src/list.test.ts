@@ -767,16 +767,15 @@ description: A global test skill
       expect(result.stdout).toContain('List installed context');
     });
 
-    it('should include list options in help', () => {
-      const result = runCli(['--help']);
-      expect(result.stdout).toContain('List Options:');
+    it('should include list options in list --help', () => {
+      const result = runCli(['list', '--help']);
       expect(result.stdout).toContain('-g, --global');
       expect(result.stdout).toContain('-a, --agent');
       expect(result.stdout).toContain('-t, --type');
     });
 
-    it('should include list examples in help', () => {
-      const result = runCli(['--help']);
+    it('should include list examples in list --help', () => {
+      const result = runCli(['list', '--help']);
       expect(result.stdout).toContain('dotai list');
       expect(result.stdout).toContain('dotai ls -g');
       expect(result.stdout).toContain('dotai ls -a claude-code');

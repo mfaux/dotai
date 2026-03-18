@@ -649,7 +649,7 @@ describe('addRules → check → update lock lifecycle', () => {
     ]);
 
     await addRules({
-      source: 'test/repo',
+      source: sourceRepo,
       sourcePath: sourceRepo,
       projectRoot: projectDir,
       ruleNames: ['*'],

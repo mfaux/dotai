@@ -114,7 +114,7 @@ describe('addRules → lock file integration', () => {
     ]);
 
     await addRules({
-      source: 'test/repo',
+      source: sourceRepo,
       sourcePath: sourceRepo,
       projectRoot: projectDir,
       ruleNames: ['*'],

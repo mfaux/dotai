@@ -69,6 +69,8 @@ repo and transpiles them for your selected targets.
 | Prompts | `PROMPT.md`    | Transpile per supported target agent |
 | Agents  | `AGENT.md`     | Transpile per supported target agent |
 
+See [Source repo layout](docs/cli-reference.md#source-repo-layout) for where to place these files in your repo so dotai discovers them.
+
 ## Source Formats
 
 dotai accepts sources in many formats:
@@ -83,16 +85,16 @@ npx dotai add ./my-local-context                        # local path
 
 ## Commands
 
-| Command              | Description                                             |
-| -------------------- | ------------------------------------------------------- |
-| `add <package>`      | Discover, select, transpile, and install context        |
-| `remove [name]`      | Remove installed context                                |
-| `list`               | List installed items                                    |
-| `find [query]`       | Search for skills interactively                         |
-| `check`              | Check for available updates                             |
-| `update`             | Update installed items to latest versions               |
-| `init [name]`        | Create a context template (skill, rule, prompt, agent)  |
-| `restore`            | Restore from lock files                                 |
+| Command         | Description                                            |
+| --------------- | ------------------------------------------------------ |
+| `add <package>` | Discover, select, transpile, and install context       |
+| `remove [name]` | Remove installed context                               |
+| `list`          | List installed items                                   |
+| `find [query]`  | Search for skills interactively                        |
+| `check`         | Check for available updates                            |
+| `update`        | Update installed items to latest versions              |
+| `init [name]`   | Create a context template (skill, rule, prompt, agent) |
+| `restore`       | Restore from lock files                                |
 
 ## Supported Targets
 

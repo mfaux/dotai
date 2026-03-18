@@ -148,6 +148,75 @@ A single source repo can contain both canonical and native files. Canonical file
 | Agent-specific tool references or workflows     | Native file           |
 | Mix of portable and agent-specific instructions | Both in the same repo |
 
+## Source repo layout
+
+dotai discovers context files by convention. It scans the source path (the repo or directory you pass to `dotai add`) for files in specific locations.
+
+### Rules, prompts, and agents
+
+Each type is discovered in two places:
+
+| Type    | Root file   | Subdirectory pattern  |
+| ------- | ----------- | --------------------- |
+| Rules   | `RULES.md`  | `rules/*/RULES.md`    |
+| Prompts | `PROMPT.md` | `prompts/*/PROMPT.md` |
+| Agents  | `AGENT.md`  | `agents/*/AGENT.md`   |
+
+If a root-level file and a subdirectory file share the same `name` (from frontmatter), the root-level file takes priority.
+
+### Skills
+
+Skills use a richer discovery strategy. dotai checks, in order:
+
+1. **Direct path** — if the source path itself contains a `SKILL.md`, return it immediately.
+2. **Priority directories** — `skills/*/`, `.agents/skills/*/`, `.claude/skills/*/`, `.github/skills/*/`, and ~20 more agent-specific skill directories.
+3. **Plugin manifests** — paths declared in `.claude-plugin/marketplace.json` or `.claude-plugin/plugin.json`.
+4. **Recursive fallback** — if no skills are found above (or `--full-depth` is set), walks the entire tree up to 5 levels deep, skipping `node_modules`, `.git`, `dist`, `build`, and `__pycache__`.
+
+### Example directory tree
+
+A source repo with multiple context types might look like this:
+
+```
+my-context-repo/
+  RULES.md                    # single root-level rule
+  rules/
+    code-style/
+      RULES.md                # additional rule
+    error-handling/
+      RULES.md                # additional rule
+  prompts/
+    review-code/
+      PROMPT.md
+  agents/
+    architect/
+      AGENT.md
+  skills/
+    db-migrate/
+      SKILL.md
+    testing/
+      SKILL.md
+  .cursor/rules/              # native passthrough (Cursor only)
+    project-setup.mdc
+  .claude/commands/            # native passthrough (Claude Code only)
+    deploy.md
+```
+
+Every canonical file (`RULES.md`, `PROMPT.md`, `AGENT.md`, `SKILL.md`) must contain YAML frontmatter with at least `name` and `description`:
+
+```markdown
+---
+name: code-style
+description: Enforce TypeScript style conventions
+---
+
+Instructions go here.
+```
+
+### Native passthrough files
+
+Agent-specific files placed in their conventional directories are discovered and copied byte-identical to the matching agent only. See the [native file table](#canonical-vs-native-files) for supported paths per agent.
+
 ## Canonical authoring format
 
 Create reusable context once, then let `dotai` install/transpile to each target. See the [`examples/`](../examples) directory for complete, working examples of each type.

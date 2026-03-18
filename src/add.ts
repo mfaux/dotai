@@ -41,13 +41,13 @@ const version = packageJson.version;
 setVersion(version);
 
 /**
- * Resolve target agents from --agents flag, or default to all five.
+ * Resolve target agents from --targets flag, or default to all five.
  *
  * Throws CommandError if invalid or no valid agents are specified.
  */
 function resolveAgentsOrDefault(options: AddOptions): TargetAgent[] {
-  if (options.agents && options.agents.length > 0) {
-    const { agents: resolved, invalid } = resolveTargetAgents(options.agents);
+  if (options.targets && options.targets.length > 0) {
+    const { agents: resolved, invalid } = resolveTargetAgents(options.targets);
 
     if (invalid.length > 0) {
       p.log.error(`Invalid target agents: ${invalid.join(', ')}`);
@@ -148,7 +148,7 @@ const CONTEXT_CONFIGS: Record<'rule' | 'prompt' | 'agent', ContextInstallConfig>
 /**
  * Generic handler for rule, prompt, and agent install flows.
  *
- * Resolves `--agents` names to TargetAgent[], runs the appropriate discovery →
+ * Resolves `--targets` names to TargetAgent[], runs the appropriate discovery →
  * transpile → install pipeline, and displays results using @clack/prompts.
  */
 async function handleContextInstall(
@@ -162,7 +162,7 @@ async function handleContextInstall(
   const { noun } = config;
   const capitalNoun = noun.charAt(0).toUpperCase() + noun.slice(1);
 
-  // 1. Resolve target agents from --agents flag (or default to all five)
+  // 1. Resolve target agents from --targets flag (or default to all five)
   const targetAgents = resolveAgentsOrDefault(options);
   p.log.info(`Target agents: ${targetAgents.map((a) => pc.cyan(a)).join(', ')}`);
 

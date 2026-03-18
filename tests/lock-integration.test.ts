@@ -108,7 +108,7 @@ describe('addRules → lock file integration', () => {
     expect(new Set(entry.outputs)).toEqual(new Set(result.writtenPaths));
   });
 
-  it('records correct agents in lock entry based on --agents filter', async () => {
+  it('records correct agents in lock entry based on --targets filter', async () => {
     const sourceRepo = await createTestSourceRepo(tempDir, [
       { name: 'code-style', description: 'Style rules', body: 'Use const' },
     ]);

@@ -127,7 +127,7 @@ ${BOLD}Add Options:${RESET}
   -r, --rule <rules>     Specify rule names to install (repeatable)
   -p, --prompt <prompts> Specify prompt names to install (repeatable)
   --custom-agent <names> Specify agent names to install (AGENT.md context)
-  --agents <agents>      Target rule/prompt/agent transpilation agents (comma-separated)
+  --targets <agents>     Target rule/prompt/agent transpilation agents (comma-separated)
   --dry-run              Preview writes without making changes
   --force                Overwrite conflicting managed/unmanaged outputs
   --append               Append rules to AGENTS.md/CLAUDE.md instead of per-rule files
@@ -162,11 +162,11 @@ ${BOLD}Options:${RESET}
 ${BOLD}Examples:${RESET}
   ${DIM}$${RESET} dotai add vercel-labs/agent-skills
   ${DIM}$${RESET} dotai add vercel-labs/agent-skills -g
-  ${DIM}$${RESET} dotai add owner/repo --rule code-style --agents copilot,claude,cursor
+  ${DIM}$${RESET} dotai add owner/repo --rule code-style --targets copilot,claude,cursor
   ${DIM}$${RESET} dotai add owner/repo --prompt review-code
   ${DIM}$${RESET} dotai add owner/repo --prompt review-code --rule code-style
   ${DIM}$${RESET} dotai add owner/repo --custom-agent architect
-  ${DIM}$${RESET} dotai add owner/repo --custom-agent architect --agents copilot,claude
+  ${DIM}$${RESET} dotai add owner/repo --custom-agent architect --targets copilot,claude
   ${DIM}$${RESET} dotai add owner/repo --rule code-style --gitignore
   ${DIM}$${RESET} dotai add owner/repo --type rule              ${DIM}# discover and install all rules${RESET}
   ${DIM}$${RESET} dotai add owner/repo --type rule,prompt       ${DIM}# install all rules and prompts${RESET}

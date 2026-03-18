@@ -75,13 +75,13 @@ describe('CLI --rule subprocess tests', () => {
     expect(existsSync(join(projectDir, '.cursor'))).toBe(false);
   });
 
-  it('add --rule --agents limits target agents', async () => {
+  it('add --rule --targets limits target agents', async () => {
     const sourceRepo = await createTestSourceRepo(tempDir, [
       { name: 'code-style', description: 'Style rules', body: 'Use const' },
     ]);
 
     const result = runCli(
-      ['add', sourceRepo, '--rule', 'code-style', '--agents', 'cursor,cline', '-y'],
+      ['add', sourceRepo, '--rule', 'code-style', '--targets', 'cursor,cline', '-y'],
       projectDir
     );
 
@@ -213,7 +213,7 @@ describe('CLI --custom-agent subprocess tests', () => {
     expect(existsSync(join(projectDir, '.github'))).toBe(false);
   });
 
-  it('add --custom-agent --agents limits target agents', async () => {
+  it('add --custom-agent --targets limits target agents', async () => {
     const sourceRepo = await createTestSourceRepo(
       tempDir,
       [{ name: 'architect', description: 'System design agent', body: 'You are an architect.' }],
@@ -221,7 +221,7 @@ describe('CLI --custom-agent subprocess tests', () => {
     );
 
     const result = runCli(
-      ['add', sourceRepo, '--custom-agent', 'architect', '--agents', 'copilot', '-y'],
+      ['add', sourceRepo, '--custom-agent', 'architect', '--targets', 'copilot', '-y'],
       projectDir
     );
 

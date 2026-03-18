@@ -13,7 +13,7 @@ Full option tables, examples, and authoring format for `dotai`. For a quick over
 | `-p, --prompt <prompts...>` | Install specific canonical prompts by name (repeatable)                      |
 | `--custom-agent <names...>` | Install specific canonical custom agents by name (repeatable)                |
 | `-a, --agent <agents...>`   | Specify install agents (use `'*'` for all agents)                            |
-| `--agents <list>`           | Target rule/prompt/agent transpilation agents (comma-separated)              |
+| `--targets <list>`          | Target rule/prompt/agent transpilation agents (comma-separated)              |
 | `-l, --list`                | List available items without installing                                      |
 | `--copy`                    | Copy files instead of symlinking skills                                      |
 | `--dry-run`                 | Preview writes without making changes                                        |
@@ -24,7 +24,7 @@ Full option tables, examples, and authoring format for `dotai`. For a quick over
 | `-y, --yes`                 | Skip confirmation prompts                                                    |
 | `--all`                     | Shorthand for `--skill '*' --agent '*' -y`                                   |
 
-> **`--agent` vs `--agents`:** These serve different purposes. `--agent` / `-a` selects which of the 40+ skill-install agents to target (e.g., `--agent cursor,claude-code`). `--agents` selects which of the 5 transpilation targets (copilot, claude, cursor, windsurf, cline) receive transpiled rule/prompt/agent output. When omitted, all 5 transpilation targets are used.
+> **`--agent` vs `--targets`:** `--agent` / `-a` selects which of the 40+ skill-install agents to target (e.g., `--agent cursor,claude-code`). `--targets` selects which of the 5 transpilation targets (copilot, claude, cursor, windsurf, cline) receive transpiled rule/prompt/agent output. When omitted, all 5 transpilation targets are used.
 
 > **`--append`:** Instead of writing individual rule files (e.g., `.github/instructions/code-style.instructions.md`), rules are appended as marker-delimited sections into `AGENTS.md` (Copilot) and `CLAUDE.md` (Claude Code). Useful for projects that prefer a single monolithic instruction file. Only applies to Copilot and Claude Code targets; other agents always get individual files.
 
@@ -86,7 +86,7 @@ npx dotai add owner/repo --prompt review-code --rule code-style
 npx dotai add owner/repo --custom-agent architect
 
 # Install agents targeting specific transpilation agents
-npx dotai add owner/repo --custom-agent architect --agents copilot,claude
+npx dotai add owner/repo --custom-agent architect --targets copilot,claude
 
 # Force replace an existing unmanaged target file
 npx dotai add owner/repo --rule code-style --force
@@ -98,7 +98,7 @@ npx dotai add owner/repo --rule code-style --append
 npx dotai add owner/repo --rule code-style --gitignore
 
 # CI-friendly non-interactive install
-npx dotai add owner/repo --all --agents copilot,claude,cursor,windsurf,cline -y
+npx dotai add owner/repo --all --targets copilot,claude,cursor,windsurf,cline -y
 ```
 
 ## Team Sharing
@@ -116,7 +116,7 @@ npx dotai add owner/repo --prompt review-code -y
 npx dotai add owner/repo --type rule,prompt -y
 
 # CI-friendly: install everything, skip prompts, target specific agents
-npx dotai add owner/repo --all --agents copilot,claude,cursor -y
+npx dotai add owner/repo --all --targets copilot,claude,cursor -y
 ```
 
 ## How transpilation works

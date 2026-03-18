@@ -64,7 +64,7 @@ export interface RuleAddResult {
   error?: string;
 }
 
-/** Agent name aliases for --agents flag (short names to TargetAgent). */
+/** Agent name aliases for --targets flag (short names to TargetAgent). */
 const AGENT_ALIASES: Record<string, TargetAgent> = {
   copilot: 'github-copilot',
   'github-copilot': 'github-copilot',

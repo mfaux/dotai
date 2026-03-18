@@ -1,6 +1,11 @@
-# Supported Agents (Skills)
+# Supported Agents
 
-This table lists the agents that can receive `SKILL.md` files via `dotai add`. Rules, prompts, and agents use a different set of [transpilation targets](../README.md#supported-targets-for-canonical-transpilation) (Copilot, Claude Code, Cursor, Windsurf, Cline).
+dotai installs `SKILL.md` files into the config directories of 41 agents. **GitHub Copilot**, **Claude Code**, and **OpenCode** are actively tested; other agents follow the [Agent Skills specification](https://agentskills.io) but are not individually verified.
+
+Rules, prompts, and agent definitions use a separate set of [transpilation targets](../README.md#supported-targets) (Copilot, Claude Code, Cursor, Windsurf, Cline).
+
+<details>
+<summary>Full agent table</summary>
 
 <!-- supported-agents:start -->
 | Agent | `--agent` | Project Path | Global Path |
@@ -45,10 +50,12 @@ This table lists the agents that can receive `SKILL.md` files via `dotai add`. R
 | AdaL | `adal` | `.adal/skills/` | `~/.adal/skills/` |
 <!-- supported-agents:end -->
 
+</details>
+
 > [!NOTE]
 > **Kiro CLI users:** after installing skills, add them to your custom agent `resources` in `.kiro/agents/<agent>.json`.
 
-## Skill Discovery (inherited behavior)
+## Skill Discovery
 
 The CLI searches for skills in these locations within a repository:
 

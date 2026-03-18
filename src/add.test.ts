@@ -90,6 +90,34 @@ Instructions here.
     expect(result.exitCode).toBe(0);
   });
 
+  it('should not install skill from local path with --dry-run', () => {
+    const skillDir = join(testDir, 'skills', 'my-skill');
+    mkdirSync(skillDir, { recursive: true });
+    writeFileSync(
+      join(skillDir, 'SKILL.md'),
+      `---
+name: my-skill
+description: My test skill
+---
+
+# My Skill
+
+Instructions here.
+`
+    );
+
+    const targetDir = join(testDir, 'project');
+    mkdirSync(targetDir, { recursive: true });
+
+    const result = runCli(['add', testDir, '-y', '--dry-run', '--agent', 'claude-code'], targetDir);
+
+    expect(result.stdout).toContain('Dry run');
+    expect(result.exitCode).toBe(0);
+    expect(existsSync(join(targetDir, '.claude'))).toBe(false);
+    expect(existsSync(join(targetDir, '.agents'))).toBe(false);
+    expect(existsSync(join(targetDir, 'skills-lock.json'))).toBe(false);
+  });
+
   it('should filter skills by name with --skill flag', () => {
     // Create multiple test skills
     const skill1Dir = join(testDir, 'skills', 'skill-one');

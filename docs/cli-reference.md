@@ -254,3 +254,14 @@ You can override model alias mappings in your project's `package.json`:
 ```
 
 User overrides take precedence over built-in mappings. Set a value to `null` to explicitly drop the model for a specific agent.
+
+## Environment Variables
+
+| Variable                             | Description                                                        |
+| ------------------------------------ | ------------------------------------------------------------------ |
+| `GITHUB_TOKEN` / `GH_TOKEN`          | GitHub API token for authenticated requests (private repos)        |
+| `INSTALL_INTERNAL_SKILLS`            | Include skills marked `metadata.internal: true` (`1` or `true`)    |
+| `CODEX_HOME`                         | Override Codex config directory (default: `~/.codex`)              |
+| `CLAUDE_CONFIG_DIR`                  | Override Claude config directory (default: `~/.claude`)            |
+| `SKILLS_API_URL`                     | Override skills search API base URL (default: `https://skills.sh`) |
+| `DISABLE_TELEMETRY` / `DO_NOT_TRACK` | Disable anonymous usage telemetry                                  |

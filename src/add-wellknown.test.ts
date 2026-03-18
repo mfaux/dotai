@@ -548,6 +548,22 @@ describe('handleWellKnownSkills', () => {
     expect(p.confirm).not.toHaveBeenCalled();
   });
 
+  it('skips installation and lock updates in --dry-run mode', async () => {
+    await handleWellKnownSkills(
+      'https://example.com',
+      'https://example.com',
+      defaultOptions({ dryRun: true }),
+      makeSpinner()
+    );
+
+    expect(installWellKnownSkillForAgent).not.toHaveBeenCalled();
+    expect(addSkillToLock).not.toHaveBeenCalled();
+    expect(addSkillToLocalLock).not.toHaveBeenCalled();
+    expect(track).not.toHaveBeenCalled();
+    expect(p.confirm).not.toHaveBeenCalled();
+    expect(p.outro).toHaveBeenCalledWith(expect.stringContaining('Dry run complete'));
+  });
+
   // --- Symlink failure warning ---
 
   it('shows warning when symlink fails and falls back to copy', async () => {

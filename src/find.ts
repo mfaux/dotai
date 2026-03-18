@@ -1,7 +1,11 @@
 import * as readline from 'readline';
-import { runAdd, parseAddOptions } from './add.ts';
+import * as p from '@clack/prompts';
+import { runAdd } from './add.ts';
+import { parseAddOptions } from './add-options.ts';
 import { track } from './telemetry.ts';
 import { isRepoPrivate, parseOwnerRepo } from './source-parser.ts';
+import { fetchRepoTree } from './github-trees.ts';
+import { discoverRemoteContext, type RemoteContextSummary } from './find-discovery.ts';
 import { RESET, BOLD, DIM, TEXT, CYAN, MAGENTA, YELLOW } from './utils.ts';
 
 // API endpoint for skills search
@@ -101,7 +105,7 @@ async function runSearchPrompt(initialQuery = ''): Promise<SearchSkill | null> {
     } else if (results.length === 0 && loading) {
       lines.push(`${DIM}Searching...${RESET}`);
     } else if (results.length === 0) {
-      lines.push(`${DIM}No skills found${RESET}`);
+      lines.push(`${DIM}No context found${RESET}`);
     } else {
       const maxVisible = 8;
       const visible = results.slice(0, maxVisible);
@@ -238,6 +242,134 @@ async function runSearchPrompt(initialQuery = ''): Promise<SearchSkill | null> {
   });
 }
 
+function formatContextLine(
+  count: number,
+  label: string,
+  items: { name: string; native?: string }[]
+): string {
+  const names = items.map((i) => (i.native ? `${i.name} [${i.native}]` : i.name)).join(', ');
+  return `  ${count} ${label}${count !== 1 ? 's' : ''}    ${DIM}${names}${RESET}`;
+}
+
+function formatPickLabel(item: { name: string; native?: string }, type: string): string {
+  const nativeTag = item.native ? `:${item.native}` : '';
+  return `${item.name} (${type}${nativeTag})`;
+}
+
+/**
+ * Show a context summary and let the user choose what to install.
+ * Returns true if something was installed, false if cancelled.
+ */
+async function promptContextSelection(
+  pkg: string,
+  skillName: string,
+  summary: RemoteContextSummary
+): Promise<boolean> {
+  console.log();
+  console.log(`${TEXT}Found in ${BOLD}${pkg}${RESET}:`);
+
+  if (summary.skills.length > 0)
+    console.log(formatContextLine(summary.skills.length, 'skill', summary.skills));
+  if (summary.rules.length > 0)
+    console.log(formatContextLine(summary.rules.length, 'rule', summary.rules));
+  if (summary.prompts.length > 0)
+    console.log(formatContextLine(summary.prompts.length, 'prompt', summary.prompts));
+  if (summary.agents.length > 0)
+    console.log(formatContextLine(summary.agents.length, 'agent', summary.agents));
+
+  console.log();
+
+  const action = await p.select({
+    message: 'What would you like to install?',
+    options: [
+      { value: 'selected', label: `Install selected skill only (${skillName})` },
+      { value: 'all', label: 'Install all context from this repo' },
+      { value: 'pick', label: 'Pick individual items...' },
+      { value: 'cancel', label: 'Cancel' },
+    ],
+  });
+
+  if (p.isCancel(action) || action === 'cancel') {
+    return false;
+  }
+
+  if (action === 'selected') {
+    console.log();
+    console.log(`${TEXT}Installing ${BOLD}${skillName}${RESET} from ${DIM}${pkg}${RESET}...`);
+    console.log();
+    const { source, options } = parseAddOptions([pkg, '--skill', skillName]);
+    await runAdd(source, options);
+    return true;
+  }
+
+  if (action === 'all') {
+    console.log();
+    console.log(`${TEXT}Installing all context from ${BOLD}${pkg}${RESET}...`);
+    console.log();
+    const { source, options } = parseAddOptions([pkg]);
+    await runAdd(source, options);
+    return true;
+  }
+
+  // "pick" — multi-select from all discovered items
+  const allItems = [
+    ...summary.skills.map((i) => ({ value: i, label: formatPickLabel(i, 'skill') })),
+    ...summary.rules.map((i) => ({ value: i, label: formatPickLabel(i, 'rule') })),
+    ...summary.prompts.map((i) => ({ value: i, label: formatPickLabel(i, 'prompt') })),
+    ...summary.agents.map((i) => ({ value: i, label: formatPickLabel(i, 'agent') })),
+  ];
+
+  // Pre-select the skill the user originally chose
+  const preSelected = allItems
+    .filter((o) => o.value.type === 'skill' && o.value.name === skillName)
+    .map((o) => o.value);
+
+  const picked = await p.multiselect({
+    message: 'Select items to install',
+    options: allItems,
+    initialValues: preSelected,
+    required: true,
+  });
+
+  if (p.isCancel(picked)) {
+    return false;
+  }
+
+  // Build flags for runAdd
+  const addArgs: string[] = [pkg];
+  const byType = {
+    skill: [] as string[],
+    rule: [] as string[],
+    prompt: [] as string[],
+    agent: [] as string[],
+  };
+  for (const item of picked) {
+    byType[item.type].push(item.name);
+  }
+
+  if (byType.skill.length > 0) {
+    addArgs.push('--skill', ...byType.skill);
+  }
+  if (byType.rule.length > 0) {
+    addArgs.push('--rule', ...byType.rule);
+  }
+  if (byType.prompt.length > 0) {
+    addArgs.push('--prompt', ...byType.prompt);
+  }
+  if (byType.agent.length > 0) {
+    addArgs.push('--custom-agent', ...byType.agent);
+  }
+
+  console.log();
+  console.log(
+    `${TEXT}Installing ${BOLD}${picked.length} item${picked.length !== 1 ? 's' : ''}${RESET} from ${DIM}${pkg}${RESET}...`
+  );
+  console.log();
+  const { source, options } = parseAddOptions(addArgs);
+  await runAdd(source, options);
+  return true;
+}
+
 async function isRepoPublic(owner: string, repo: string): Promise<boolean> {
   const isPrivate = await isRepoPrivate(owner, repo);
   // Return true only if we know it's public (isPrivate === false)
@@ -254,6 +386,41 @@ ${DIM}  2) npx dotai add <owner/repo@skill>${RESET}`;
 
   // Non-interactive mode: just print results and exit
   if (query) {
+    // If query looks like owner/repo, try direct repo tree discovery first
+    const ownerRepo = parseOwnerRepo(query);
+    if (ownerRepo) {
+      const tree = await fetchRepoTree(query);
+      if (tree) {
+        const repoName = ownerRepo.repo;
+        const summary = discoverRemoteContext(tree, repoName);
+        const allItems = [
+          ...summary.skills,
+          ...summary.rules,
+          ...summary.prompts,
+          ...summary.agents,
+        ];
+
+        if (allItems.length > 0) {
+          track({
+            event: 'find',
+            query,
+            resultCount: String(allItems.length),
+          });
+
+          console.log(`${DIM}Install with${RESET} npx dotai add <owner/repo@skill>`);
+          console.log();
+
+          for (const item of allItems) {
+            const nativeTag = item.native ? `:${item.native}` : '';
+            const typeLabel = `${DIM}(${item.type}${nativeTag})${RESET}`;
+            console.log(`${TEXT}${query}@${item.name}${RESET} ${typeLabel}`);
+          }
+          console.log();
+          return;
+        }
+      }
+    }
+
     const results = await searchSkillsAPI(query);
 
     // Track telemetry for non-interactive search
@@ -264,7 +431,7 @@ ${DIM}  2) npx dotai add <owner/repo@skill>${RESET}`;
     });
 
     if (results.length === 0) {
-      console.log(`${DIM}No skills found for "${query}"${RESET}`);
+      console.log(`${DIM}No context found for "${query}"${RESET}`);
       return;
     }
 
@@ -307,6 +474,32 @@ ${DIM}  2) npx dotai add <owner/repo@skill>${RESET}`;
   // Use source (owner/repo) and skill name for installation
   const pkg = selected.source || selected.slug;
   const skillName = selected.name;
+
+  // Try to discover other context types in the repo
+  const tree = await fetchRepoTree(pkg);
+
+  if (tree) {
+    const repoName = pkg.includes('/') ? pkg.split('/')[1]! : pkg;
+    const summary = discoverRemoteContext(tree, repoName);
+    const totalOther =
+      summary.rules.length +
+      summary.prompts.length +
+      summary.agents.length +
+      summary.skills.filter((s) => s.name !== skillName).length;
+
+    if (totalOther > 0) {
+      const installed = await promptContextSelection(pkg, skillName, summary);
+      if (!installed) {
+        console.log(`${DIM}Installation cancelled${RESET}`);
+        console.log();
+        return;
+      }
+      // promptContextSelection handles the install and trailing output
+      return;
+    }
+  } else {
+    console.log(`${DIM}(could not fetch repo tree — installing selected skill only)${RESET}`);
+  }
 
   console.log();
   console.log(`${TEXT}Installing ${BOLD}${skillName}${RESET} from ${DIM}${pkg}${RESET}...`);

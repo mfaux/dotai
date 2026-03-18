@@ -70,7 +70,7 @@ function showBanner(): void {
     `  ${DIM}$${RESET} ${TEXT}npx dotai list${RESET}                 ${DIM}List installed context${RESET}`
   );
   console.log(
-    `  ${DIM}$${RESET} ${TEXT}npx dotai find ${DIM}[query]${RESET}         ${DIM}Search for skills${RESET}`
+    `  ${DIM}$${RESET} ${TEXT}npx dotai find ${DIM}[query]${RESET}         ${DIM}Search for skills & context${RESET}`
   );
   console.log();
   console.log(
@@ -104,7 +104,7 @@ ${BOLD}Commands:${RESET}
   add <package>        Add context from a package
   remove [names]       Remove installed context
   list, ls             List installed context
-  find [query]         Search for skills
+  find [query]         Search for skills & context
   check                Check for available updates
   update               Update installed items
   restore              Restore from lock files

@@ -1,0 +1,102 @@
+import type { ContextType } from './types.ts';
+import { consumeMultiValues } from './cli-parse.ts';
+
+export interface AddOptions {
+  global?: boolean;
+  agent?: string[];
+  yes?: boolean;
+  skill?: string[];
+  rule?: string[];
+  prompt?: string[];
+  customAgent?: string[];
+  list?: boolean;
+  all?: boolean;
+  fullDepth?: boolean;
+  copy?: boolean;
+  dryRun?: boolean;
+  force?: boolean;
+  /** Target agents for dotai rule transpilation (maps to TargetAgent). */
+  agents?: string[];
+  /** Use append mode for rules — write to AGENTS.md/CLAUDE.md instead of per-rule files. */
+  append?: boolean;
+  /** Add transpiled output paths to .gitignore (opt-in). */
+  gitignore?: boolean;
+  /** Filter discovery to specific context types (skill, rule, prompt, agent). */
+  type?: ContextType[];
+}
+
+// Parse command line options from args array
+export function parseAddOptions(args: string[]): { source: string[]; options: AddOptions } {
+  const options: AddOptions = {};
+  const source: string[] = [];
+
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+
+    if (arg === '-g' || arg === '--global') {
+      options.global = true;
+    } else if (arg === '-y' || arg === '--yes') {
+      options.yes = true;
+    } else if (arg === '-l' || arg === '--list') {
+      options.list = true;
+    } else if (arg === '--all') {
+      options.all = true;
+    } else if (arg === '-a' || arg === '--agent') {
+      options.agent = options.agent || [];
+      const { values, nextIndex } = consumeMultiValues(args, i + 1);
+      options.agent.push(...values);
+      i = nextIndex - 1; // Back up one since the loop will increment
+    } else if (arg === '-s' || arg === '--skill') {
+      options.skill = options.skill || [];
+      const { values, nextIndex } = consumeMultiValues(args, i + 1);
+      options.skill.push(...values);
+      i = nextIndex - 1;
+    } else if (arg === '-r' || arg === '--rule') {
+      options.rule = options.rule || [];
+      const { values, nextIndex } = consumeMultiValues(args, i + 1);
+      options.rule.push(...values);
+      i = nextIndex - 1;
+    } else if (arg === '-p' || arg === '--prompt') {
+      options.prompt = options.prompt || [];
+      const { values, nextIndex } = consumeMultiValues(args, i + 1);
+      options.prompt.push(...values);
+      i = nextIndex - 1;
+    } else if (arg === '--custom-agent') {
+      options.customAgent = options.customAgent || [];
+      const { values, nextIndex } = consumeMultiValues(args, i + 1);
+      options.customAgent.push(...values);
+      i = nextIndex - 1;
+    } else if (arg === '--agents') {
+      options.agents = options.agents || [];
+      const { values, nextIndex } = consumeMultiValues(args, i + 1, { splitCommas: true });
+      options.agents.push(...values);
+      i = nextIndex - 1;
+    } else if (arg === '--append') {
+      options.append = true;
+    } else if (arg === '--gitignore') {
+      options.gitignore = true;
+    } else if (arg === '--dry-run') {
+      options.dryRun = true;
+    } else if (arg === '--force') {
+      options.force = true;
+    } else if (arg === '--full-depth') {
+      options.fullDepth = true;
+    } else if (arg === '--copy') {
+      options.copy = true;
+    } else if (arg === '-t' || arg === '--type') {
+      options.type = options.type || [];
+      const { values, nextIndex } = consumeMultiValues(args, i + 1, { splitCommas: true });
+      for (const val of values) {
+        const lower = val.toLowerCase();
+        if (!options.type.includes(lower as ContextType)) {
+          options.type.push(lower as ContextType);
+        }
+      }
+      i = nextIndex - 1;
+    } else if (arg && !arg.startsWith('-')) {
+      source.push(arg);
+    }
+  }
+
+  return { source, options };
+}

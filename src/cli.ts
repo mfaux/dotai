@@ -100,98 +100,92 @@ function showHelp(): void {
   console.log(`
 ${BOLD}Usage:${RESET} dotai <command> [options]
 
-${BOLD}Manage Context:${RESET}
-  add <package>        Add context from a package (alias: a, install, i)
-                       e.g. vercel-labs/agent-skills
-                            https://github.com/vercel-labs/agent-skills
+${BOLD}Commands:${RESET}
+  add <package>        Add context from a package
   remove [names]       Remove installed context
   list, ls             List installed context
-  find [query]         Search for skills interactively
-
-${BOLD}Updates:${RESET}
-  check                Check for available updates (skills, rules, prompts, agents)
-  update               Update installed items to latest versions
-
-${BOLD}Project:${RESET}
-  restore              Restore skills, rules, prompts, and agents from lock files
-                       (alias: experimental_install)
-  init [name]          Create a new context template (skill, rule, prompt, or agent)
-                       Use 'init rule', 'init prompt', or 'init agent' for other types
-  experimental_sync    Sync skills from node_modules into agent directories
-
-${BOLD}Add Options:${RESET}
-  -g, --global           Install globally (user-level) instead of project-level
-  -a, --agent <agents>   Specify install agents (use '*' for all agents)
-  -t, --type <types>     Filter by context type (skill, rule, prompt, agent; comma-separated)
-  -s, --skill <skills>   Specify skill names to install (use '*' for all)
-  -r, --rule <rules>     Specify rule names to install (repeatable)
-  -p, --prompt <prompts> Specify prompt names to install (repeatable)
-  --custom-agent <names> Specify agent names to install (AGENT.md context)
-  --targets <agents>     Target rule/prompt/agent transpilation agents (comma-separated)
-  --dry-run              Preview writes without making changes
-  --force                Overwrite conflicting managed/unmanaged outputs
-  --append               Append rules to AGENTS.md/CLAUDE.md instead of per-rule files
-  --gitignore            Add transpiled output paths to .gitignore
-  -l, --list             List available skills in the repository without installing
-  -y, --yes              Skip confirmation prompts
-  --copy                 Copy files instead of symlinking to agent directories
-  --all                  Shorthand for --skill '*' --agent '*' -y
-  --full-depth           Search all subdirectories even when a root SKILL.md exists
-
-${BOLD}Remove Options:${RESET}
-  -g, --global           Remove from global scope
-  -a, --agent <agents>   Remove from specific agents (use '*' for all agents)
-  -s, --skill <skills>   Specify skills to remove (use '*' for all skills)
-  -t, --type <types>     Filter by context type (skill, rule, prompt, agent; comma-separated)
-  -y, --yes              Skip confirmation prompts
-  --all                  Shorthand for --skill '*' --agent '*' -y
-  
-${BOLD}Experimental Sync Options:${RESET}
-  -a, --agent <agents>   Specify agents to install to (use '*' for all agents)
-  -y, --yes              Skip confirmation prompts
-
-${BOLD}List Options:${RESET}
-  -g, --global           List global context (default: project)
-  -a, --agent <agents>   Filter by specific agents
-  -t, --type <types>     Filter by context type (skill, rule, prompt, agent)
+  find [query]         Search for skills
+  check                Check for available updates
+  update               Update installed items
+  restore              Restore from lock files
+  init [name]          Create a context template
 
 ${BOLD}Options:${RESET}
-  --help, -h        Show this help message
-  --version, -v     Show version number
+  -h, --help           Show help (use with any command for details)
+  -v, --version        Show version number
+
+${BOLD}Examples:${RESET}
+  ${DIM}$${RESET} dotai add owner/repo                          ${DIM}# install skills${RESET}
+  ${DIM}$${RESET} dotai add owner/repo --rule code-style        ${DIM}# install a rule${RESET}
+  ${DIM}$${RESET} dotai add owner/repo --type rule,prompt       ${DIM}# install all rules and prompts${RESET}
+  ${DIM}$${RESET} dotai add owner/repo -g                       ${DIM}# install globally${RESET}
+  ${DIM}$${RESET} dotai remove                                  ${DIM}# interactive remove${RESET}
+
+Run ${BOLD}dotai <command> --help${RESET} for command-specific options.
+Discover skills at ${TEXT}https://skills.sh/${RESET}
+`);
+}
+
+function showAddHelp(): void {
+  console.log(`
+${BOLD}Usage:${RESET} dotai add <package> [options]
+
+${BOLD}Description:${RESET}
+  Add context (skills, rules, prompts, agents) from a source repository.
+  Sources can be GitHub shorthand, full URLs, or local paths.
+
+${BOLD}Content Selection:${RESET}
+  -s, --skill <skills>   Install specific skills (use '*' for all)
+  -r, --rule <rules>     Install specific rules
+  -p, --prompt <prompts> Install specific prompts
+  --custom-agent <names> Install specific agents (AGENT.md context)
+  -t, --type <types>     Filter by type (skill, rule, prompt, agent; comma-separated)
+  -l, --list             List available items without installing
+
+${BOLD}Target Options:${RESET}
+  -a, --agent <agents>   Specify install agents (use '*' for all agents)
+  --targets <agents>     Transpilation targets (comma-separated: copilot, claude, cursor, windsurf, cline)
+
+${BOLD}Install Options:${RESET}
+  -g, --global           Install globally (user-level)
+  --copy                 Copy files instead of symlinking
+  --dry-run              Preview writes without making changes
+  --force                Overwrite conflicting outputs
+  --append               Append rules to AGENTS.md/CLAUDE.md instead of per-rule files
+  --gitignore            Add transpiled output paths to .gitignore
+  --full-depth           Search all subdirectories even when a root SKILL.md exists
+  --all                  Shorthand for --skill '*' --agent '*' -y
+  -y, --yes              Skip confirmation prompts
 
 ${BOLD}Examples:${RESET}
   ${DIM}$${RESET} dotai add vercel-labs/agent-skills
-  ${DIM}$${RESET} dotai add vercel-labs/agent-skills -g
-  ${DIM}$${RESET} dotai add owner/repo --rule code-style --targets copilot,claude,cursor
+  ${DIM}$${RESET} dotai add owner/repo --rule code-style --targets copilot,claude
   ${DIM}$${RESET} dotai add owner/repo --prompt review-code
-  ${DIM}$${RESET} dotai add owner/repo --prompt review-code --rule code-style
-  ${DIM}$${RESET} dotai add owner/repo --custom-agent architect
-  ${DIM}$${RESET} dotai add owner/repo --custom-agent architect --targets copilot,claude
-  ${DIM}$${RESET} dotai add owner/repo --rule code-style --gitignore
-  ${DIM}$${RESET} dotai add owner/repo --type rule              ${DIM}# discover and install all rules${RESET}
-  ${DIM}$${RESET} dotai add owner/repo --type rule,prompt       ${DIM}# install all rules and prompts${RESET}
-  ${DIM}$${RESET} dotai add vercel-labs/agent-skills --agent claude-code cursor
-  ${DIM}$${RESET} dotai remove                         ${DIM}# interactive remove${RESET}
-  ${DIM}$${RESET} dotai remove web-design              ${DIM}# remove by name${RESET}
-  ${DIM}$${RESET} dotai remove --type rule code-style   ${DIM}# remove a rule${RESET}
-  ${DIM}$${RESET} dotai remove --type prompt -y         ${DIM}# remove all prompts${RESET}
-  ${DIM}$${RESET} dotai rm --global frontend-design
-  ${DIM}$${RESET} dotai list                           ${DIM}# list project installs${RESET}
-  ${DIM}$${RESET} dotai ls -g                          ${DIM}# list global installs${RESET}
-  ${DIM}$${RESET} dotai ls -a claude-code              ${DIM}# filter by agent${RESET}
-  ${DIM}$${RESET} dotai ls -t rule                     ${DIM}# list only rules${RESET}
-  ${DIM}$${RESET} dotai ls -t prompt                   ${DIM}# list only prompts${RESET}
-  ${DIM}$${RESET} dotai ls -t agent                    ${DIM}# list only agents${RESET}
-  ${DIM}$${RESET} dotai find                           ${DIM}# interactive search${RESET}
-  ${DIM}$${RESET} dotai find typescript                ${DIM}# search by keyword${RESET}
-  ${DIM}$${RESET} dotai check
-  ${DIM}$${RESET} dotai update
-  ${DIM}$${RESET} dotai restore                       ${DIM}# restore from lock files${RESET}
-  ${DIM}$${RESET} dotai init my-skill
-  ${DIM}$${RESET} dotai init prompt review-code         ${DIM}# create PROMPT.md template${RESET}
-  ${DIM}$${RESET} dotai init agent architect             ${DIM}# create AGENT.md template${RESET}
-  ${DIM}$${RESET} dotai experimental_sync              ${DIM}# sync from node_modules${RESET}
-  ${DIM}$${RESET} dotai experimental_sync -y           ${DIM}# sync without prompts${RESET}
+  ${DIM}$${RESET} dotai add owner/repo --type rule,prompt -y
+  ${DIM}$${RESET} dotai add owner/repo --agent claude-code cursor
+  ${DIM}$${RESET} dotai add owner/repo --all -g
+
+Discover skills at ${TEXT}https://skills.sh/${RESET}
+`);
+}
+
+function showListHelp(): void {
+  console.log(`
+${BOLD}Usage:${RESET} dotai list [options]
+
+${BOLD}Description:${RESET}
+  List installed context (skills, rules, prompts, agents).
+
+${BOLD}Options:${RESET}
+  -g, --global           List global context (default: project)
+  -a, --agent <agents>   Filter by specific agents
+  -t, --type <types>     Filter by type (skill, rule, prompt, agent; comma-separated)
+
+${BOLD}Examples:${RESET}
+  ${DIM}$${RESET} dotai list                  ${DIM}# list project installs${RESET}
+  ${DIM}$${RESET} dotai ls -g                 ${DIM}# list global installs${RESET}
+  ${DIM}$${RESET} dotai ls -a claude-code     ${DIM}# filter by agent${RESET}
+  ${DIM}$${RESET} dotai ls -t rule            ${DIM}# list only rules${RESET}
 
 Discover skills at ${TEXT}https://skills.sh/${RESET}
 `);
@@ -265,6 +259,10 @@ async function main(): Promise<void> {
     case 'i':
     case 'install':
     case 'add': {
+      if (restArgs.includes('--help') || restArgs.includes('-h')) {
+        showAddHelp();
+        break;
+      }
       showLogo();
       const { source: addSource, options: addOpts } = parseAddOptions(restArgs);
       await runAdd(addSource, addOpts);
@@ -295,6 +293,10 @@ async function main(): Promise<void> {
     }
     case 'list':
     case 'ls':
+      if (restArgs.includes('--help') || restArgs.includes('-h')) {
+        showListHelp();
+        break;
+      }
       await runList(restArgs);
       break;
     case 'check':

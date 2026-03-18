@@ -215,11 +215,6 @@ description: Test force
   });
 
   describe('CLI routing', () => {
-    it('should show experimental_sync in help output', () => {
-      const result = runCli(['--help']);
-      expect(result.stdout).toContain('experimental_sync');
-    });
-
     it('should show experimental_sync in banner', () => {
       const result = runCli([]);
       expect(result.stdout).toContain('experimental_sync');

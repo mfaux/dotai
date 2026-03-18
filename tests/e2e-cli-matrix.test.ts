@@ -986,9 +986,12 @@ description: A test skill
   // -------------------------------------------------------------------------
 
   describe('CLI help reflects four-type support', () => {
-    it('--help mentions check for all four types', () => {
-      const result = runCli(['--help']);
-      expect(result.stdout).toContain('skills, rules, prompts, agents');
+    it('add --help mentions all four content types', () => {
+      const result = runCli(['add', '--help']);
+      expect(result.stdout).toContain('skill');
+      expect(result.stdout).toContain('rule');
+      expect(result.stdout).toContain('prompt');
+      expect(result.stdout).toContain('agent');
     });
 
     it('remove --help mentions --type option', () => {
@@ -997,10 +1000,8 @@ description: A test skill
       expect(result.stdout).toContain('skill, rule, prompt, agent');
     });
 
-    it('--help shows --type in remove options', () => {
-      const result = runCli(['--help']);
-      // Remove Options section should mention --type
-      expect(result.stdout).toContain('Remove Options');
+    it('remove --help shows --type in options', () => {
+      const result = runCli(['remove', '--help']);
       expect(result.stdout).toContain('-t, --type');
     });
   });

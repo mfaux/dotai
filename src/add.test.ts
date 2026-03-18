@@ -519,17 +519,17 @@ describe('parseAddOptions', () => {
     expect(result.options.customAgent).toEqual(['architect']);
   });
 
-  it('should parse --custom-agent with --agents combination', () => {
+  it('should parse --custom-agent with --targets combination', () => {
     const result = parseAddOptions([
       'source',
       '--custom-agent',
       'architect',
-      '--agents',
+      '--targets',
       'copilot,claude',
     ]);
     expect(result.source).toEqual(['source']);
     expect(result.options.customAgent).toEqual(['architect']);
-    expect(result.options.agents).toEqual(['copilot', 'claude']);
+    expect(result.options.targets).toEqual(['copilot', 'claude']);
   });
 
   it('should parse --type flag with single type', () => {
@@ -579,13 +579,13 @@ describe('parseAddOptions', () => {
       'source',
       '--type',
       'rule',
-      '--agents',
+      '--targets',
       'copilot,claude',
       '--force',
     ]);
     expect(result.source).toEqual(['source']);
     expect(result.options.type).toEqual(['rule']);
-    expect(result.options.agents).toEqual(['copilot', 'claude']);
+    expect(result.options.targets).toEqual(['copilot', 'claude']);
     expect(result.options.force).toBe(true);
   });
 

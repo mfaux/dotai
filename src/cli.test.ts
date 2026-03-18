@@ -18,7 +18,7 @@ describe('dotai CLI', () => {
       expect(output).toContain('-a, --agent');
       expect(output).toContain('-s, --skill');
       expect(output).toContain('-r, --rule');
-      expect(output).toContain('--agents');
+      expect(output).toContain('--targets');
       expect(output).toContain('--dry-run');
       expect(output).toContain('--force');
       expect(output).toContain('-l, --list');

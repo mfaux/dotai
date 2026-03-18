@@ -171,7 +171,7 @@ describe('addRules --gitignore integration', () => {
     expect(gitignoreContent).toContain('# dotai:end');
   });
 
-  it('--gitignore with --agents limits output paths', async () => {
+  it('--gitignore with --targets limits output paths', async () => {
     const sourceRepo = await createTestSourceRepo(tempDir, [
       { name: 'code-style', description: 'Style', body: 'Use const' },
     ]);

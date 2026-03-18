@@ -16,7 +16,7 @@ export interface AddOptions {
   dryRun?: boolean;
   force?: boolean;
   /** Target agents for dotai rule transpilation (maps to TargetAgent). */
-  agents?: string[];
+  targets?: string[];
   /** Use append mode for rules — write to AGENTS.md/CLAUDE.md instead of per-rule files. */
   append?: boolean;
   /** Add transpiled output paths to .gitignore (opt-in). */
@@ -66,10 +66,10 @@ export function parseAddOptions(args: string[]): { source: string[]; options: Ad
       const { values, nextIndex } = consumeMultiValues(args, i + 1);
       options.customAgent.push(...values);
       i = nextIndex - 1;
-    } else if (arg === '--agents') {
-      options.agents = options.agents || [];
+    } else if (arg === '--targets') {
+      options.targets = options.targets || [];
       const { values, nextIndex } = consumeMultiValues(args, i + 1, { splitCommas: true });
-      options.agents.push(...values);
+      options.targets.push(...values);
       i = nextIndex - 1;
     } else if (arg === '--append') {
       options.append = true;

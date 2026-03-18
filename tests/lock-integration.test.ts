@@ -69,7 +69,7 @@ describe('addRules → lock file integration', () => {
     ]);
 
     await addRules({
-      source: 'test/repo',
+      source: sourceRepo,
       sourcePath: sourceRepo,
       projectRoot: projectDir,
       ruleNames: ['*'],
@@ -114,7 +114,7 @@ describe('addRules → lock file integration', () => {
     ]);
 
     await addRules({
-      source: 'test/repo',
+      source: sourceRepo,
       sourcePath: sourceRepo,
       projectRoot: projectDir,
       ruleNames: ['*'],
@@ -649,7 +649,7 @@ describe('addRules → check → update lock lifecycle', () => {
     ]);
 
     await addRules({
-      source: 'test/repo',
+      source: sourceRepo,
       sourcePath: sourceRepo,
       projectRoot: projectDir,
       ruleNames: ['*'],

@@ -1,5 +1,4 @@
 import { homedir } from 'os';
-import { sep } from 'path';
 
 // ---------------------------------------------------------------------------
 // ANSI color constants
@@ -24,15 +23,30 @@ export const MAGENTA = '\x1b[35m';
  * Handles both Unix and Windows path separators.
  */
 export function shortenPath(fullPath: string, cwd: string): string {
-  const home = homedir();
-  // Ensure we match complete path segments by checking for separator after the prefix
-  if (fullPath === home || fullPath.startsWith(home + sep)) {
-    return '~' + fullPath.slice(home.length);
+  const normalizedPath = normalizeDisplayPath(fullPath);
+  const normalizedHome = normalizeDisplayPath(homedir());
+  const normalizedCwd = normalizeDisplayPath(cwd);
+
+  if (normalizedPath === normalizedHome || normalizedPath.startsWith(normalizedHome + '/')) {
+    return '~' + normalizedPath.slice(normalizedHome.length);
   }
-  if (fullPath === cwd || fullPath.startsWith(cwd + sep)) {
-    return '.' + fullPath.slice(cwd.length);
+
+  if (normalizedPath === normalizedCwd || normalizedPath.startsWith(normalizedCwd + '/')) {
+    return '.' + normalizedPath.slice(normalizedCwd.length);
   }
+
   return fullPath;
+}
+
+function normalizeDisplayPath(path: string): string {
+  if (path.length === 0) return path;
+
+  const normalized = path.replace(/\\/g, '/');
+  if (normalized.length > 1 && normalized.endsWith('/')) {
+    return normalized.replace(/\/+$/, '');
+  }
+
+  return normalized;
 }
 
 // ---------------------------------------------------------------------------

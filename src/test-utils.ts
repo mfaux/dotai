@@ -1,6 +1,12 @@
 import { execSync } from 'child_process';
 import { join } from 'path';
 
+function quoteArg(arg: string): string {
+  if (arg.length === 0) return '""';
+  if (!/[\s"']/u.test(arg)) return arg;
+  return JSON.stringify(arg);
+}
+
 // const PROJECT_ROOT = join(import.meta.dirname, '..');
 const CLI_PATH = join(import.meta.dirname, 'cli.ts');
 
@@ -26,8 +32,10 @@ export function runCli(
   env?: Record<string, string>,
   timeout?: number
 ): { stdout: string; stderr: string; exitCode: number } {
+  const command = `node --experimental-strip-types "${CLI_PATH}" ${args.map(quoteArg).join(' ')}`;
+
   try {
-    const output = execSync(`node --experimental-strip-types "${CLI_PATH}" ${args.join(' ')}`, {
+    const output = execSync(command, {
       encoding: 'utf-8',
       cwd,
       stdio: ['pipe', 'pipe', 'pipe'],
@@ -54,8 +62,10 @@ export function runCliWithInput(
   input: string,
   cwd?: string
 ): { stdout: string; stderr: string; exitCode: number } {
+  const command = `node --experimental-strip-types "${CLI_PATH}" ${args.map(quoteArg).join(' ')}`;
+
   try {
-    const output = execSync(`node --experimental-strip-types "${CLI_PATH}" ${args.join(' ')}`, {
+    const output = execSync(command, {
       encoding: 'utf-8',
       cwd,
       input: input + '\n',

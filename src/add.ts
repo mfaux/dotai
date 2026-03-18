@@ -574,6 +574,10 @@ export async function runAdd(args: string[], options: AddOptions = {}): Promise<
 
     const cwd = process.cwd();
 
+    if (options.dryRun) {
+      p.log.info(pc.dim('Dry run — no files will be written'));
+    }
+
     // Build installation summary
     const summaryLines: string[] = [];
 
@@ -658,7 +662,7 @@ export async function runAdd(args: string[], options: AddOptions = {}): Promise<
       // Silently skip — security info is advisory only
     }
 
-    if (!options.yes) {
+    if (!options.yes && !options.dryRun) {
       const confirmed = await p.confirm({ message: 'Proceed with installation?' });
 
       if (p.isCancel(confirmed) || !confirmed) {
@@ -666,6 +670,21 @@ export async function runAdd(args: string[], options: AddOptions = {}): Promise<
         await cleanup(tempDir);
         throw new CommandError(0);
       }
+    }
+
+    if (options.dryRun) {
+      console.log();
+      p.note(
+        [
+          pc.dim('Dry run — no files were written'),
+          `${pc.cyan(String(selectedSkills.length))} skill${selectedSkills.length !== 1 ? 's' : ''} would be installed`,
+        ].join('\n'),
+        'Dry Run Summary'
+      );
+
+      console.log();
+      p.outro(pc.green('Dry run complete'));
+      return;
     }
 
     spinner.start('Installing skills...');

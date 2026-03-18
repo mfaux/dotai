@@ -1,6 +1,13 @@
 # dotai
 
-Universal context distribution for AI coding agents.
+Share AI agent context across tools and teams.
+
+dotai takes canonical context files — skills, rules, prompts, and agent
+definitions — and installs them into the config directories of 40+ AI coding
+agents. Write once, distribute everywhere. Your team gets consistent AI behavior
+across Copilot, Claude Code, Cursor, and dozens more.
+
+Requires Node.js 18+ (or Bun/Deno).
 
 <!-- agent-list:start -->
 
@@ -8,15 +15,50 @@ Supports **OpenCode**, **Claude Code**, **Codex**, **Cursor**, and [37 more](doc
 
 <!-- agent-list:end -->
 
-## Fork Lineage
+## Try It Now
 
-`dotai` started as a near carbon-copy fork of `vercel-labs/skills` / `skills.sh`.
-In plain terms: this project is basically `skills.sh` plus additive support for more kinds of AI agent context.
+```bash
+npx dotai add owner/repo           # install context from any GitHub repo
+npx dotai add owner/repo --dry-run # preview without writing files
+```
 
-- **Inherited as-is:** mature skills install pipeline, multi-agent skill paths, discovery behavior, update/check flow, lock handling patterns, and agent registry tooling.
-- **Added by dotai:** distribution beyond `SKILL.md` to additional context layers (rules, prompts, agents), plus transpilation and target-aware install behavior.
+## Why dotai?
 
-This means `skills.sh` workflows remain first-class, while `dotai` extends the model to broader AI context management.
+AI coding agents each store context in different places with different formats.
+Keeping rules, prompts, and skills in sync across agents is manual and
+error-prone.
+
+dotai solves this with **canonical authoring**: write a single `RULES.md`,
+`PROMPT.md`, or `AGENT.md` and dotai transpiles it into every target agent's
+native format automatically.
+
+- **Write once** — one canonical file fans out to all target agents
+- **40+ agents** — Copilot, Claude Code, Cursor, Windsurf, Cline, and more
+- **Team sharing** — `npx dotai add owner/repo` gives every teammate the same context
+- **No lock-in** — canonical files are plain markdown with YAML frontmatter
+
+## Install
+
+```bash
+npm install -g dotai        # install globally for regular use
+npx dotai                   # run without installing
+```
+
+## Get Started
+
+```bash
+# Add context from a GitHub repo
+npx dotai add owner/repo
+
+# Target specific coding agents
+npx dotai add owner/repo --agents copilot,claude,cursor
+
+# Install specific rules or skills
+npx dotai add owner/repo --rule code-style --skill db-migrate
+```
+
+dotai discovers skills, rules, prompts, and agent definitions in the source
+repo and transpiles them for your selected targets.
 
 ## What dotai installs
 
@@ -27,75 +69,35 @@ This means `skills.sh` workflows remain first-class, while `dotai` extends the m
 | Prompts | `PROMPT.md`    | Transpile per supported target agent |
 | Agents  | `AGENT.md`     | Transpile per supported target agent |
 
-## Quick Start
-
-```bash
-# Add context from a repository
-npx dotai add owner/repo
-
-# Target specific coding agents
-npx dotai add owner/repo --agents copilot,claude,cursor
-
-# Install specific rules or skills
-npx dotai add owner/repo --rule code-style --skill db-migrate
-
-# Preview without writing files
-npx dotai add owner/repo --dry-run
-```
-
 ## Source Formats
 
+dotai accepts sources in many formats:
+
 ```bash
-# GitHub shorthand (owner/repo)
-npx dotai add vercel-labs/agent-skills
-
-# Full GitHub URL
-npx dotai add https://github.com/vercel-labs/agent-skills
-
-# Direct path in a repository
-npx dotai add https://github.com/vercel-labs/agent-skills/tree/main/skills/web-design-guidelines
-
-# GitLab URL
-npx dotai add https://gitlab.com/org/repo
-
-# Any git URL
-npx dotai add git@github.com:vercel-labs/agent-skills.git
-
-# Local path
-npx dotai add ./my-local-context
+npx dotai add vercel-labs/agent-skills                  # GitHub shorthand
+npx dotai add https://github.com/vercel-labs/agent-skills  # full URL
+npx dotai add https://gitlab.com/org/repo               # GitLab
+npx dotai add git@github.com:org/repo.git               # any git URL
+npx dotai add ./my-local-context                        # local path
 ```
-
-## Key Options
-
-| Option                  | Description                                                 |
-| ----------------------- | ----------------------------------------------------------- |
-| `-g, --global`          | Install to user directory instead of project                |
-| `-t, --type <types...>` | Filter by context type (`skill`, `rule`, `prompt`, `agent`) |
-| `--agents <list>`       | Target transpilation agents (comma-separated)               |
-| `--dry-run`             | Preview writes without making changes                       |
-| `-y, --yes`             | Skip confirmation prompts                                   |
-| `--all`                 | Shorthand for `--skill '*' --agent '*' -y`                  |
-
-See [full CLI reference](docs/cli-reference.md) for all `add`, `remove`, and `list` options, examples, and team sharing workflows.
 
 ## Commands
 
-| Command                        | Description                                                                     |
-| ------------------------------ | ------------------------------------------------------------------------------- |
-| `npx dotai add <package>`      | Discover, select, transpile, and install context (aliases: `install`, `i`, `a`) |
-| `npx dotai remove [name]`      | Remove installed context (aliases: `rm`, `r`)                                   |
-| `npx dotai list`               | List installed items (alias: `ls`)                                              |
-| `npx dotai find [query]`       | Search for skills interactively (aliases: `search`, `f`, `s`)                   |
-| `npx dotai check`              | Check for available updates (skills, rules, prompts, agents)                    |
-| `npx dotai update`             | Update installed items to latest versions (alias: `upgrade`)                    |
-| `npx dotai init [name]`        | Create a context template (skill by default)                                    |
-| `npx dotai init rule [name]`   | Create a RULES.md template                                                      |
-| `npx dotai init prompt [name]` | Create a PROMPT.md template                                                     |
-| `npx dotai init agent [name]`  | Create an AGENT.md template                                                     |
-| `npx dotai restore`            | Restore from lock files (alias: `experimental_install`)                         |
-| `npx dotai experimental_sync`  | Sync from node_modules into agent skill dirs                                    |
+| Command              | Description                                             |
+| -------------------- | ------------------------------------------------------- |
+| `add <package>`      | Discover, select, transpile, and install context        |
+| `remove [name]`      | Remove installed context                                |
+| `list`               | List installed items                                    |
+| `find [query]`       | Search for skills interactively                         |
+| `check`              | Check for available updates                             |
+| `update`             | Update installed items to latest versions               |
+| `init [name]`        | Create a context template (skill, rule, prompt, agent)  |
+| `restore`            | Restore from lock files                                 |
 
-## Supported Targets for Canonical Transpilation
+## Supported Targets
+
+<details>
+<summary>Transpilation support by agent</summary>
 
 | Agent          | Skills | Rules | Prompts                 | Agents                    |
 | -------------- | ------ | ----- | ----------------------- | ------------------------- |
@@ -105,27 +107,29 @@ See [full CLI reference](docs/cli-reference.md) for all `add`, `remove`, and `li
 | Windsurf       | ✅     | ✅    | ⚠️ (native passthrough) | —                         |
 | Cline          | ✅     | ✅    | —                       | —                         |
 
-- **Cursor prompts (native/compat only):** Cursor has no built-in prompt/command system. Native `.github/prompts/*.prompt.md` files are passed through (Cursor reads the Copilot path), but canonical `PROMPT.md` is not transpiled to a Cursor-specific format.
-- **Cursor agents (via `.github/agents`):** Cursor reads agent definitions from the GitHub Copilot path (`.github/agents/`). Canonical `AGENT.md` files are transpiled to the Copilot format, which Cursor then picks up.
-- **Windsurf prompts (native passthrough):** Windsurf workflows (`.windsurf/workflows/*.md`) use a native format that differs from canonical `PROMPT.md`. Only native passthrough is supported — no canonical-to-Windsurf prompt transpilation.
+- **Cursor prompts:** Cursor reads Copilot's `.github/prompts/` path. Canonical `PROMPT.md` is not transpiled to a Cursor-specific format.
+- **Cursor agents:** Cursor reads `.github/agents/` from the Copilot path. Canonical `AGENT.md` transpiles to Copilot format, which Cursor picks up.
+- **Windsurf prompts:** Windsurf workflows use a native format. Only passthrough is supported.
 
-See [full CLI reference](docs/cli-reference.md) for details on how transpilation works, canonical vs native files, and the canonical authoring format.
+</details>
 
-## Environment Variables
+Skill installs target [41 agents](docs/supported-agents.md). **GitHub Copilot**, **Claude Code**, and **OpenCode** are actively tested; other agents follow the [Agent Skills specification](https://agentskills.io) but are not individually verified.
 
-| Variable                             | Description                                                        |
-| ------------------------------------ | ------------------------------------------------------------------ |
-| `GITHUB_TOKEN` / `GH_TOKEN`          | GitHub API token for authenticated requests (private repos)        |
-| `INSTALL_INTERNAL_SKILLS`            | Include skills marked `metadata.internal: true` (`1` or `true`)    |
-| `CODEX_HOME`                         | Override Codex config directory (default: `~/.codex`)              |
-| `CLAUDE_CONFIG_DIR`                  | Override Claude config directory (default: `~/.claude`)            |
-| `SKILLS_API_URL`                     | Override skills search API base URL (default: `https://skills.sh`) |
-| `DISABLE_TELEMETRY` / `DO_NOT_TRACK` | Disable anonymous usage telemetry                                  |
+## Reference
 
-## Related Links
+- [CLI Reference](docs/cli-reference.md) — all commands, flags, options, and authoring format
+- [Supported Agents](docs/supported-agents.md) — full list of skill install targets
 
-- [Upstream fork source: vercel-labs/skills](https://github.com/vercel-labs/skills)
-- [skills.sh](https://skills.sh)
+## Fork Lineage
+
+dotai started as a fork of [vercel-labs/skills](https://github.com/vercel-labs/skills) / [skills.sh](https://skills.sh).
+The inherited skills install pipeline remains first-class. dotai extends it with
+transpilation of rules, prompts, and agent definitions to multiple target agents.
+
+## Acknowledgements
+
+- [vercel-labs/skills](https://github.com/vercel-labs/skills) — upstream fork source
+- [skills.sh](https://skills.sh) — skill discovery and search
 - [Agent Skills specification](https://agentskills.io)
 
 ## License

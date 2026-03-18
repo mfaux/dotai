@@ -9,12 +9,10 @@
   "files": [
     "dist",
     "bin",
-    "README.md",
-    "ThirdPartyNoticeText.txt"
+    "README.md"
   ],
   "scripts": {
-    "build": "node --experimental-strip-types scripts/generate-licenses.ts && obuild",
-    "generate-licenses": "node --experimental-strip-types scripts/generate-licenses.ts",
+    "build": "obuild",
     "dev": "node --experimental-strip-types src/cli.ts",
     "exec:test": "node --experimental-strip-types scripts/execute-tests.ts",
     "prepublishOnly": "npm run build",

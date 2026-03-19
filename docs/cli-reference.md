@@ -100,6 +100,35 @@ The following native directories are scanned (derived from the [target-agents re
 
 **Non-interactive mode** (with a query argument) prints matching results with install commands, suitable for use inside AI coding agents.
 
+## `import`
+
+Convert native agent-specific rule files into canonical `RULES.md` format.
+
+    npx dotai import
+    npx dotai import --from cursor,claude-code
+    npx dotai import --output rules/ --dry-run
+
+| Flag | Description |
+|------|-------------|
+| `--from <agents>` | Comma-separated list of agents to import from (default: all detected) |
+| `--output <dir>` | Output directory for canonical rules (default: `rules/`) |
+| `--force` | Overwrite existing canonical rules with the same name |
+| `--dry-run` | Preview imports without writing files |
+
+> **Note:** Some agent formats lose information during import. For example, Cursor's
+> `alwaysApply: false` maps to `activation: auto` (could also mean `manual`), and
+> Copilot rules have no description field. Review imported rules and adjust as needed.
+
+### Supported native formats
+
+| Agent | Source directory | Parsed fields |
+|-------|-----------------|---------------|
+| Cursor | `.cursor/rules/*.mdc` | description, alwaysApply, globs |
+| Claude Code | `.claude/rules/*.md` | description, globs |
+| GitHub Copilot | `.github/instructions/*.instructions.md` | applyTo |
+| Windsurf | `.windsurf/rules/*.md` | trigger, description, globs |
+| Cline | `.clinerules/*.md` | heading, blockquote, "Applies to" |
+
 ## list command options
 
 | Option                    | Description                                                                  |

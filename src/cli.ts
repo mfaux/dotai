@@ -7,6 +7,7 @@ import { runAdd, parseAddOptions, initTelemetry } from './add.ts';
 import { runCheck, runUpdate } from './check.ts';
 import { CommandError } from './command-result.ts';
 import { runFind } from './find.ts';
+import { runImport } from './import.ts';
 import { runInit } from './init.ts';
 import { runInstallFromLock } from './restore.ts';
 import { runList } from './list.ts';
@@ -87,6 +88,9 @@ function showBanner(): void {
     `  ${DIM}$${RESET} ${TEXT}npx dotai init ${DIM}[name]${RESET}          ${DIM}Create a context template${RESET}`
   );
   console.log(
+    `  ${DIM}$${RESET} ${TEXT}npx dotai import${RESET}               ${DIM}Import native rules as canonical${RESET}`
+  );
+  console.log(
     `  ${DIM}$${RESET} ${TEXT}npx dotai experimental_sync${RESET}    ${DIM}Sync skills from node_modules${RESET}`
   );
   console.log();
@@ -105,6 +109,7 @@ ${BOLD}Commands:${RESET}
   remove [names]       Remove installed context
   list, ls             List installed context
   find [query]         Search for skills & context
+  import               Import native agent rules as canonical
   check                Check for available updates
   update               Update installed items
   restore              Restore from lock files
@@ -255,6 +260,16 @@ async function main(): Promise<void> {
       console.log();
       runInit(restArgs);
       break;
+    case 'import': {
+      if (restArgs.includes('--help') || restArgs.includes('-h')) {
+        runImport(restArgs);
+        break;
+      }
+      showLogo();
+      console.log();
+      runImport(restArgs);
+      break;
+    }
     case 'a':
     case 'i':
     case 'install':

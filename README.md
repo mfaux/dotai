@@ -51,7 +51,7 @@ npx dotai                   # run without installing
 npx dotai add owner/repo
 
 # Target specific coding agents
-npx dotai add owner/repo --targets copilot,claude,cursor
+npx dotai add owner/repo --agents copilot,claude,cursor
 
 # Install specific rules or skills
 npx dotai add owner/repo --rule code-style --skill db-migrate

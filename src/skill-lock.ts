@@ -148,6 +148,7 @@ export function getGitHubToken(): string | null {
     const token = execSync('gh auth token', {
       encoding: 'utf-8',
       stdio: ['pipe', 'pipe', 'pipe'],
+      timeout: 5000,
     }).trim();
     if (token) {
       return token;

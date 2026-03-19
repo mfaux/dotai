@@ -11,6 +11,7 @@ import { CommandError } from './command-result.ts';
 import { addRules, addPrompts, addAgents, resolveTargetAgents } from './rule-add.ts';
 import { TARGET_AGENTS } from './target-agents.ts';
 import { discoverSkills, getSkillDisplayName, filterSkills } from './skill-discovery.ts';
+import { discover } from './rule-discovery.ts';
 import { installSkillForAgent, isSkillInstalled, getCanonicalPath } from './skill-installer.ts';
 import { agents } from './agents.ts';
 import { track, setVersion, fetchAuditData } from './telemetry.ts';
@@ -397,6 +398,120 @@ export async function runAdd(args: string[], options: AddOptions = {}): Promise<
       }
     }
 
+    // ─── List flow (--list flag) ───
+    // Discover all context types (skills, rules, prompts, agents) and display them.
+    if (options.list) {
+      spinner.start('Discovering context...');
+
+      // Run full discovery (canonical + native) and skill discovery in parallel
+      const [fullResult, skills] = await Promise.all([
+        discover(skillsDir),
+        discoverSkills(skillsDir, parsed.subpath, {
+          includeInternal: false,
+          fullDepth: options.fullDepth,
+        }),
+      ]);
+
+      const rules = fullResult.items.filter((i) => i.type === 'rule');
+      const prompts = fullResult.items.filter((i) => i.type === 'prompt');
+      const customAgents = fullResult.items.filter((i) => i.type === 'agent');
+
+      const totalItems = skills.length + rules.length + prompts.length + customAgents.length;
+
+      if (totalItems === 0) {
+        spinner.stop(pc.red('No context found'));
+        p.outro(pc.red('No skills, rules, prompts, or agents found in this repository.'));
+        await cleanup(tempDir);
+        throw new CommandError(1);
+      }
+
+      spinner.stop(`Found ${pc.green(String(totalItems))} item${totalItems !== 1 ? 's' : ''}`);
+
+      console.log();
+
+      // Display skills
+      if (skills.length > 0) {
+        p.log.step(pc.bold(`Skills (${skills.length})`));
+
+        const groupedSkills: Record<string, Skill[]> = {};
+        const ungroupedSkills: Skill[] = [];
+
+        for (const skill of skills) {
+          if (skill.pluginName) {
+            const group = skill.pluginName;
+            if (!groupedSkills[group]) groupedSkills[group] = [];
+            groupedSkills[group].push(skill);
+          } else {
+            ungroupedSkills.push(skill);
+          }
+        }
+
+        const sortedGroups = Object.keys(groupedSkills).sort();
+        for (const group of sortedGroups) {
+          const title = kebabToTitle(group);
+          console.log(pc.bold(title));
+          for (const skill of groupedSkills[group]!) {
+            p.log.message(`  ${pc.cyan(getSkillDisplayName(skill))}`);
+            p.log.message(`    ${pc.dim(skill.description)}`);
+          }
+          console.log();
+        }
+
+        if (ungroupedSkills.length > 0) {
+          if (sortedGroups.length > 0) console.log(pc.bold('General'));
+          for (const skill of ungroupedSkills) {
+            p.log.message(`  ${pc.cyan(getSkillDisplayName(skill))}`);
+            p.log.message(`    ${pc.dim(skill.description)}`);
+          }
+          console.log();
+        }
+      }
+
+      // Display rules
+      if (rules.length > 0) {
+        p.log.step(pc.bold(`Rules (${rules.length})`));
+        for (const rule of rules) {
+          const formatTag = rule.format !== 'canonical' ? ` ${pc.dim(`[${rule.format}]`)}` : '';
+          p.log.message(`  ${pc.cyan(rule.name)}${formatTag}`);
+          p.log.message(`    ${pc.dim(rule.description)}`);
+        }
+        console.log();
+      }
+
+      // Display prompts
+      if (prompts.length > 0) {
+        p.log.step(pc.bold(`Prompts (${prompts.length})`));
+        for (const prompt of prompts) {
+          const formatTag = prompt.format !== 'canonical' ? ` ${pc.dim(`[${prompt.format}]`)}` : '';
+          p.log.message(`  ${pc.cyan(prompt.name)}${formatTag}`);
+          p.log.message(`    ${pc.dim(prompt.description)}`);
+        }
+        console.log();
+      }
+
+      // Display agents
+      if (customAgents.length > 0) {
+        p.log.step(pc.bold(`Agents (${customAgents.length})`));
+        for (const agent of customAgents) {
+          const formatTag = agent.format !== 'canonical' ? ` ${pc.dim(`[${agent.format}]`)}` : '';
+          p.log.message(`  ${pc.cyan(agent.name)}${formatTag}`);
+          p.log.message(`    ${pc.dim(agent.description)}`);
+        }
+        console.log();
+      }
+
+      // Build install hints
+      const hints: string[] = [];
+      if (skills.length > 0) hints.push('--skill <name>');
+      if (rules.length > 0) hints.push('--rule <name>');
+      if (prompts.length > 0) hints.push('--prompt <name>');
+      if (customAgents.length > 0) hints.push('--custom-agent <name>');
+
+      p.outro(`Use ${hints.join(', ')} to install specific items`);
+      await cleanup(tempDir);
+      throw new CommandError(0);
+    }
+
     // Include internal skills when a specific skill is explicitly requested
     // (via --skill or @skill syntax)
     const includeInternal = !!(options.skill && options.skill.length > 0);
@@ -417,53 +532,6 @@ export async function runAdd(args: string[], options: AddOptions = {}): Promise<
     }
 
     spinner.stop(`Found ${pc.green(skills.length)} skill${skills.length > 1 ? 's' : ''}`);
-
-    if (options.list) {
-      console.log();
-      p.log.step(pc.bold('Available Skills'));
-
-      // Group available skills by plugin for list output
-      const groupedSkills: Record<string, Skill[]> = {};
-      const ungroupedSkills: Skill[] = [];
-
-      for (const skill of skills) {
-        if (skill.pluginName) {
-          const group = skill.pluginName;
-          if (!groupedSkills[group]) groupedSkills[group] = [];
-          groupedSkills[group].push(skill);
-        } else {
-          ungroupedSkills.push(skill);
-        }
-      }
-
-      // Print groups
-      const sortedGroups = Object.keys(groupedSkills).sort();
-      for (const group of sortedGroups) {
-        // Convert kebab-case to Title Case for display header
-        const title = kebabToTitle(group);
-
-        console.log(pc.bold(title));
-        for (const skill of groupedSkills[group]!) {
-          p.log.message(`  ${pc.cyan(getSkillDisplayName(skill))}`);
-          p.log.message(`    ${pc.dim(skill.description)}`);
-        }
-        console.log();
-      }
-
-      // Print ungrouped
-      if (ungroupedSkills.length > 0) {
-        if (sortedGroups.length > 0) console.log(pc.bold('General'));
-        for (const skill of ungroupedSkills) {
-          p.log.message(`  ${pc.cyan(getSkillDisplayName(skill))}`);
-          p.log.message(`    ${pc.dim(skill.description)}`);
-        }
-      }
-
-      console.log();
-      p.outro('Use --skill <name> to install specific skills');
-      await cleanup(tempDir);
-      throw new CommandError(0);
-    }
 
     let selectedSkills: Skill[];
 

@@ -205,7 +205,7 @@ This is a test skill.
     });
 
     it('should show error for invalid agent name', () => {
-      const result = runCli(['remove', 'test-skill', '--agent', 'invalid-agent', '-y'], testDir);
+      const result = runCli(['remove', 'test-skill', '--agents', 'invalid-agent', '-y'], testDir);
 
       expect(result.stdout).toContain('Invalid agents');
       expect(result.stdout).toContain('invalid-agent');
@@ -215,13 +215,13 @@ This is a test skill.
 
     it('should accept valid agent names', () => {
       // This should not error on agent validation
-      const result = runCli(['remove', 'test-skill', '--agent', 'claude-code', '-y'], testDir);
+      const result = runCli(['remove', 'test-skill', '--agents', 'claude-code', '-y'], testDir);
       expect(result.stdout).not.toContain('Invalid agents');
     });
 
     it('should accept multiple agent names', () => {
       const result = runCli(
-        ['remove', 'test-skill', '--agent', 'claude-code', 'cursor', '-y'],
+        ['remove', 'test-skill', '--agents', 'claude-code', 'cursor', '-y'],
         testDir
       );
       expect(result.stdout).not.toContain('Invalid agents');
@@ -303,7 +303,7 @@ This is a test skill.
       expect(result.stdout).toContain('Usage');
       expect(result.stdout).toContain('remove');
       expect(result.stdout).toContain('--global');
-      expect(result.stdout).toContain('--agent');
+      expect(result.stdout).toContain('--agents');
       expect(result.stdout).toContain('--yes');
       expect(result.exitCode).toBe(0);
     });
@@ -338,7 +338,7 @@ This is a test skill.
 
     it('should handle multiple values for --agent', () => {
       const result = runCli(
-        ['remove', 'parse-test-skill', '--agent', 'claude-code', 'cursor', '-y'],
+        ['remove', 'parse-test-skill', '--agents', 'claude-code', 'cursor', '-y'],
         testDir
       );
       expect(result.stdout).not.toContain('Invalid agents');
@@ -502,11 +502,11 @@ describe('removeCommand unit tests', () => {
     writeFileSync(join(skillDir, 'SKILL.md'), '# Test');
 
     await expect(
-      removeCommand(['test-skill'], { agent: ['not-a-real-agent'], yes: true })
+      removeCommand(['test-skill'], { agents: ['not-a-real-agent'], yes: true })
     ).rejects.toThrow(CommandError);
 
     try {
-      await removeCommand(['test-skill'], { agent: ['not-a-real-agent'], yes: true });
+      await removeCommand(['test-skill'], { agents: ['not-a-real-agent'], yes: true });
     } catch (error) {
       expect(error).toBeInstanceOf(CommandError);
       expect((error as CommandError).exitCode).toBe(1);
@@ -521,7 +521,7 @@ describe('removeCommand unit tests', () => {
 
     // Should complete without throwing
     await expect(
-      removeCommand(['test-skill'], { agent: ['claude-code'], yes: true })
+      removeCommand(['test-skill'], { agents: ['claude-code'], yes: true })
     ).resolves.toBeUndefined();
   });
 });

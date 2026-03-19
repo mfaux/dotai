@@ -71,27 +71,27 @@ describe('resolveInstallTargets', () => {
     vi.clearAllMocks();
   });
 
-  // ── --agent flag ──
+  // ── --agents flag ──
 
-  describe('--agent flag', () => {
-    it('--agent "*" selects all agents', async () => {
-      const options: AddOptions = { agent: ['*'], yes: true, copy: true };
+  describe('--agents flag', () => {
+    it('--agents "*" selects all agents', async () => {
+      const options: AddOptions = { agents: ['*'], yes: true, copy: true };
       const result = await resolveInstallTargets(options, makeSpinner());
 
       expect(result).not.toBeNull();
       expect(result!.targetAgents).toEqual(Object.keys(agents));
     });
 
-    it('--agent with specific names validates and returns them', async () => {
-      const options: AddOptions = { agent: ['claude-code', 'cursor'], yes: true, copy: true };
+    it('--agents with specific names validates and returns them', async () => {
+      const options: AddOptions = { agents: ['claude-code', 'cursor'], yes: true, copy: true };
       const result = await resolveInstallTargets(options, makeSpinner());
 
       expect(result).not.toBeNull();
       expect(result!.targetAgents).toEqual(['claude-code', 'cursor']);
     });
 
-    it('--agent with invalid names throws CommandError', async () => {
-      const options: AddOptions = { agent: ['not-a-real-agent'], yes: true, copy: true };
+    it('--agents with invalid names throws CommandError', async () => {
+      const options: AddOptions = { agents: ['not-a-real-agent'], yes: true, copy: true };
 
       const error = await resolveInstallTargets(options, makeSpinner()).catch((e) => e);
 
@@ -101,7 +101,7 @@ describe('resolveInstallTargets', () => {
     });
   });
 
-  // ── No --agent flag (detection flow) ──
+  // ── No --agents flag (detection flow) ──
 
   describe('agent detection', () => {
     it('no agents detected + --yes returns all agents', async () => {
@@ -187,7 +187,7 @@ describe('resolveInstallTargets', () => {
 
   describe('installation scope', () => {
     it('--global sets installGlobally: true', async () => {
-      const options: AddOptions = { agent: ['claude-code'], global: true, yes: true, copy: true };
+      const options: AddOptions = { agents: ['claude-code'], global: true, yes: true, copy: true };
       const result = await resolveInstallTargets(options, makeSpinner());
 
       expect(result).not.toBeNull();
@@ -195,7 +195,7 @@ describe('resolveInstallTargets', () => {
     });
 
     it('no --global defaults to false with --yes', async () => {
-      const options: AddOptions = { agent: ['claude-code'], yes: true, copy: true };
+      const options: AddOptions = { agents: ['claude-code'], yes: true, copy: true };
       const result = await resolveInstallTargets(options, makeSpinner());
 
       expect(result).not.toBeNull();
@@ -206,7 +206,7 @@ describe('resolveInstallTargets', () => {
       vi.mocked(p.select).mockResolvedValueOnce(true); // scope = global
       vi.mocked(p.select).mockResolvedValueOnce('symlink'); // mode
 
-      const options: AddOptions = { agent: ['claude-code'] };
+      const options: AddOptions = { agents: ['claude-code'] };
       const result = await resolveInstallTargets(options, makeSpinner());
 
       expect(result).not.toBeNull();
@@ -218,7 +218,7 @@ describe('resolveInstallTargets', () => {
     it('scope prompt cancel returns null', async () => {
       vi.mocked(p.select).mockResolvedValueOnce(cancelSymbol); // scope cancelled
 
-      const options: AddOptions = { agent: ['claude-code'] };
+      const options: AddOptions = { agents: ['claude-code'] };
       const result = await resolveInstallTargets(options, makeSpinner());
 
       expect(result).toBeNull();
@@ -229,7 +229,7 @@ describe('resolveInstallTargets', () => {
 
   describe('install mode', () => {
     it('--copy sets installMode to copy', async () => {
-      const options: AddOptions = { agent: ['claude-code'], yes: true, copy: true };
+      const options: AddOptions = { agents: ['claude-code'], yes: true, copy: true };
       const result = await resolveInstallTargets(options, makeSpinner());
 
       expect(result).not.toBeNull();
@@ -237,7 +237,7 @@ describe('resolveInstallTargets', () => {
     });
 
     it('no --copy + --yes defaults to symlink', async () => {
-      const options: AddOptions = { agent: ['claude-code'], yes: true };
+      const options: AddOptions = { agents: ['claude-code'], yes: true };
       const result = await resolveInstallTargets(options, makeSpinner());
 
       expect(result).not.toBeNull();
@@ -248,7 +248,7 @@ describe('resolveInstallTargets', () => {
       vi.mocked(p.select).mockResolvedValueOnce(false); // scope = project
       vi.mocked(p.select).mockResolvedValueOnce('copy'); // mode = copy
 
-      const options: AddOptions = { agent: ['claude-code'] };
+      const options: AddOptions = { agents: ['claude-code'] };
       const result = await resolveInstallTargets(options, makeSpinner());
 
       expect(result).not.toBeNull();
@@ -259,7 +259,7 @@ describe('resolveInstallTargets', () => {
       vi.mocked(p.select).mockResolvedValueOnce(false); // scope = project
       vi.mocked(p.select).mockResolvedValueOnce(cancelSymbol); // mode cancelled
 
-      const options: AddOptions = { agent: ['claude-code'] };
+      const options: AddOptions = { agents: ['claude-code'] };
       const result = await resolveInstallTargets(options, makeSpinner());
 
       expect(result).toBeNull();
@@ -302,9 +302,9 @@ describe('resolveInstallTargets', () => {
       expect(spinner.stop).toHaveBeenCalled();
     });
 
-    it('does not use spinner when --agent flag is provided', async () => {
+    it('does not use spinner when --agents flag is provided', async () => {
       const spinner = makeSpinner();
-      const options: AddOptions = { agent: ['claude-code'], yes: true, copy: true };
+      const options: AddOptions = { agents: ['claude-code'], yes: true, copy: true };
       await resolveInstallTargets(options, spinner);
 
       expect(spinner.start).not.toHaveBeenCalled();

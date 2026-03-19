@@ -12,9 +12,7 @@ Full option tables, examples, and authoring format for `dotai`. For a quick over
 | `-r, --rule <rules...>`     | Install specific canonical rules by name (repeatable)                        |
 | `-p, --prompt <prompts...>` | Install specific canonical prompts by name (repeatable)                      |
 | `--custom-agent <names...>` | Install specific canonical custom agents by name (repeatable)                |
-| `-a, --agent <agents...>`   | Specify install agents (use `'*'` for all agents)                            |
-| `--targets <list>`          | Target rule/prompt/agent transpilation agents (comma-separated)              |
-| `-l, --list`                | List available items without installing                                      |
+| `-a, --agents <agents...>`  | Target agents (comma-separated; use `'*'` for all)                           |
 | `--copy`                    | Copy files instead of symlinking skills                                      |
 | `--dry-run`                 | Preview writes without making changes                                        |
 | `--force`                   | Overwrite conflicting managed/unmanaged outputs                              |
@@ -22,9 +20,11 @@ Full option tables, examples, and authoring format for `dotai`. For a quick over
 | `--gitignore`               | Add transpiled output paths to `.gitignore` (managed section)                |
 | `--full-depth`              | Search all subdirectories even when a root `SKILL.md` exists                 |
 | `-y, --yes`                 | Skip confirmation prompts                                                    |
-| `--all`                     | Shorthand for `--skill '*' --agent '*' -y`                                   |
+| `--all`                     | Shorthand for `--skill '*' --agents '*' -y`                                  |
 
-> **`--agent` vs `--targets`:** `--agent` / `-a` selects which of the 40+ skill-install agents to target (e.g., `--agent cursor,claude-code`). `--targets` selects which of the 5 transpilation targets (copilot, claude, cursor, windsurf, cline) receive transpiled rule/prompt/agent output. When omitted, all 5 transpilation targets are used.
+> **`--agents`:** A single flag for both skill install targets and transpilation targets. For skills, any of the 41 supported agents (e.g., `--agents cursor,claude-code`). For rules, prompts, and agents, the 5 transpilation targets: copilot, claude, cursor, windsurf, cline. When omitted, all detected agents are used for skills and all 5 transpilation targets for rules/prompts/agents.
+
+> **Zero-flag mode:** Running `dotai add owner/repo` with no type-specific flags discovers all content types (skills, rules, prompts, agents) and presents an interactive grouped selection. Use `dotai find owner/repo` for a non-interactive preview.
 
 > **`--append`:** Instead of writing individual rule files (e.g., `.github/instructions/code-style.instructions.md`), rules are appended as marker-delimited sections into `AGENTS.md` (Copilot) and `CLAUDE.md` (Claude Code). Useful for projects that prefer a single monolithic instruction file. Only applies to Copilot and Claude Code targets; other agents always get individual files.
 
@@ -41,7 +41,7 @@ Supported agent aliases include values such as `claude-code` and `codex`. See [S
 | Option                    | Description                                                                  |
 | ------------------------- | ---------------------------------------------------------------------------- |
 | `-g, --global`            | Remove from global scope                                                     |
-| `-a, --agent <agents...>` | Remove from specific agents (use `'*'` for all agents)                       |
+| `-a, --agents <agents...>` | Remove from specific agents (use `'*'` for all agents)                      |
 | `-t, --type <types...>`   | Filter by context type (`skill`, `rule`, `prompt`, `agent`; comma-separated) |
 | `-y, --yes`               | Skip confirmation prompts                                                    |
 | `--all`                   | Remove all installed items                                                   |
@@ -76,17 +76,30 @@ Found in vercel-labs/agent-skills:
 
 If the GitHub Trees API is unreachable (rate limit, private repo, network error), the preview step is skipped and the selected skill is installed directly.
 
+### Repo browsing
+
+When you pass an `owner/repo` argument to `find`, dotai fetches the repo's file tree and displays a grouped summary:
+
+```
+Skills (2)
+  react-best-practices
+  nextjs-patterns
+
+Rules (3)
+  code-style
+  testing
+  imports [cursor]
+
+Prompts (1)
+  review-code
+
+Install with: npx dotai add owner/repo
+Or specific items: npx dotai add owner/repo --rule <name>
+```
+
 ### Native context discovery
 
-When scanning a repo via `dotai find owner/repo`, dotai also discovers agent-native context files in their conventional directories. These are files written for a specific coding agent (Cursor, Claude Code, Copilot, etc.) that can be installed as passthrough copies.
-
-Native items are tagged with their source agent in the output:
-
-```
-owner/repo@no-any (rule:cursor)
-owner/repo@deploy (prompt:claude-code)
-owner/repo@testing (rule:github-copilot)
-```
+When scanning a repo via `dotai find owner/repo`, dotai also discovers agent-native context files in their conventional directories. These are files written for a specific coding agent (Cursor, Claude Code, Copilot, etc.) that can be installed as passthrough copies. Native items are tagged with their source agent in brackets (e.g., `[cursor]`).
 
 The following native directories are scanned (derived from the [target-agents registry](#canonical-vs-native-files)):
 
@@ -134,7 +147,7 @@ Convert native agent-specific rule files into canonical `RULES.md` format.
 | Option                    | Description                                                                  |
 | ------------------------- | ---------------------------------------------------------------------------- |
 | `-g, --global`            | List global context (default: project)                                       |
-| `-a, --agent <agents...>` | Filter by specific agents                                                    |
+| `-a, --agents <agents...>` | Filter by specific agents                                                   |
 | `-t, --type <types...>`   | Filter by context type (`skill`, `rule`, `prompt`, `agent`; comma-separated) |
 
 ## Installation Scope
@@ -147,8 +160,11 @@ Convert native agent-specific rule files into canonical `RULES.md` format.
 ## Examples
 
 ```bash
-# List available context in a source repository
-npx dotai add owner/repo --list
+# Browse available context in a source repository
+npx dotai find owner/repo
+
+# Interactive install — discovers all content types
+npx dotai add owner/repo
 
 # Install one rule and one skill in a single run
 npx dotai add owner/repo --rule code-style --skill db-migrate
@@ -169,7 +185,7 @@ npx dotai add owner/repo --prompt review-code --rule code-style
 npx dotai add owner/repo --custom-agent architect
 
 # Install agents targeting specific transpilation agents
-npx dotai add owner/repo --custom-agent architect --targets copilot,claude
+npx dotai add owner/repo --custom-agent architect --agents copilot,claude
 
 # Force replace an existing unmanaged target file
 npx dotai add owner/repo --rule code-style --force
@@ -181,7 +197,7 @@ npx dotai add owner/repo --rule code-style --append
 npx dotai add owner/repo --rule code-style --gitignore
 
 # CI-friendly non-interactive install
-npx dotai add owner/repo --all --targets copilot,claude,cursor,windsurf,cline -y
+npx dotai add owner/repo --all --agents copilot,claude,cursor,windsurf,cline -y
 ```
 
 ## Team Sharing
@@ -199,7 +215,7 @@ npx dotai add owner/repo --prompt review-code -y
 npx dotai add owner/repo --type rule,prompt -y
 
 # CI-friendly: install everything, skip prompts, target specific agents
-npx dotai add owner/repo --all --targets copilot,claude,cursor -y
+npx dotai add owner/repo --all --agents copilot,claude,cursor -y
 ```
 
 ## How transpilation works

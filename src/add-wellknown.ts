@@ -57,21 +57,6 @@ export async function handleWellKnownSkills(
     }
   }
 
-  if (options.list) {
-    console.log();
-    p.log.step(pc.bold('Available Skills'));
-    for (const skill of skills) {
-      p.log.message(`  ${pc.cyan(skill.installName)}`);
-      p.log.message(`    ${pc.dim(skill.description)}`);
-      if (skill.files.size > 1) {
-        p.log.message(`    ${pc.dim(`Files: ${skill.files.size}`)}`);
-      }
-    }
-    console.log();
-    p.outro('Run without --list to install');
-    throw new CommandError(0);
-  }
-
   // Filter skills if --skill option is provided
   let selectedSkills: WellKnownSkill[];
 

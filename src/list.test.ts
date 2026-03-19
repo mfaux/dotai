@@ -38,28 +38,28 @@ describe('list command', () => {
 
     it('should parse -a flag with single agent', () => {
       const options = parseListOptions(['-a', 'claude-code']);
-      expect(options.agent).toEqual(['claude-code']);
+      expect(options.agents).toEqual(['claude-code']);
     });
 
-    it('should parse --agent flag with single agent', () => {
-      const options = parseListOptions(['--agent', 'cursor']);
-      expect(options.agent).toEqual(['cursor']);
+    it('should parse --agents flag with single agent', () => {
+      const options = parseListOptions(['--agents', 'cursor']);
+      expect(options.agents).toEqual(['cursor']);
     });
 
     it('should parse -a flag with multiple agents', () => {
       const options = parseListOptions(['-a', 'claude-code', 'cursor', 'codex']);
-      expect(options.agent).toEqual(['claude-code', 'cursor', 'codex']);
+      expect(options.agents).toEqual(['claude-code', 'cursor', 'codex']);
     });
 
     it('should parse combined flags', () => {
       const options = parseListOptions(['-g', '-a', 'claude-code', 'cursor']);
       expect(options.global).toBe(true);
-      expect(options.agent).toEqual(['claude-code', 'cursor']);
+      expect(options.agents).toEqual(['claude-code', 'cursor']);
     });
 
     it('should stop collecting agents at next flag', () => {
       const options = parseListOptions(['-a', 'claude-code', '-g']);
-      expect(options.agent).toEqual(['claude-code']);
+      expect(options.agents).toEqual(['claude-code']);
       expect(options.global).toBe(true);
     });
 
@@ -107,7 +107,7 @@ describe('list command', () => {
       const options = parseListOptions(['-g', '--type', 'rule', '-a', 'cursor']);
       expect(options.global).toBe(true);
       expect(options.type).toEqual(['rule']);
-      expect(options.agent).toEqual(['cursor']);
+      expect(options.agents).toEqual(['cursor']);
     });
 
     it('should parse --type agent standalone', () => {
@@ -138,7 +138,7 @@ describe('list command', () => {
 
     it('should return empty agent array for -a with no following values', () => {
       const options = parseListOptions(['-a']);
-      expect(options.agent).toEqual([]);
+      expect(options.agents).toEqual([]);
     });
   });
 
@@ -770,7 +770,7 @@ description: A global test skill
     it('should include list options in list --help', () => {
       const result = runCli(['list', '--help']);
       expect(result.stdout).toContain('-g, --global');
-      expect(result.stdout).toContain('-a, --agent');
+      expect(result.stdout).toContain('-a, --agents');
       expect(result.stdout).toContain('-t, --type');
     });
 

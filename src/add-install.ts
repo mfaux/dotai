@@ -42,12 +42,12 @@ export async function resolveInstallTargets(
   let targetAgents: AgentType[];
   const validAgents = Object.keys(agents);
 
-  if (options.agent?.includes('*')) {
-    // --agent '*' selects all agents
+  if (options.agents?.includes('*')) {
+    // --agents '*' selects all agents
     targetAgents = validAgents as AgentType[];
     p.log.info(`Installing to all ${targetAgents.length} agents`);
-  } else if (options.agent && options.agent.length > 0) {
-    const invalidAgents = options.agent.filter((a) => !validAgents.includes(a));
+  } else if (options.agents && options.agents.length > 0) {
+    const invalidAgents = options.agents.filter((a) => !validAgents.includes(a));
 
     if (invalidAgents.length > 0) {
       p.log.error(`Invalid agents: ${invalidAgents.join(', ')}`);
@@ -55,7 +55,7 @@ export async function resolveInstallTargets(
       throw new CommandError(1);
     }
 
-    targetAgents = options.agent as AgentType[];
+    targetAgents = options.agents as AgentType[];
   } else {
     spinner.start('Loading agents...');
     const installedAgents = await detectInstalledAgents();

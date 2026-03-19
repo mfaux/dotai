@@ -3,20 +3,18 @@ import { consumeMultiValues } from './cli-parse.ts';
 
 export interface AddOptions {
   global?: boolean;
-  agent?: string[];
+  /** Target agents — resolves to skill agents or transpilation targets depending on content type. */
+  agents?: string[];
   yes?: boolean;
   skill?: string[];
   rule?: string[];
   prompt?: string[];
   customAgent?: string[];
-  list?: boolean;
   all?: boolean;
   fullDepth?: boolean;
   copy?: boolean;
   dryRun?: boolean;
   force?: boolean;
-  /** Target agents for dotai rule transpilation (maps to TargetAgent). */
-  targets?: string[];
   /** Use append mode for rules — write to AGENTS.md/CLAUDE.md instead of per-rule files. */
   append?: boolean;
   /** Add transpiled output paths to .gitignore (opt-in). */
@@ -37,14 +35,12 @@ export function parseAddOptions(args: string[]): { source: string[]; options: Ad
       options.global = true;
     } else if (arg === '-y' || arg === '--yes') {
       options.yes = true;
-    } else if (arg === '-l' || arg === '--list') {
-      options.list = true;
     } else if (arg === '--all') {
       options.all = true;
-    } else if (arg === '-a' || arg === '--agent') {
-      options.agent = options.agent || [];
-      const { values, nextIndex } = consumeMultiValues(args, i + 1);
-      options.agent.push(...values);
+    } else if (arg === '-a' || arg === '--agents') {
+      options.agents = options.agents || [];
+      const { values, nextIndex } = consumeMultiValues(args, i + 1, { splitCommas: true });
+      options.agents.push(...values);
       i = nextIndex - 1; // Back up one since the loop will increment
     } else if (arg === '-s' || arg === '--skill') {
       options.skill = options.skill || [];
@@ -65,11 +61,6 @@ export function parseAddOptions(args: string[]): { source: string[]; options: Ad
       options.customAgent = options.customAgent || [];
       const { values, nextIndex } = consumeMultiValues(args, i + 1);
       options.customAgent.push(...values);
-      i = nextIndex - 1;
-    } else if (arg === '--targets') {
-      options.targets = options.targets || [];
-      const { values, nextIndex } = consumeMultiValues(args, i + 1, { splitCommas: true });
-      options.targets.push(...values);
       i = nextIndex - 1;
     } else if (arg === '--append') {
       options.append = true;

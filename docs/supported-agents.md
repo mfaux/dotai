@@ -8,7 +8,7 @@ Rules, prompts, and agent definitions use a separate set of [transpilation targe
 <summary>Full agent table</summary>
 
 <!-- supported-agents:start -->
-| Agent | `--agent` | Project Path | Global Path |
+| Agent | `--agents` | Project Path | Global Path |
 |-------|-----------|--------------|-------------|
 | Amp, Kimi Code CLI, Replit, Universal | `amp`, `kimi-cli`, `replit`, `universal` | `.agents/skills/` | `~/.config/agents/skills/` |
 | Antigravity | `antigravity` | `.agent/skills/` | `~/.gemini/antigravity/skills/` |

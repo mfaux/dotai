@@ -110,7 +110,7 @@ function makeSpinner() {
 function defaultOptions(overrides: Partial<AddOptions> = {}): AddOptions {
   return {
     yes: true,
-    agent: ['opencode'],
+    agents: ['opencode'],
     copy: true,
     ...overrides,
   };
@@ -153,24 +153,6 @@ describe('handleWellKnownSkills', () => {
 
     expect(error).toBeInstanceOf(CommandError);
     expect(error.exitCode).toBe(1);
-  });
-
-  // --- --list option ---
-
-  it('lists skills and exits with --list option', async () => {
-    const skills = [makeSkill(), makeSkill({ installName: 'other-skill', name: 'Other' })];
-    vi.mocked(wellKnownProvider.fetchAllSkills).mockResolvedValue(skills);
-
-    const error = await handleWellKnownSkills(
-      'https://example.com',
-      'https://example.com',
-      defaultOptions({ list: true }),
-      makeSpinner()
-    ).catch((e) => e);
-
-    expect(error).toBeInstanceOf(CommandError);
-    expect(error.exitCode).toBe(0);
-    expect(p.outro).toHaveBeenCalledWith(expect.stringContaining('--list'));
   });
 
   // --- --skill '*' selects all ---
@@ -240,13 +222,13 @@ describe('handleWellKnownSkills', () => {
     expect(installWellKnownSkillForAgent).toHaveBeenCalledTimes(1);
   });
 
-  // --- --agent '*' selects all agents ---
+  // --- --agents '*' selects all agents ---
 
-  it('installs to all agents with --agent "*"', async () => {
+  it('installs to all agents with --agents "*"', async () => {
     await handleWellKnownSkills(
       'https://example.com',
       'https://example.com',
-      defaultOptions({ agent: ['*'] }),
+      defaultOptions({ agents: ['*'] }),
       makeSpinner()
     );
 
@@ -261,7 +243,7 @@ describe('handleWellKnownSkills', () => {
     const error = await handleWellKnownSkills(
       'https://example.com',
       'https://example.com',
-      defaultOptions({ agent: ['not-a-real-agent'] }),
+      defaultOptions({ agents: ['not-a-real-agent'] }),
       makeSpinner()
     ).catch((e) => e);
 
@@ -269,15 +251,15 @@ describe('handleWellKnownSkills', () => {
     expect(error.exitCode).toBe(1);
   });
 
-  // --- Agent detection when no --agent provided ---
+  // --- Agent detection when no --agents provided ---
 
-  it('detects installed agents when --agent not provided', async () => {
+  it('detects installed agents when --agents not provided', async () => {
     vi.mocked(detectInstalledAgents).mockResolvedValue(['opencode'] as AgentType[]);
 
     await handleWellKnownSkills(
       'https://example.com',
       'https://example.com',
-      defaultOptions({ agent: undefined, yes: true }),
+      defaultOptions({ agents: undefined, yes: true }),
       makeSpinner()
     );
 
@@ -439,7 +421,7 @@ describe('handleWellKnownSkills', () => {
     await handleWellKnownSkills(
       'https://example.com',
       'https://example.com',
-      defaultOptions({ agent: ['opencode', 'claude-code'] }),
+      defaultOptions({ agents: ['opencode', 'claude-code'] }),
       makeSpinner()
     );
 

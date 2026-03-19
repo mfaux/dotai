@@ -407,14 +407,36 @@ ${DIM}  2) npx dotai add <owner/repo@skill>${RESET}`;
             resultCount: String(allItems.length),
           });
 
-          console.log(`${DIM}Install with${RESET} npx dotai add <owner/repo@skill>`);
-          console.log();
-
+          // Group by type for structured output
+          const byType: Record<string, typeof allItems> = {};
           for (const item of allItems) {
-            const nativeTag = item.native ? `:${item.native}` : '';
-            const typeLabel = `${DIM}(${item.type}${nativeTag})${RESET}`;
-            console.log(`${TEXT}${query}@${item.name}${RESET} ${typeLabel}`);
+            const key = item.type;
+            if (!byType[key]) byType[key] = [];
+            byType[key].push(item);
           }
+
+          const typeOrder = ['skill', 'rule', 'prompt', 'agent'] as const;
+          const typeLabels: Record<string, string> = {
+            skill: 'Skills',
+            rule: 'Rules',
+            prompt: 'Prompts',
+            agent: 'Agents',
+          };
+
+          for (const type of typeOrder) {
+            const items = byType[type];
+            if (!items || items.length === 0) continue;
+
+            console.log(`${BOLD}${typeLabels[type]} (${items.length})${RESET}`);
+            for (const item of items) {
+              const nativeTag = item.native ? ` ${DIM}[${item.native}]${RESET}` : '';
+              console.log(`  ${CYAN}${item.name}${RESET}${nativeTag}`);
+            }
+            console.log();
+          }
+
+          console.log(`${DIM}Install with:${RESET} npx dotai add ${query}`);
+          console.log(`${DIM}Or specific items:${RESET} npx dotai add ${query} --rule <name>`);
           console.log();
           return;
         }

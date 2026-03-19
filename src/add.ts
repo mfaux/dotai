@@ -42,13 +42,16 @@ const version = packageJson.version;
 setVersion(version);
 
 /**
- * Resolve target agents from --targets flag, or default to all five.
+ * Resolve transpilation target agents from --agents flag, or default to all five.
+ *
+ * When --agents is used for transpilation (rules/prompts/agents), values are
+ * resolved as TargetAgent names or aliases (copilot, claude, cursor, windsurf, cline).
  *
  * Throws CommandError if invalid or no valid agents are specified.
  */
 function resolveAgentsOrDefault(options: AddOptions): TargetAgent[] {
-  if (options.targets && options.targets.length > 0) {
-    const { agents: resolved, invalid } = resolveTargetAgents(options.targets);
+  if (options.agents && options.agents.length > 0) {
+    const { agents: resolved, invalid } = resolveTargetAgents(options.agents);
 
     if (invalid.length > 0) {
       p.log.error(`Invalid target agents: ${invalid.join(', ')}`);
@@ -149,7 +152,7 @@ const CONTEXT_CONFIGS: Record<'rule' | 'prompt' | 'agent', ContextInstallConfig>
 /**
  * Generic handler for rule, prompt, and agent install flows.
  *
- * Resolves `--targets` names to TargetAgent[], runs the appropriate discovery →
+ * Resolves `--agents` names to TargetAgent[], runs the appropriate discovery →
  * transpile → install pipeline, and displays results using @clack/prompts.
  */
 async function handleContextInstall(
@@ -248,10 +251,10 @@ export async function runAdd(args: string[], options: AddOptions = {}): Promise<
     throw new CommandError(1);
   }
 
-  // --all implies --skill '*' and --agent '*' and -y
+  // --all implies --skill '*' and --agents '*' and -y
   if (options.all) {
     options.skill = ['*'];
-    options.agent = ['*'];
+    options.agents = ['*'];
     options.yes = true;
   }
 
@@ -398,12 +401,19 @@ export async function runAdd(args: string[], options: AddOptions = {}): Promise<
       }
     }
 
-    // ─── List flow (--list flag) ───
-    // Discover all context types (skills, rules, prompts, agents) and display them.
-    if (options.list) {
+    // ─── Zero-flag unified discovery (Phase 3) ───
+    // When no type-specific flags are set, discover all content types and present
+    // a unified interactive selection grouped by type.
+    const hasTypeFlags =
+      (options.skill && options.skill.length > 0) ||
+      (options.rule && options.rule.length > 0) ||
+      (options.prompt && options.prompt.length > 0) ||
+      (options.customAgent && options.customAgent.length > 0);
+
+    if (!hasTypeFlags) {
       spinner.start('Discovering context...');
 
-      // Run full discovery (canonical + native) and skill discovery in parallel
+      // Run both discovery engines in parallel
       const [fullResult, skills] = await Promise.all([
         discover(skillsDir),
         discoverSkills(skillsDir, parsed.subpath, {
@@ -416,105 +426,118 @@ export async function runAdd(args: string[], options: AddOptions = {}): Promise<
       const prompts = fullResult.items.filter((i) => i.type === 'prompt');
       const customAgents = fullResult.items.filter((i) => i.type === 'agent');
 
-      const totalItems = skills.length + rules.length + prompts.length + customAgents.length;
+      const hasNonSkillContent = rules.length + prompts.length + customAgents.length > 0;
 
-      if (totalItems === 0) {
-        spinner.stop(pc.red('No context found'));
-        p.outro(pc.red('No skills, rules, prompts, or agents found in this repository.'));
-        await cleanup(tempDir);
-        throw new CommandError(1);
+      // If non-skill content exists, present unified selection
+      if (hasNonSkillContent && skills.length > 0 && !options.yes && process.stdin.isTTY) {
+        const totalItems = skills.length + rules.length + prompts.length + customAgents.length;
+        spinner.stop(`Found ${pc.green(String(totalItems))} item${totalItems !== 1 ? 's' : ''}`);
+
+        // Build grouped options for groupMultiselect
+        const grouped: Record<string, p.Option<{ name: string; type: string }>[]> = {};
+
+        if (skills.length > 0) {
+          grouped[`Skills (${skills.length})`] = skills.map((s) => ({
+            value: { name: getSkillDisplayName(s), type: 'skill' },
+            label: getSkillDisplayName(s),
+            hint: s.description.length > 60 ? s.description.slice(0, 57) + '...' : s.description,
+          }));
+        }
+        if (rules.length > 0) {
+          grouped[`Rules (${rules.length})`] = rules.map((r) => ({
+            value: { name: r.name, type: 'rule' },
+            label: r.name,
+            hint: r.description.length > 60 ? r.description.slice(0, 57) + '...' : r.description,
+          }));
+        }
+        if (prompts.length > 0) {
+          grouped[`Prompts (${prompts.length})`] = prompts.map((pr) => ({
+            value: { name: pr.name, type: 'prompt' },
+            label: pr.name,
+            hint: pr.description.length > 60 ? pr.description.slice(0, 57) + '...' : pr.description,
+          }));
+        }
+        if (customAgents.length > 0) {
+          grouped[`Agents (${customAgents.length})`] = customAgents.map((a) => ({
+            value: { name: a.name, type: 'agent' },
+            label: a.name,
+            hint: a.description.length > 60 ? a.description.slice(0, 57) + '...' : a.description,
+          }));
+        }
+
+        const selected = await p.groupMultiselect({
+          message: `Select items to install ${pc.dim('(space to toggle)')}`,
+          options: grouped,
+          required: true,
+        });
+
+        if (p.isCancel(selected)) {
+          p.cancel('Installation cancelled');
+          await cleanup(tempDir);
+          throw new CommandError(0);
+        }
+
+        const picks = selected as Array<{ name: string; type: string }>;
+
+        // Map selections back to type-specific options
+        const pickedSkills = picks.filter((p) => p.type === 'skill').map((p) => p.name);
+        const pickedRules = picks.filter((p) => p.type === 'rule').map((p) => p.name);
+        const pickedPrompts = picks.filter((p) => p.type === 'prompt').map((p) => p.name);
+        const pickedAgents = picks.filter((p) => p.type === 'agent').map((p) => p.name);
+
+        if (pickedSkills.length > 0) options.skill = pickedSkills;
+        if (pickedRules.length > 0) options.rule = pickedRules;
+        if (pickedPrompts.length > 0) options.prompt = pickedPrompts;
+        if (pickedAgents.length > 0) options.customAgent = pickedAgents;
+
+        // Re-run the type-specific handlers for any non-skill content
+        if (pickedRules.length > 0) {
+          await handleContextInstall('rule', source, skillsDir, options, spinner);
+        }
+        if (pickedPrompts.length > 0) {
+          await handleContextInstall('prompt', source, skillsDir, options, spinner);
+        }
+        if (pickedAgents.length > 0) {
+          await handleContextInstall('agent', source, skillsDir, options, spinner);
+        }
+
+        // If no skills were selected, we're done
+        if (pickedSkills.length === 0) {
+          await cleanup(tempDir);
+          return;
+        }
+
+        // Fall through to skill installation with the selected skills
+      } else {
+        // No non-skill content, or non-interactive — proceed as before (skills only)
+        spinner.stop(
+          skills.length > 0
+            ? `Found ${pc.green(skills.length)} skill${skills.length > 1 ? 's' : ''}`
+            : pc.red('No skills found')
+        );
+
+        if (skills.length === 0) {
+          p.outro(
+            pc.red('No valid skills found. Skills require a SKILL.md with name and description.')
+          );
+          await cleanup(tempDir);
+          throw new CommandError(1);
+        }
       }
-
-      spinner.stop(`Found ${pc.green(String(totalItems))} item${totalItems !== 1 ? 's' : ''}`);
-
-      console.log();
-
-      // Display skills
-      if (skills.length > 0) {
-        p.log.step(pc.bold(`Skills (${skills.length})`));
-
-        const groupedSkills: Record<string, Skill[]> = {};
-        const ungroupedSkills: Skill[] = [];
-
-        for (const skill of skills) {
-          if (skill.pluginName) {
-            const group = skill.pluginName;
-            if (!groupedSkills[group]) groupedSkills[group] = [];
-            groupedSkills[group].push(skill);
-          } else {
-            ungroupedSkills.push(skill);
-          }
-        }
-
-        const sortedGroups = Object.keys(groupedSkills).sort();
-        for (const group of sortedGroups) {
-          const title = kebabToTitle(group);
-          console.log(pc.bold(title));
-          for (const skill of groupedSkills[group]!) {
-            p.log.message(`  ${pc.cyan(getSkillDisplayName(skill))}`);
-            p.log.message(`    ${pc.dim(skill.description)}`);
-          }
-          console.log();
-        }
-
-        if (ungroupedSkills.length > 0) {
-          if (sortedGroups.length > 0) console.log(pc.bold('General'));
-          for (const skill of ungroupedSkills) {
-            p.log.message(`  ${pc.cyan(getSkillDisplayName(skill))}`);
-            p.log.message(`    ${pc.dim(skill.description)}`);
-          }
-          console.log();
-        }
-      }
-
-      // Display rules
-      if (rules.length > 0) {
-        p.log.step(pc.bold(`Rules (${rules.length})`));
-        for (const rule of rules) {
-          const formatTag = rule.format !== 'canonical' ? ` ${pc.dim(`[${rule.format}]`)}` : '';
-          p.log.message(`  ${pc.cyan(rule.name)}${formatTag}`);
-          p.log.message(`    ${pc.dim(rule.description)}`);
-        }
-        console.log();
-      }
-
-      // Display prompts
-      if (prompts.length > 0) {
-        p.log.step(pc.bold(`Prompts (${prompts.length})`));
-        for (const prompt of prompts) {
-          const formatTag = prompt.format !== 'canonical' ? ` ${pc.dim(`[${prompt.format}]`)}` : '';
-          p.log.message(`  ${pc.cyan(prompt.name)}${formatTag}`);
-          p.log.message(`    ${pc.dim(prompt.description)}`);
-        }
-        console.log();
-      }
-
-      // Display agents
-      if (customAgents.length > 0) {
-        p.log.step(pc.bold(`Agents (${customAgents.length})`));
-        for (const agent of customAgents) {
-          const formatTag = agent.format !== 'canonical' ? ` ${pc.dim(`[${agent.format}]`)}` : '';
-          p.log.message(`  ${pc.cyan(agent.name)}${formatTag}`);
-          p.log.message(`    ${pc.dim(agent.description)}`);
-        }
-        console.log();
-      }
-
-      // Build install hints
-      const hints: string[] = [];
-      if (skills.length > 0) hints.push('--skill <name>');
-      if (rules.length > 0) hints.push('--rule <name>');
-      if (prompts.length > 0) hints.push('--prompt <name>');
-      if (customAgents.length > 0) hints.push('--custom-agent <name>');
-
-      p.outro(`Use ${hints.join(', ')} to install specific items`);
-      await cleanup(tempDir);
-      throw new CommandError(0);
     }
 
+    // When hasTypeFlags is true (user passed --skill, --rule, etc.), we need
+    // to discover skills fresh. When !hasTypeFlags, unified discovery above
+    // already handled non-skill content and set options.skill if skills were
+    // picked. In either case, we need to discover skills here for the install flow.
+
     // Include internal skills when a specific skill is explicitly requested
-    // (via --skill or @skill syntax)
-    const includeInternal = !!(options.skill && options.skill.length > 0);
+    // (via --skill or @skill syntax), but NOT when using wildcard --skill '*'
+    const includeInternal = !!(
+      options.skill &&
+      options.skill.length > 0 &&
+      !options.skill.includes('*')
+    );
 
     spinner.start('Discovering skills...');
     const skills = await discoverSkills(skillsDir, parsed.subpath, {
@@ -996,7 +1019,7 @@ async function promptForFindSkills(
           skill: ['find-skills'],
           global: true,
           yes: true,
-          agent: findSkillsAgents,
+          agents: findSkillsAgents,
         });
       } catch {
         p.log.warn('Failed to install find-skills. You can try again with:');

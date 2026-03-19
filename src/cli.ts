@@ -120,10 +120,10 @@ ${BOLD}Options:${RESET}
   -v, --version        Show version number
 
 ${BOLD}Examples:${RESET}
-  ${DIM}$${RESET} dotai add owner/repo                          ${DIM}# install skills${RESET}
+  ${DIM}$${RESET} dotai add owner/repo                          ${DIM}# interactive install (all types)${RESET}
   ${DIM}$${RESET} dotai add owner/repo --rule code-style        ${DIM}# install a rule${RESET}
   ${DIM}$${RESET} dotai add owner/repo --type rule,prompt       ${DIM}# install all rules and prompts${RESET}
-  ${DIM}$${RESET} dotai add owner/repo -g                       ${DIM}# install globally${RESET}
+  ${DIM}$${RESET} dotai find owner/repo                         ${DIM}# browse available context${RESET}
   ${DIM}$${RESET} dotai remove                                  ${DIM}# interactive remove${RESET}
 
 Run ${BOLD}dotai <command> --help${RESET} for command-specific options.
@@ -138,6 +138,34 @@ ${BOLD}Usage:${RESET} dotai add <package> [options]
 ${BOLD}Description:${RESET}
   Add context (skills, rules, prompts, agents) from a source repository.
   Sources can be GitHub shorthand, full URLs, or local paths.
+  With no flags, presents an interactive selection of all discovered content.
+
+${BOLD}Essentials:${RESET}
+  <package>              GitHub shorthand (owner/repo), URL, or local path
+  -a, --agents <agents>  Target agents (comma-separated; use '*' for all)
+  -t, --type <types>     Filter by type (skill, rule, prompt, agent; comma-separated)
+  -g, --global           Install globally (user-level)
+  -y, --yes              Skip confirmation prompts
+
+${BOLD}Examples:${RESET}
+  ${DIM}$${RESET} dotai add vercel-labs/agent-skills              ${DIM}# interactive (all types)${RESET}
+  ${DIM}$${RESET} dotai add owner/repo --rule code-style          ${DIM}# install a specific rule${RESET}
+  ${DIM}$${RESET} dotai add owner/repo --agents copilot,claude    ${DIM}# target specific agents${RESET}
+  ${DIM}$${RESET} dotai add owner/repo --type rule,prompt -y      ${DIM}# install all rules and prompts${RESET}
+
+Run ${BOLD}dotai add --help-all${RESET} for all options.
+Discover skills at ${TEXT}https://skills.sh/${RESET}
+`);
+}
+
+function showAddHelpAll(): void {
+  console.log(`
+${BOLD}Usage:${RESET} dotai add <package> [options]
+
+${BOLD}Description:${RESET}
+  Add context (skills, rules, prompts, agents) from a source repository.
+  Sources can be GitHub shorthand, full URLs, or local paths.
+  With no flags, presents an interactive selection of all discovered content.
 
 ${BOLD}Content Selection:${RESET}
   -s, --skill <skills>   Install specific skills (use '*' for all)
@@ -145,11 +173,11 @@ ${BOLD}Content Selection:${RESET}
   -p, --prompt <prompts> Install specific prompts
   --custom-agent <names> Install specific agents (AGENT.md context)
   -t, --type <types>     Filter by type (skill, rule, prompt, agent; comma-separated)
-  -l, --list             List available items without installing
 
 ${BOLD}Target Options:${RESET}
-  -a, --agent <agents>   Specify install agents (use '*' for all agents)
-  --targets <agents>     Transpilation targets (comma-separated: copilot, claude, cursor, windsurf, cline)
+  -a, --agents <agents>  Target agents (comma-separated; use '*' for all)
+                         For skills: any of the ${DIM}41 supported agents${RESET}
+                         For rules/prompts/agents: copilot, claude, cursor, windsurf, cline
 
 ${BOLD}Install Options:${RESET}
   -g, --global           Install globally (user-level)
@@ -159,16 +187,16 @@ ${BOLD}Install Options:${RESET}
   --append               Append rules to AGENTS.md/CLAUDE.md instead of per-rule files
   --gitignore            Add transpiled output paths to .gitignore
   --full-depth           Search all subdirectories even when a root SKILL.md exists
-  --all                  Shorthand for --skill '*' --agent '*' -y
+  --all                  Shorthand for --skill '*' --agents '*' -y
   -y, --yes              Skip confirmation prompts
 
 ${BOLD}Examples:${RESET}
-  ${DIM}$${RESET} dotai add vercel-labs/agent-skills
-  ${DIM}$${RESET} dotai add owner/repo --rule code-style --targets copilot,claude
-  ${DIM}$${RESET} dotai add owner/repo --prompt review-code
-  ${DIM}$${RESET} dotai add owner/repo --type rule,prompt -y
-  ${DIM}$${RESET} dotai add owner/repo --agent claude-code cursor
-  ${DIM}$${RESET} dotai add owner/repo --all -g
+  ${DIM}$${RESET} dotai add vercel-labs/agent-skills              ${DIM}# interactive (all types)${RESET}
+  ${DIM}$${RESET} dotai add owner/repo --rule code-style          ${DIM}# install a specific rule${RESET}
+  ${DIM}$${RESET} dotai add owner/repo --agents copilot,claude    ${DIM}# target specific agents${RESET}
+  ${DIM}$${RESET} dotai add owner/repo --prompt review-code       ${DIM}# install a prompt${RESET}
+  ${DIM}$${RESET} dotai add owner/repo --type rule,prompt -y      ${DIM}# install all rules and prompts${RESET}
+  ${DIM}$${RESET} dotai add owner/repo --all -g                   ${DIM}# install everything globally${RESET}
 
 Discover skills at ${TEXT}https://skills.sh/${RESET}
 `);
@@ -182,15 +210,15 @@ ${BOLD}Description:${RESET}
   List installed context (skills, rules, prompts, agents).
 
 ${BOLD}Options:${RESET}
-  -g, --global           List global context (default: project)
-  -a, --agent <agents>   Filter by specific agents
-  -t, --type <types>     Filter by type (skill, rule, prompt, agent; comma-separated)
+  -g, --global            List global context (default: project)
+  -a, --agents <agents>   Filter by specific agents
+  -t, --type <types>      Filter by type (skill, rule, prompt, agent; comma-separated)
 
 ${BOLD}Examples:${RESET}
-  ${DIM}$${RESET} dotai list                  ${DIM}# list project installs${RESET}
-  ${DIM}$${RESET} dotai ls -g                 ${DIM}# list global installs${RESET}
-  ${DIM}$${RESET} dotai ls -a claude-code     ${DIM}# filter by agent${RESET}
-  ${DIM}$${RESET} dotai ls -t rule            ${DIM}# list only rules${RESET}
+  ${DIM}$${RESET} dotai list                   ${DIM}# list project installs${RESET}
+  ${DIM}$${RESET} dotai ls -g                  ${DIM}# list global installs${RESET}
+  ${DIM}$${RESET} dotai ls -a claude-code      ${DIM}# filter by agent${RESET}
+  ${DIM}$${RESET} dotai ls -t rule             ${DIM}# list only rules${RESET}
 
 Discover skills at ${TEXT}https://skills.sh/${RESET}
 `);
@@ -206,26 +234,26 @@ ${BOLD}Description:${RESET}
   Use --type to target specific context types.
 
 ${BOLD}Arguments:${RESET}
-  names             Optional context names to remove (space-separated)
+  names              Optional context names to remove (space-separated)
 
 ${BOLD}Options:${RESET}
   -g, --global       Remove from global scope (~/) instead of project scope
-  -a, --agent        Remove from specific agents (use '*' for all agents)
+  -a, --agents       Remove from specific agents (use '*' for all agents)
   -s, --skill        Specify skills to remove (use '*' for all skills)
   -t, --type         Filter by context type (skill, rule, prompt, agent; comma-separated)
   -y, --yes          Skip confirmation prompts
-  --all              Shorthand for --skill '*' --agent '*' -y
+  --all              Shorthand for --skill '*' --agents '*' -y
 
 ${BOLD}Examples:${RESET}
-  ${DIM}$${RESET} dotai remove                           ${DIM}# interactive selection${RESET}
-  ${DIM}$${RESET} dotai remove my-skill                  ${DIM}# remove specific skill${RESET}
-  ${DIM}$${RESET} dotai remove skill1 skill2 -y          ${DIM}# remove multiple, skip confirm${RESET}
-  ${DIM}$${RESET} dotai remove --global my-skill         ${DIM}# remove from global scope${RESET}
-  ${DIM}$${RESET} dotai rm --agent claude-code my-skill  ${DIM}# remove from specific agent${RESET}
-  ${DIM}$${RESET} dotai remove --type rule code-style    ${DIM}# remove a specific rule${RESET}
-  ${DIM}$${RESET} dotai remove --type prompt -y          ${DIM}# remove all prompts${RESET}
-  ${DIM}$${RESET} dotai remove --type rule,prompt        ${DIM}# interactive rule/prompt removal${RESET}
-  ${DIM}$${RESET} dotai remove --all                     ${DIM}# remove all skills${RESET}
+  ${DIM}$${RESET} dotai remove                            ${DIM}# interactive selection${RESET}
+  ${DIM}$${RESET} dotai remove my-skill                   ${DIM}# remove specific skill${RESET}
+  ${DIM}$${RESET} dotai remove skill1 skill2 -y           ${DIM}# remove multiple, skip confirm${RESET}
+  ${DIM}$${RESET} dotai remove --global my-skill          ${DIM}# remove from global scope${RESET}
+  ${DIM}$${RESET} dotai rm --agents claude-code my-skill   ${DIM}# remove from specific agent${RESET}
+  ${DIM}$${RESET} dotai remove --type rule code-style     ${DIM}# remove a specific rule${RESET}
+  ${DIM}$${RESET} dotai remove --type prompt -y           ${DIM}# remove all prompts${RESET}
+  ${DIM}$${RESET} dotai remove --type rule,prompt         ${DIM}# interactive rule/prompt removal${RESET}
+  ${DIM}$${RESET} dotai remove --all                      ${DIM}# remove all skills${RESET}
 
 Discover skills at ${TEXT}https://skills.sh/${RESET}
 `);
@@ -274,6 +302,10 @@ async function main(): Promise<void> {
     case 'i':
     case 'install':
     case 'add': {
+      if (restArgs.includes('--help-all')) {
+        showAddHelpAll();
+        break;
+      }
       if (restArgs.includes('--help') || restArgs.includes('-h')) {
         showAddHelp();
         break;

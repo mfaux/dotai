@@ -42,13 +42,13 @@ describe('parseSyncOptions', () => {
   });
 
   it('should parse --agent flag', () => {
-    const { options } = parseSyncOptions(['--agent', 'claude-code']);
-    expect(options.agent).toEqual(['claude-code']);
+    const { options } = parseSyncOptions(['--agents', 'claude-code']);
+    expect(options.agents).toEqual(['claude-code']);
   });
 
   it('should parse multiple agent values', () => {
     const { options } = parseSyncOptions(['-a', 'claude-code', 'cursor']);
-    expect(options.agent).toEqual(['claude-code', 'cursor']);
+    expect(options.agents).toEqual(['claude-code', 'cursor']);
   });
 
   it('should return empty options for no args', () => {
@@ -60,7 +60,7 @@ describe('parseSyncOptions', () => {
     const { options } = parseSyncOptions(['-y', '-f', '-a', 'claude-code']);
     expect(options.yes).toBe(true);
     expect(options.force).toBe(true);
-    expect(options.agent).toEqual(['claude-code']);
+    expect(options.agents).toEqual(['claude-code']);
   });
 });
 
@@ -104,11 +104,11 @@ Content here.
 
   it('should throw CommandError with exit code 1 for invalid agent', async () => {
     await expect(
-      runSync([], { agent: ['not-a-real-agent'], yes: true, force: true })
+      runSync([], { agents: ['not-a-real-agent'], yes: true, force: true })
     ).rejects.toThrow(CommandError);
 
     try {
-      await runSync([], { agent: ['not-a-real-agent'], yes: true, force: true });
+      await runSync([], { agents: ['not-a-real-agent'], yes: true, force: true });
     } catch (error) {
       expect(error).toBeInstanceOf(CommandError);
       expect((error as CommandError).exitCode).toBe(1);
@@ -118,7 +118,7 @@ Content here.
   it('should not throw for valid agents', async () => {
     // With a valid agent and --yes, it should complete without throwing
     await expect(
-      runSync([], { agent: ['claude-code'], yes: true, force: true })
+      runSync([], { agents: ['claude-code'], yes: true, force: true })
     ).resolves.toBeUndefined();
   });
 });

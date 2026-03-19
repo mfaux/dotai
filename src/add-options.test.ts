@@ -34,14 +34,14 @@ describe('parseAddOptions — rule-related flags', () => {
     expect(options.rule).toEqual(['code-style', 'security']);
   });
 
-  it('parses --targets comma-separated', () => {
-    const { options } = parseAddOptions(['owner/repo', '--targets', 'copilot,claude,cursor']);
-    expect(options.targets).toEqual(['copilot', 'claude', 'cursor']);
+  it('parses --agents comma-separated', () => {
+    const { options } = parseAddOptions(['owner/repo', '--agents', 'copilot,claude,cursor']);
+    expect(options.agents).toEqual(['copilot', 'claude', 'cursor']);
   });
 
-  it('parses --targets space-separated', () => {
-    const { options } = parseAddOptions(['owner/repo', '--targets', 'copilot', 'claude']);
-    expect(options.targets).toEqual(['copilot', 'claude']);
+  it('parses --agents space-separated', () => {
+    const { options } = parseAddOptions(['owner/repo', '--agents', 'copilot', 'claude']);
+    expect(options.agents).toEqual(['copilot', 'claude']);
   });
 
   it('parses --dry-run flag', () => {
@@ -59,14 +59,14 @@ describe('parseAddOptions — rule-related flags', () => {
       'owner/repo',
       '--rule',
       'code-style',
-      '--targets',
+      '--agents',
       'copilot,claude',
       '--dry-run',
       '--force',
     ]);
     expect(source).toEqual(['owner/repo']);
     expect(options.rule).toEqual(['code-style']);
-    expect(options.targets).toEqual(['copilot', 'claude']);
+    expect(options.agents).toEqual(['copilot', 'claude']);
     expect(options.dryRun).toBe(true);
     expect(options.force).toBe(true);
   });
@@ -87,7 +87,7 @@ describe('parseAddOptions — rule-related flags', () => {
     const { source, options } = parseAddOptions(['owner/repo']);
     expect(source).toEqual(['owner/repo']);
     expect(options.rule).toBeUndefined();
-    expect(options.targets).toBeUndefined();
+    expect(options.agents).toBeUndefined();
     expect(options.dryRun).toBeUndefined();
     expect(options.force).toBeUndefined();
     expect(options.append).toBeUndefined();
@@ -98,12 +98,12 @@ describe('parseAddOptions — rule-related flags', () => {
     expect(options.append).toBe(true);
   });
 
-  it('parses --append with --rule, --targets, --dry-run, --force', () => {
+  it('parses --append with --rule, --agents, --dry-run, --force', () => {
     const { source, options } = parseAddOptions([
       'owner/repo',
       '--rule',
       'code-style',
-      '--targets',
+      '--agents',
       'copilot,claude',
       '--append',
       '--dry-run',
@@ -111,7 +111,7 @@ describe('parseAddOptions — rule-related flags', () => {
     ]);
     expect(source).toEqual(['owner/repo']);
     expect(options.rule).toEqual(['code-style']);
-    expect(options.targets).toEqual(['copilot', 'claude']);
+    expect(options.agents).toEqual(['copilot', 'claude']);
     expect(options.append).toBe(true);
     expect(options.dryRun).toBe(true);
     expect(options.force).toBe(true);

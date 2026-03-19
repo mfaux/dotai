@@ -8,7 +8,7 @@ import { consumeMultiValues, parseTypeFlag } from './cli-parse.ts';
 
 interface ListOptions {
   global?: boolean;
-  agent?: string[];
+  agents?: string[];
   type?: ContextType[];
 }
 
@@ -19,10 +19,10 @@ export function parseListOptions(args: string[]): ListOptions {
     const arg = args[i];
     if (arg === '-g' || arg === '--global') {
       options.global = true;
-    } else if (arg === '-a' || arg === '--agent') {
-      options.agent = options.agent || [];
+    } else if (arg === '-a' || arg === '--agents') {
+      options.agents = options.agents || [];
       const { values, nextIndex } = consumeMultiValues(args, i + 1);
-      options.agent.push(...values);
+      options.agents.push(...values);
       i = nextIndex - 1;
     } else if (arg === '-t' || arg === '--type') {
       options.type = options.type || [];
@@ -57,9 +57,9 @@ export async function runList(args: string[]): Promise<void> {
 
   // Validate agent filter if provided
   let agentFilter: AgentType[] | undefined;
-  if (options.agent && options.agent.length > 0) {
+  if (options.agents && options.agents.length > 0) {
     const validAgents = Object.keys(agents);
-    const invalidAgents = options.agent.filter((a) => !validAgents.includes(a));
+    const invalidAgents = options.agents.filter((a) => !validAgents.includes(a));
 
     if (invalidAgents.length > 0) {
       console.log(`${YELLOW}Invalid agents: ${invalidAgents.join(', ')}${RESET}`);
@@ -67,7 +67,7 @@ export async function runList(args: string[]): Promise<void> {
       process.exit(1);
     }
 
-    agentFilter = options.agent as AgentType[];
+    agentFilter = options.agents as AgentType[];
   }
 
   // ── Fetch skills ──

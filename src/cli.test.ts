@@ -35,26 +35,35 @@ describe('dotai CLI', () => {
   });
 
   describe('add --help', () => {
-    it('should display add-specific options', () => {
+    it('should display essential add options', () => {
       const output = runCliOutput(['add', '--help']);
       expect(output).toContain('Usage: dotai add <package> [options]');
-      expect(output).toContain('-s, --skill');
-      expect(output).toContain('-r, --rule');
-      expect(output).toContain('-p, --prompt');
-      expect(output).toContain('--targets');
-      expect(output).toContain('-a, --agent');
-      expect(output).toContain('--dry-run');
-      expect(output).toContain('--force');
-      expect(output).toContain('--append');
-      expect(output).toContain('--gitignore');
+      expect(output).toContain('-a, --agents');
+      expect(output).toContain('-t, --type');
+      expect(output).toContain('-g, --global');
       expect(output).toContain('-y, --yes');
-      expect(output).toContain('--all');
+      expect(output).toContain('--help-all');
     });
 
     it('should show same output for -h alias', () => {
       const helpOutput = runCliOutput(['add', '--help']);
       const hOutput = runCliOutput(['add', '-h']);
       expect(hOutput).toBe(helpOutput);
+    });
+
+    it('should display all options with --help-all', () => {
+      const output = runCliOutput(['add', '--help-all']);
+      expect(output).toContain('Usage: dotai add <package> [options]');
+      expect(output).toContain('-s, --skill');
+      expect(output).toContain('-r, --rule');
+      expect(output).toContain('-p, --prompt');
+      expect(output).toContain('-a, --agents');
+      expect(output).toContain('--dry-run');
+      expect(output).toContain('--force');
+      expect(output).toContain('--append');
+      expect(output).toContain('--gitignore');
+      expect(output).toContain('-y, --yes');
+      expect(output).toContain('--all');
     });
   });
 
@@ -63,7 +72,7 @@ describe('dotai CLI', () => {
       const output = runCliOutput(['list', '--help']);
       expect(output).toContain('Usage: dotai list [options]');
       expect(output).toContain('-g, --global');
-      expect(output).toContain('-a, --agent');
+      expect(output).toContain('-a, --agents');
       expect(output).toContain('-t, --type');
     });
   });

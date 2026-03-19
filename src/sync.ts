@@ -21,7 +21,7 @@ import { consumeMultiValues } from './cli-parse.ts';
 const isCancelled = (value: unknown): value is symbol => typeof value === 'symbol';
 
 export interface SyncOptions {
-  agent?: string[];
+  agents?: string[];
   yes?: boolean;
   force?: boolean;
 }
@@ -189,17 +189,17 @@ export async function runSync(args: string[], options: SyncOptions = {}): Promis
   const validAgents = Object.keys(agents);
   const universalAgents = getUniversalAgents();
 
-  if (options.agent?.includes('*')) {
+  if (options.agents?.includes('*')) {
     targetAgents = validAgents as AgentType[];
     p.log.info(`Installing to all ${targetAgents.length} agents`);
-  } else if (options.agent && options.agent.length > 0) {
-    const invalidAgents = options.agent.filter((a) => !validAgents.includes(a));
+  } else if (options.agents && options.agents.length > 0) {
+    const invalidAgents = options.agents.filter((a) => !validAgents.includes(a));
     if (invalidAgents.length > 0) {
       p.log.error(`Invalid agents: ${invalidAgents.join(', ')}`);
       p.log.info(`Valid agents: ${validAgents.join(', ')}`);
       throw new CommandError(1);
     }
-    targetAgents = options.agent as AgentType[];
+    targetAgents = options.agents as AgentType[];
   } else {
     spinner.start('Loading agents...');
     const installedAgents = await detectInstalledAgents();
@@ -418,10 +418,10 @@ export function parseSyncOptions(args: string[]): { options: SyncOptions } {
       options.yes = true;
     } else if (arg === '-f' || arg === '--force') {
       options.force = true;
-    } else if (arg === '-a' || arg === '--agent') {
-      options.agent = options.agent || [];
+    } else if (arg === '-a' || arg === '--agents') {
+      options.agents = options.agents || [];
       const { values, nextIndex } = consumeMultiValues(args, i + 1);
-      options.agent.push(...values);
+      options.agents.push(...values);
       i = nextIndex - 1;
     }
   }

@@ -20,7 +20,7 @@ import { CommandError } from './command-result.ts';
 
 export interface RemoveOptions {
   global?: boolean;
-  agent?: string[];
+  agents?: string[];
   yes?: boolean;
   all?: boolean;
   type?: ContextType[];
@@ -108,9 +108,9 @@ async function removeSkills(skillNames: string[], options: RemoveOptions) {
   }
 
   // Validate agent options BEFORE prompting for skill selection
-  if (options.agent && options.agent.length > 0) {
+  if (options.agents && options.agents.length > 0) {
     const validAgents = Object.keys(agents);
-    const invalidAgents = options.agent.filter((a) => !validAgents.includes(a));
+    const invalidAgents = options.agents.filter((a) => !validAgents.includes(a));
 
     if (invalidAgents.length > 0) {
       p.log.error(`Invalid agents: ${invalidAgents.join(', ')}`);
@@ -153,8 +153,8 @@ async function removeSkills(skillNames: string[], options: RemoveOptions) {
   }
 
   let targetAgents: AgentType[];
-  if (options.agent && options.agent.length > 0) {
-    targetAgents = options.agent as AgentType[];
+  if (options.agents && options.agents.length > 0) {
+    targetAgents = options.agents as AgentType[];
   } else {
     // When removing, we should target all known agents to ensure
     // ghost symlinks are cleaned up, even if the agent is not detected.
@@ -333,10 +333,10 @@ export function parseRemoveOptions(args: string[]): { skills: string[]; options:
       options.yes = true;
     } else if (arg === '--all') {
       options.all = true;
-    } else if (arg === '-a' || arg === '--agent') {
-      options.agent = options.agent || [];
+    } else if (arg === '-a' || arg === '--agents') {
+      options.agents = options.agents || [];
       const { values, nextIndex } = consumeMultiValues(args, i + 1);
-      options.agent.push(...values);
+      options.agents.push(...values);
       i = nextIndex - 1;
     } else if (arg === '-t' || arg === '--type') {
       options.type = options.type || [];
@@ -397,8 +397,8 @@ async function removeDotaiManagedItems(
   let candidates = lock.items.filter((entry) => typeSet.has(entry.type));
 
   // Apply agent filter if provided
-  if (options.agent && options.agent.length > 0) {
-    const agentSet = new Set<string>(options.agent);
+  if (options.agents && options.agents.length > 0) {
+    const agentSet = new Set<string>(options.agents);
     candidates = candidates.filter((entry) => entry.agents.some((a) => agentSet.has(a)));
   }
 

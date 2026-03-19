@@ -87,7 +87,7 @@ async function restoreSkills(cwd: string, args: string[]): Promise<boolean> {
     try {
       await runAdd([source], {
         skill: skills,
-        agent: universalAgentNames,
+        agents: universalAgentNames,
         yes: true,
       });
     } catch (error) {
@@ -104,7 +104,7 @@ async function restoreSkills(cwd: string, args: string[]): Promise<boolean> {
     );
     try {
       const { options: syncOptions } = parseSyncOptions(args);
-      await runSync(args, { ...syncOptions, yes: true, agent: universalAgentNames });
+      await runSync(args, { ...syncOptions, yes: true, agents: universalAgentNames });
     } catch (error) {
       p.log.error(
         `Failed to sync node_modules skills: ${error instanceof Error ? error.message : 'Unknown error'}`

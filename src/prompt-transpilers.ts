@@ -10,6 +10,7 @@ import { parsePromptContent } from './prompt-parser.ts';
 import { getTargetAgentConfig } from './target-agents.ts';
 import { resolveModel, type ModelOverrides } from './model-aliases.ts';
 import { quoteYaml } from './rule-transpilers.ts';
+import { mergeOverrides } from './override-parser.ts';
 
 // ---------------------------------------------------------------------------
 // Prompt transpilers — canonical PROMPT.md → per-agent output
@@ -207,8 +208,8 @@ export function transpilePrompt(
     return null;
   }
 
-  // Resolve model alias for the target agent
-  const prompt = parsed.prompt;
+  // Merge per-agent overrides on top of base fields
+  const prompt = mergeOverrides(parsed.prompt, targetAgent) as CanonicalPrompt;
   if (prompt.model) {
     const resolution = resolveModel(prompt.model, targetAgent, modelOverrides);
     if (resolution.warning) {

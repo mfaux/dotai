@@ -38,13 +38,13 @@ Supported agent aliases include values such as `claude-code` and `codex`. See [S
 
 ## remove command options
 
-| Option                    | Description                                                                  |
-| ------------------------- | ---------------------------------------------------------------------------- |
-| `-g, --global`            | Remove from global scope                                                     |
-| `-a, --agents <agents...>` | Remove from specific agents (use `'*'` for all agents)                      |
-| `-t, --type <types...>`   | Filter by context type (`skill`, `rule`, `prompt`, `agent`; comma-separated) |
-| `-y, --yes`               | Skip confirmation prompts                                                    |
-| `--all`                   | Remove all installed items                                                   |
+| Option                     | Description                                                                  |
+| -------------------------- | ---------------------------------------------------------------------------- |
+| `-g, --global`             | Remove from global scope                                                     |
+| `-a, --agents <agents...>` | Remove from specific agents (use `'*'` for all agents)                       |
+| `-t, --type <types...>`    | Filter by context type (`skill`, `rule`, `prompt`, `agent`; comma-separated) |
+| `-y, --yes`                | Skip confirmation prompts                                                    |
+| `--all`                    | Remove all installed items                                                   |
 
 ## find command
 
@@ -103,13 +103,13 @@ When scanning a repo via `dotai find owner/repo`, dotai also discovers agent-nat
 
 The following native directories are scanned (derived from the [target-agents registry](#canonical-vs-native-files)):
 
-| Agent          | Rules                       | Prompts                    | Agents                    |
-| -------------- | --------------------------- | -------------------------- | ------------------------- |
-| Cursor         | `.cursor/rules/*.mdc`       | —                          | —                         |
-| Claude Code    | `.claude/rules/*.md`        | `.claude/commands/*.md`    | `.claude/agents/*.md`     |
+| Agent          | Rules                                    | Prompts                       | Agents                      |
+| -------------- | ---------------------------------------- | ----------------------------- | --------------------------- |
+| Cursor         | `.cursor/rules/*.mdc`                    | —                             | —                           |
+| Claude Code    | `.claude/rules/*.md`                     | `.claude/commands/*.md`       | `.claude/agents/*.md`       |
 | GitHub Copilot | `.github/instructions/*.instructions.md` | `.github/prompts/*.prompt.md` | `.github/agents/*.agent.md` |
-| Windsurf       | `.windsurf/rules/*.md`      | `.windsurf/workflows/*.md` | —                         |
-| Cline          | `.clinerules/*.md`          | —                          | —                         |
+| Windsurf       | `.windsurf/rules/*.md`                   | `.windsurf/workflows/*.md`    | —                           |
+| Cline          | `.clinerules/*.md`                       | —                             | —                           |
 
 **Non-interactive mode** (with a query argument) prints matching results with install commands, suitable for use inside AI coding agents.
 
@@ -121,12 +121,12 @@ Convert native agent-specific rule files into canonical `RULES.md` format.
     npx dotai import --from cursor,claude-code
     npx dotai import --output rules/ --dry-run
 
-| Flag | Description |
-|------|-------------|
+| Flag              | Description                                                           |
+| ----------------- | --------------------------------------------------------------------- |
 | `--from <agents>` | Comma-separated list of agents to import from (default: all detected) |
-| `--output <dir>` | Output directory for canonical rules (default: `rules/`) |
-| `--force` | Overwrite existing canonical rules with the same name |
-| `--dry-run` | Preview imports without writing files |
+| `--output <dir>`  | Output directory for canonical rules (default: `rules/`)              |
+| `--force`         | Overwrite existing canonical rules with the same name                 |
+| `--dry-run`       | Preview imports without writing files                                 |
 
 > **Note:** Some agent formats lose information during import. For example, Cursor's
 > `alwaysApply: false` maps to `activation: auto` (could also mean `manual`), and
@@ -134,21 +134,21 @@ Convert native agent-specific rule files into canonical `RULES.md` format.
 
 ### Supported native formats
 
-| Agent | Source directory | Parsed fields |
-|-------|-----------------|---------------|
-| Cursor | `.cursor/rules/*.mdc` | description, alwaysApply, globs |
-| Claude Code | `.claude/rules/*.md` | description, globs |
-| GitHub Copilot | `.github/instructions/*.instructions.md` | applyTo |
-| Windsurf | `.windsurf/rules/*.md` | trigger, description, globs |
-| Cline | `.clinerules/*.md` | heading, blockquote, "Applies to" |
+| Agent          | Source directory                         | Parsed fields                     |
+| -------------- | ---------------------------------------- | --------------------------------- |
+| Cursor         | `.cursor/rules/*.mdc`                    | description, alwaysApply, globs   |
+| Claude Code    | `.claude/rules/*.md`                     | description, globs                |
+| GitHub Copilot | `.github/instructions/*.instructions.md` | applyTo                           |
+| Windsurf       | `.windsurf/rules/*.md`                   | trigger, description, globs       |
+| Cline          | `.clinerules/*.md`                       | heading, blockquote, "Applies to" |
 
 ## list command options
 
-| Option                    | Description                                                                  |
-| ------------------------- | ---------------------------------------------------------------------------- |
-| `-g, --global`            | List global context (default: project)                                       |
-| `-a, --agents <agents...>` | Filter by specific agents                                                   |
-| `-t, --type <types...>`   | Filter by context type (`skill`, `rule`, `prompt`, `agent`; comma-separated) |
+| Option                     | Description                                                                  |
+| -------------------------- | ---------------------------------------------------------------------------- |
+| `-g, --global`             | List global context (default: project)                                       |
+| `-a, --agents <agents...>` | Filter by specific agents                                                    |
+| `-t, --type <types...>`    | Filter by context type (`skill`, `rule`, `prompt`, `agent`; comma-separated) |
 
 ## Installation Scope
 
@@ -246,6 +246,49 @@ A single source repo can contain both canonical and native files. Canonical file
 | Agent-agnostic coding standards                 | Canonical `RULES.md`  |
 | Agent-specific tool references or workflows     | Native file           |
 | Mix of portable and agent-specific instructions | Both in the same repo |
+
+### Per-agent overrides
+
+Canonical files can include **agent-namespaced override blocks** in their YAML frontmatter. When transpiling for a target agent, its override fields are shallow-merged on top of the base fields. Overrides for other agents are stripped.
+
+This lets you keep a single canonical file while tuning specific fields per agent, without maintaining separate native files.
+
+```markdown
+---
+name: code-style
+description: Enforce TypeScript style conventions
+globs:
+  - '*.ts'
+  - '*.tsx'
+activation: auto
+
+github-copilot:
+  activation: always
+
+claude-code:
+  severity: error
+---
+
+Use `const` over `let` when the variable is never reassigned.
+```
+
+In this example, when transpiling for GitHub Copilot the effective `activation` is `always`. For Claude Code, `severity` is `error`. For Cursor, Windsurf, and Cline, the base fields are used unchanged.
+
+Override blocks work on all three canonical types:
+
+| Type        | Overridable fields                                                             |
+| ----------- | ------------------------------------------------------------------------------ |
+| `RULES.md`  | `description`, `globs`, `activation`, `severity`                               |
+| `PROMPT.md` | `description`, `argument-hint`, `agent`, `model`, `tools`                      |
+| `AGENT.md`  | `description`, `model`, `tools`, `disallowed-tools`, `max-turns`, `background` |
+
+Identity fields (`name`, `schema-version`) and structural fields (`body`) cannot be overridden.
+
+Override keys must match a valid target agent (`github-copilot`, `claude-code`, `cursor`, `windsurf`, `cline`). Unrecognized keys produce a parser warning.
+
+Agent-exclusive fields like `disallowed-tools`, `max-turns`, and `background` can appear in any agent's override block. The transpiler for agents that do not support those fields ignores them, just as it does for base fields.
+
+See [`examples/rule-with-overrides/RULES.md`](../examples/rule-with-overrides/RULES.md) for a complete working example.
 
 ## Source repo layout
 

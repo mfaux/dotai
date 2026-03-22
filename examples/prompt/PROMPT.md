@@ -1,19 +1,16 @@
-<!-- Canonical prompt: $ARGUMENTS and tool names are mapped per-agent during
-     transpilation. The model field uses canonical names (e.g. claude-sonnet-4)
-     that resolve to agent-specific identifiers automatically. -->
-
 ---
-
 name: review-pr
 description: Review a pull request for correctness, performance, and style
 argument-hint: <file-or-directory>
 tools:
-
-- codebase_search
-- read_file
-  model: claude-sonnet-4
-
+  - codebase_search
+  - read_file
+model: claude-sonnet-4
 ---
+
+<!-- $ARGUMENTS and tool names are mapped per-agent during transpilation.
+     The model field uses canonical names (e.g. claude-sonnet-4) that
+     resolve to agent-specific identifiers automatically. -->
 
 Review the code at $ARGUMENTS for:
 

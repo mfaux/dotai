@@ -12,8 +12,8 @@ Project-specific guidance for AI coding agents working in this codebase.
 
 ## Documentation Style
 
-- **User-first perspective.** Write for people using Ralphai, not maintainers of this repo.
-- **Active voice.** "Ralphai creates a branch" not "a branch is created by Ralphai."
+- **User-first perspective.** Write for people using dotai, not maintainers of this repo.
+- **Active voice.** "dotai transpiles the rule" not "the rule is transpiled by dotai."
 - **Keep it scannable.** Short paragraphs, bullet lists, code examples. Avoid walls of text.
 - **Bold for emphasis.** Use `**bold**` to highlight key terms and concepts.
 - **No em dashes in prose.** Use em dashes only in list item labels (e.g., `- **Key** — explanation`). In sentences, restructure or use commas instead.
@@ -25,7 +25,7 @@ Project-specific guidance for AI coding agents working in this codebase.
 ## File Size Limits
 
 - **Test files: max ~500 lines.** When a test file approaches this limit, split it by feature domain before adding more tests. When adding tests for a new feature, create a new `<feature>.test.ts` file rather than appending to an existing one.
-- **Source files: max ~300 lines.** Extract modules when a file grows beyond this. Note: `src/ralphai.ts` currently exceeds this limit and is a candidate for decomposition. Follow this guideline for new files and when refactoring.
+- **Source files: max ~300 lines.** Extract modules when a file grows beyond this. Follow this guideline for new files and when refactoring.
 - Before appending to any file, check its current size. If adding your changes would push it past the limit, split first.
 
 ## Package Manager

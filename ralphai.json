@@ -1,0 +1,21 @@
+{
+  "agentCommand": "opencode run --agent build",
+  "feedbackCommands": [
+    "pnpm build",
+    "pnpm test",
+    "pnpm type-check",
+    "pnpm format:check"
+  ],
+  "baseBranch": "main",
+  "turns": 10,
+  "mode": "pr",
+  "autoCommit": false,
+  "turnTimeout": 0,
+  "promptMode": "auto",
+  "continuous": false,
+  "issueSource": "github",
+  "issueLabel": "ralphai",
+  "issueInProgressLabel": "ralphai:in-progress",
+  "issueRepo": "",
+  "issueCommentProgress": true
+}

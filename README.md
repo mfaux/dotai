@@ -11,7 +11,7 @@ Requires Node.js 18+ (or Bun/Deno).
 
 <!-- agent-list:start -->
 
-Supports **OpenCode**, **Claude Code**, **Codex**, **Cursor**, and [37 more](docs/supported-agents.md).
+Supports **OpenCode**, **Claude Code**, **Codex**, **Cursor**, and [37 more](docs/supported-targets.md).
 
 <!-- agent-list:end -->
 
@@ -32,8 +32,8 @@ dotai solves this with **canonical authoring**: write a single `RULES.md`,
 `PROMPT.md`, or `AGENT.md` and dotai transpiles it into every target agent's
 native format automatically.
 
-- **Write once** — one canonical file fans out to all target agents
-- **40+ agents** — Copilot, Claude Code, Cursor, Windsurf, Cline, and more
+- **Write once** — one canonical file fans out to all targets
+- **40+ targets** — Copilot, Claude Code, Cursor, Windsurf, Cline, and more
 - **Team sharing** — `npx dotai add owner/repo` gives every teammate the same context
 - **No lock-in** — canonical files are plain markdown with YAML frontmatter
 
@@ -50,8 +50,8 @@ npx dotai                   # run without installing
 # Add context from a GitHub repo
 npx dotai add owner/repo
 
-# Target specific coding agents
-npx dotai add owner/repo --agents copilot,claude,cursor
+# Limit to specific targets
+npx dotai add owner/repo --targets copilot,claude,cursor
 
 # Install specific rules or skills
 npx dotai add owner/repo --rule code-style --skill db-migrate
@@ -62,12 +62,12 @@ repo and transpiles them for your selected targets.
 
 ## What dotai installs
 
-| Layer   | Canonical file | Install behavior                     |
-| ------- | -------------- | ------------------------------------ |
-| Skills  | `SKILL.md`     | Passthrough (symlink or copy)        |
-| Rules   | `RULES.md`     | Transpile per target agent           |
-| Prompts | `PROMPT.md`    | Transpile per supported target agent |
-| Agents  | `AGENT.md`     | Transpile per supported target agent |
+| Layer   | Canonical file | Install behavior               |
+| ------- | -------------- | ------------------------------ |
+| Skills  | `SKILL.md`     | Passthrough (symlink or copy)  |
+| Rules   | `RULES.md`     | Transpile per target           |
+| Prompts | `PROMPT.md`    | Transpile per supported target |
+| Agents  | `AGENT.md`     | Transpile per supported target |
 
 See [Source repo layout](docs/cli-reference.md#source-repo-layout) for where to place these files in your repo so dotai discovers them.
 
@@ -118,18 +118,18 @@ npx dotai add ./my-local-context                        # local path
 
 </details>
 
-Skill installs target [41 agents](docs/supported-agents.md). **GitHub Copilot**, **Claude Code**, and **OpenCode** are actively tested; other agents follow the [Agent Skills specification](https://agentskills.io) but are not individually verified.
+Skill installs target [41 targets](docs/supported-targets.md). **GitHub Copilot**, **Claude Code**, and **OpenCode** are actively tested; other targets follow the [Agent Skills specification](https://agentskills.io) but are not individually verified.
 
 ## Reference
 
 - [CLI Reference](docs/cli-reference.md) — all commands, flags, options, and authoring format
-- [Supported Agents](docs/supported-agents.md) — full list of skill install targets
+- [Supported Targets](docs/supported-targets.md) — full list of skill install targets
 
 ## Fork Lineage
 
 dotai started as a fork of [vercel-labs/skills](https://github.com/vercel-labs/skills) / [skills.sh](https://skills.sh).
 The inherited skills install pipeline remains first-class. dotai extends it with
-transpilation of rules, prompts, and agent definitions to multiple target agents.
+transpilation of rules, prompts, and agent definitions to multiple targets.
 
 ## Acknowledgements
 

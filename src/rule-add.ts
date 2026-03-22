@@ -37,7 +37,7 @@ export interface RuleAddOptions {
   /** Rule names to install. Empty or ['*'] means all rules. */
   ruleNames: string[];
   /** Target agents to install for. Defaults to all five. */
-  agents?: TargetAgent[];
+  targets?: TargetAgent[];
   /** Preview planned writes without executing them. */
   dryRun?: boolean;
   /** Overwrite collisions instead of aborting. */
@@ -119,7 +119,7 @@ export interface PromptAddOptions {
   /** Prompt names to install. Empty or ['*'] means all prompts. */
   promptNames: string[];
   /** Target agents to install for. Defaults to all five. */
-  agents?: TargetAgent[];
+  targets?: TargetAgent[];
   /** Preview planned writes without executing them. */
   dryRun?: boolean;
   /** Overwrite collisions instead of aborting. */
@@ -213,11 +213,11 @@ export async function addRules(options: RuleAddOptions): Promise<RuleAddResult> 
   const { lock } = await readDotaiLock(options.projectRoot);
 
   // 5. Run install pipeline
-  const agents = options.agents ?? [...TARGET_AGENTS];
+  const targets = options.targets ?? [...TARGET_AGENTS];
   const modelOverrides = await loadModelOverrides(options.projectRoot);
   const result = await executeInstallPipeline(selectedRules, {
     projectRoot: options.projectRoot,
-    agents,
+    targets,
     source: options.source,
     lockEntries: lock.items,
     force: options.force,
@@ -367,11 +367,11 @@ export async function addPrompts(options: PromptAddOptions): Promise<PromptAddRe
   const { lock } = await readDotaiLock(options.projectRoot);
 
   // 5. Run install pipeline
-  const agents = options.agents ?? [...TARGET_AGENTS];
+  const targets = options.targets ?? [...TARGET_AGENTS];
   const modelOverrides = await loadModelOverrides(options.projectRoot);
   const result = await executeInstallPipeline(selectedPrompts, {
     projectRoot: options.projectRoot,
-    agents,
+    targets,
     source: options.source,
     lockEntries: lock.items,
     force: options.force,
@@ -478,7 +478,7 @@ export interface AgentAddOptions {
   /** Agent names to install. Empty or ['*'] means all agents. */
   agentNames: string[];
   /** Target agents to install for. Defaults to all five. */
-  agents?: TargetAgent[];
+  targets?: TargetAgent[];
   /** Preview planned writes without executing them. */
   dryRun?: boolean;
   /** Overwrite collisions instead of aborting. */
@@ -557,11 +557,11 @@ export async function addAgents(options: AgentAddOptions): Promise<AgentAddResul
   const { lock } = await readDotaiLock(options.projectRoot);
 
   // 5. Run install pipeline
-  const agents = options.agents ?? [...TARGET_AGENTS];
+  const targets = options.targets ?? [...TARGET_AGENTS];
   const modelOverrides = await loadModelOverrides(options.projectRoot);
   const result = await executeInstallPipeline(selectedAgents, {
     projectRoot: options.projectRoot,
-    agents,
+    targets,
     source: options.source,
     lockEntries: lock.items,
     force: options.force,

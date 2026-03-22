@@ -1,15 +1,15 @@
-# Supported Agents
+# Supported Targets
 
-dotai installs `SKILL.md` files into the config directories of 41 agents. **GitHub Copilot**, **Claude Code**, and **OpenCode** are actively tested; other agents follow the [Agent Skills specification](https://agentskills.io) but are not individually verified.
+dotai installs `SKILL.md` files into the config directories of 41 targets. **GitHub Copilot**, **Claude Code**, and **OpenCode** are actively tested; other targets follow the [Agent Skills specification](https://agentskills.io) but are not individually verified.
 
 Rules, prompts, and agent definitions use a separate set of [transpilation targets](../README.md#supported-targets) (Copilot, Claude Code, Cursor, Windsurf, Cline, OpenCode). OpenCode is both a skill install target and a transpilation target.
 
 <details>
-<summary>Full agent table</summary>
+<summary>Full target table</summary>
 
 <!-- supported-agents:start -->
 
-| Agent                                 | `--agents`                               | Project Path           | Global Path                     |
+| Target                                | `--targets`                              | Project Path           | Global Path                     |
 | ------------------------------------- | ---------------------------------------- | ---------------------- | ------------------------------- |
 | Amp, Kimi Code CLI, Replit, Universal | `amp`, `kimi-cli`, `replit`, `universal` | `.agents/skills/`      | `~/.config/agents/skills/`      |
 | Antigravity                           | `antigravity`                            | `.agent/skills/`       | `~/.gemini/antigravity/skills/` |

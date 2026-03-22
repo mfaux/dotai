@@ -7,17 +7,17 @@ import { agents } from '../src/agents.ts';
 
 const ROOT = join(import.meta.dirname, '..');
 const README_PATH = join(ROOT, 'README.md');
-const AGENTS_DOC_PATH = join(ROOT, 'docs', 'supported-agents.md');
+const AGENTS_DOC_PATH = join(ROOT, 'docs', 'supported-targets.md');
 const PACKAGE_PATH = join(ROOT, 'package.json');
 
 function generateAgentList(): string {
   const agentList = Object.values(agents);
   const count = agentList.length;
-  return `Supports **OpenCode**, **Claude Code**, **Codex**, **Cursor**, and [${count - 4} more](docs/supported-agents.md).`;
+  return `Supports **OpenCode**, **Claude Code**, **Codex**, **Cursor**, and [${count - 4} more](docs/supported-targets.md).`;
 }
 
 function generateAgentNames(): string {
-  return 'Target specific agents (e.g., `claude-code`, `codex`). See [Supported Agents](docs/supported-agents.md)';
+  return 'Limit to specific targets (e.g., `claude-code`, `codex`). See [Supported Targets](docs/supported-targets.md)';
 }
 
 function generateAvailableAgentsTable(): string {
@@ -56,7 +56,7 @@ function generateAvailableAgentsTable(): string {
     return `| ${names} | ${keys} | \`${group.skillsDir}/\` | ${globalPath} |`;
   });
   return [
-    '| Agent | `--agent` | Project Path | Global Path |',
+    '| Target | `--targets` | Project Path | Global Path |',
     '|-------|-----------|--------------|-------------|',
     ...rows,
   ].join('\n');
@@ -112,7 +112,7 @@ function main() {
   agentsDoc = replaceSection(agentsDoc, 'skill-discovery', generateSkillDiscoveryPaths());
 
   writeFileSync(AGENTS_DOC_PATH, agentsDoc);
-  console.log('docs/supported-agents.md updated');
+  console.log('docs/supported-targets.md updated');
 
   const pkg = JSON.parse(readFileSync(PACKAGE_PATH, 'utf-8'));
   pkg.keywords = generateKeywords();

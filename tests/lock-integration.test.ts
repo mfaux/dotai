@@ -118,7 +118,7 @@ describe('addRules → lock file integration', () => {
       sourcePath: sourceRepo,
       projectRoot: projectDir,
       ruleNames: ['*'],
-      agents: ['cursor', 'cline'],
+      targets: ['cursor', 'cline'],
     });
 
     const lock = await readLockFileFromDisk(projectDir);

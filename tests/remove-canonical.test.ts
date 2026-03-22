@@ -68,7 +68,7 @@ describe('removeCommand canonical protection', () => {
 
     // 3. Remove from Claude only
     // -a claude-code
-    await removeCommand([skillName], { agents: ['claude-code'], yes: true });
+    await removeCommand([skillName], { targets: ['claude-code'], yes: true });
 
     // 4. Verify results
     // Claude path should be gone
@@ -96,7 +96,7 @@ describe('removeCommand canonical protection', () => {
     vi.mocked(agentsModule.detectInstalledAgents).mockResolvedValue(['claude-code']);
 
     // Remove from Claude
-    await removeCommand([skillName], { agents: ['claude-code'], yes: true });
+    await removeCommand([skillName], { targets: ['claude-code'], yes: true });
 
     // Both should be gone
     await expect(lstat(claudePath)).rejects.toThrow();

@@ -197,34 +197,34 @@ This is a test skill.
     });
   });
 
-  describe('agent filtering', () => {
+  describe('target filtering', () => {
     beforeEach(() => {
       createTestSkill('test-skill');
       createAgentSkillsDir('.claude');
       createAgentSkillsDir('.cline');
     });
 
-    it('should show error for invalid agent name', () => {
-      const result = runCli(['remove', 'test-skill', '--agents', 'invalid-agent', '-y'], testDir);
+    it('should show error for invalid target name', () => {
+      const result = runCli(['remove', 'test-skill', '--targets', 'invalid-agent', '-y'], testDir);
 
-      expect(result.stdout).toContain('Invalid agents');
+      expect(result.stdout).toContain('Invalid targets');
       expect(result.stdout).toContain('invalid-agent');
-      expect(result.stdout).toContain('Valid agents');
+      expect(result.stdout).toContain('Valid targets');
       expect(result.exitCode).toBe(1);
     });
 
-    it('should accept valid agent names', () => {
-      // This should not error on agent validation
-      const result = runCli(['remove', 'test-skill', '--agents', 'claude-code', '-y'], testDir);
-      expect(result.stdout).not.toContain('Invalid agents');
+    it('should accept valid target names', () => {
+      // This should not error on target validation
+      const result = runCli(['remove', 'test-skill', '--targets', 'claude-code', '-y'], testDir);
+      expect(result.stdout).not.toContain('Invalid targets');
     });
 
-    it('should accept multiple agent names', () => {
+    it('should accept multiple target names', () => {
       const result = runCli(
-        ['remove', 'test-skill', '--agents', 'claude-code', 'cursor', '-y'],
+        ['remove', 'test-skill', '--targets', 'claude-code', 'cursor', '-y'],
         testDir
       );
-      expect(result.stdout).not.toContain('Invalid agents');
+      expect(result.stdout).not.toContain('Invalid targets');
     });
   });
 
@@ -303,7 +303,7 @@ This is a test skill.
       expect(result.stdout).toContain('Usage');
       expect(result.stdout).toContain('remove');
       expect(result.stdout).toContain('--global');
-      expect(result.stdout).toContain('--agents');
+      expect(result.stdout).toContain('--targets');
       expect(result.stdout).toContain('--yes');
       expect(result.exitCode).toBe(0);
     });
@@ -331,17 +331,17 @@ This is a test skill.
       expect(result.exitCode).toBe(0);
     });
 
-    it('should parse -a as agent', () => {
+    it('should parse -a as target', () => {
       const result = runCli(['remove', 'parse-test-skill', '-a', 'claude-code', '-y'], testDir);
-      expect(result.stdout).not.toContain('Invalid agents');
+      expect(result.stdout).not.toContain('Invalid targets');
     });
 
-    it('should handle multiple values for --agent', () => {
+    it('should handle multiple values for --targets', () => {
       const result = runCli(
-        ['remove', 'parse-test-skill', '--agents', 'claude-code', 'cursor', '-y'],
+        ['remove', 'parse-test-skill', '--targets', 'claude-code', 'cursor', '-y'],
         testDir
       );
-      expect(result.stdout).not.toContain('Invalid agents');
+      expect(result.stdout).not.toContain('Invalid targets');
     });
 
     it('should show error for invalid --type value', () => {
@@ -495,25 +495,25 @@ describe('removeCommand unit tests', () => {
     }
   });
 
-  it('should throw CommandError with exit code 1 for invalid agent', async () => {
+  it('should throw CommandError with exit code 1 for invalid target', async () => {
     // Create a skill so we get past the "no skills found" early return
     const skillDir = join(skillsDir, 'test-skill');
     mkdirSync(skillDir, { recursive: true });
     writeFileSync(join(skillDir, 'SKILL.md'), '# Test');
 
     await expect(
-      removeCommand(['test-skill'], { agents: ['not-a-real-agent'], yes: true })
+      removeCommand(['test-skill'], { targets: ['not-a-real-agent'], yes: true })
     ).rejects.toThrow(CommandError);
 
     try {
-      await removeCommand(['test-skill'], { agents: ['not-a-real-agent'], yes: true });
+      await removeCommand(['test-skill'], { targets: ['not-a-real-agent'], yes: true });
     } catch (error) {
       expect(error).toBeInstanceOf(CommandError);
       expect((error as CommandError).exitCode).toBe(1);
     }
   });
 
-  it('should not throw for valid agent with matching skill', async () => {
+  it('should not throw for valid target with matching skill', async () => {
     // Create a skill in canonical location
     const skillDir = join(skillsDir, 'test-skill');
     mkdirSync(skillDir, { recursive: true });
@@ -521,7 +521,7 @@ describe('removeCommand unit tests', () => {
 
     // Should complete without throwing
     await expect(
-      removeCommand(['test-skill'], { agents: ['claude-code'], yes: true })
+      removeCommand(['test-skill'], { targets: ['claude-code'], yes: true })
     ).resolves.toBeUndefined();
   });
 });

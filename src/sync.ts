@@ -21,7 +21,7 @@ import { consumeMultiValues } from './cli-parse.ts';
 const isCancelled = (value: unknown): value is symbol => typeof value === 'symbol';
 
 export interface SyncOptions {
-  agents?: string[];
+  targets?: string[];
   yes?: boolean;
   force?: boolean;
 }
@@ -189,22 +189,22 @@ export async function runSync(args: string[], options: SyncOptions = {}): Promis
   const validAgents = Object.keys(agents);
   const universalAgents = getUniversalAgents();
 
-  if (options.agents?.includes('*')) {
+  if (options.targets?.includes('*')) {
     targetAgents = validAgents as AgentType[];
-    p.log.info(`Installing to all ${targetAgents.length} agents`);
-  } else if (options.agents && options.agents.length > 0) {
-    const invalidAgents = options.agents.filter((a) => !validAgents.includes(a));
+    p.log.info(`Installing to all ${targetAgents.length} targets`);
+  } else if (options.targets && options.targets.length > 0) {
+    const invalidAgents = options.targets.filter((a) => !validAgents.includes(a));
     if (invalidAgents.length > 0) {
-      p.log.error(`Invalid agents: ${invalidAgents.join(', ')}`);
-      p.log.info(`Valid agents: ${validAgents.join(', ')}`);
+      p.log.error(`Invalid targets: ${invalidAgents.join(', ')}`);
+      p.log.info(`Valid targets: ${validAgents.join(', ')}`);
       throw new CommandError(1);
     }
-    targetAgents = options.agents as AgentType[];
+    targetAgents = options.targets as AgentType[];
   } else {
-    spinner.start('Loading agents...');
+    spinner.start('Loading targets...');
     const installedAgents = await detectInstalledAgents();
     const totalAgents = Object.keys(agents).length;
-    spinner.stop(`${totalAgents} agents`);
+    spinner.stop(`${totalAgents} targets`);
 
     if (installedAgents.length === 0) {
       if (options.yes) {
@@ -418,10 +418,10 @@ export function parseSyncOptions(args: string[]): { options: SyncOptions } {
       options.yes = true;
     } else if (arg === '-f' || arg === '--force') {
       options.force = true;
-    } else if (arg === '-a' || arg === '--agents') {
-      options.agents = options.agents || [];
+    } else if (arg === '-a' || arg === '--targets') {
+      options.targets = options.targets || [];
       const { values, nextIndex } = consumeMultiValues(args, i + 1);
-      options.agents.push(...values);
+      options.targets.push(...values);
       i = nextIndex - 1;
     }
   }

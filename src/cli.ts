@@ -142,15 +142,15 @@ ${BOLD}Description:${RESET}
 
 ${BOLD}Essentials:${RESET}
   <package>              GitHub shorthand (owner/repo), URL, or local path
-  -a, --agents <agents>  Target agents (comma-separated; use '*' for all)
-  -t, --type <types>     Filter by type (skill, rule, prompt, agent; comma-separated)
-  -g, --global           Install globally (user-level)
-  -y, --yes              Skip confirmation prompts
+  -a, --targets <targets>  Target agents (comma-separated; use '*' for all)
+  -t, --type <types>       Filter by type (skill, rule, prompt, agent; comma-separated)
+  -g, --global             Install globally (user-level)
+  -y, --yes                Skip confirmation prompts
 
 ${BOLD}Examples:${RESET}
   ${DIM}$${RESET} dotai add vercel-labs/agent-skills              ${DIM}# interactive (all types)${RESET}
   ${DIM}$${RESET} dotai add owner/repo --rule code-style          ${DIM}# install a specific rule${RESET}
-  ${DIM}$${RESET} dotai add owner/repo --agents copilot,claude    ${DIM}# target specific agents${RESET}
+  ${DIM}$${RESET} dotai add owner/repo --targets copilot,claude   ${DIM}# target specific agents${RESET}
   ${DIM}$${RESET} dotai add owner/repo --type rule,prompt -y      ${DIM}# install all rules and prompts${RESET}
 
 Run ${BOLD}dotai add --help-all${RESET} for all options.
@@ -175,9 +175,9 @@ ${BOLD}Content Selection:${RESET}
   -t, --type <types>     Filter by type (skill, rule, prompt, agent; comma-separated)
 
 ${BOLD}Target Options:${RESET}
-  -a, --agents <agents>  Target agents (comma-separated; use '*' for all)
-                         For skills: any of the ${DIM}41 supported agents${RESET}
-                         For rules/prompts/agents: copilot, claude, cursor, windsurf, cline
+  -a, --targets <targets>  Target agents (comma-separated; use '*' for all)
+                           For skills: any of the ${DIM}41 supported agents${RESET}
+                           For rules/prompts/agents: copilot, claude, cursor, windsurf, cline
 
 ${BOLD}Install Options:${RESET}
   -g, --global           Install globally (user-level)
@@ -187,13 +187,13 @@ ${BOLD}Install Options:${RESET}
   --append               Append rules to AGENTS.md/CLAUDE.md instead of per-rule files
   --gitignore            Add transpiled output paths to .gitignore
   --full-depth           Search all subdirectories even when a root SKILL.md exists
-  --all                  Shorthand for --skill '*' --agents '*' -y
+  --all                  Shorthand for --skill '*' --targets '*' -y
   -y, --yes              Skip confirmation prompts
 
 ${BOLD}Examples:${RESET}
   ${DIM}$${RESET} dotai add vercel-labs/agent-skills              ${DIM}# interactive (all types)${RESET}
   ${DIM}$${RESET} dotai add owner/repo --rule code-style          ${DIM}# install a specific rule${RESET}
-  ${DIM}$${RESET} dotai add owner/repo --agents copilot,claude    ${DIM}# target specific agents${RESET}
+  ${DIM}$${RESET} dotai add owner/repo --targets copilot,claude    ${DIM}# target specific agents${RESET}
   ${DIM}$${RESET} dotai add owner/repo --prompt review-code       ${DIM}# install a prompt${RESET}
   ${DIM}$${RESET} dotai add owner/repo --type rule,prompt -y      ${DIM}# install all rules and prompts${RESET}
   ${DIM}$${RESET} dotai add owner/repo --all -g                   ${DIM}# install everything globally${RESET}
@@ -211,7 +211,7 @@ ${BOLD}Description:${RESET}
 
 ${BOLD}Options:${RESET}
   -g, --global            List global context (default: project)
-  -a, --agents <agents>   Filter by specific agents
+  -a, --targets <targets>   Filter by specific targets
   -t, --type <types>      Filter by type (skill, rule, prompt, agent; comma-separated)
 
 ${BOLD}Examples:${RESET}
@@ -238,18 +238,18 @@ ${BOLD}Arguments:${RESET}
 
 ${BOLD}Options:${RESET}
   -g, --global       Remove from global scope (~/) instead of project scope
-  -a, --agents       Remove from specific agents (use '*' for all agents)
+  -a, --targets    Remove from specific targets (use '*' for all targets)
   -s, --skill        Specify skills to remove (use '*' for all skills)
   -t, --type         Filter by context type (skill, rule, prompt, agent; comma-separated)
   -y, --yes          Skip confirmation prompts
-  --all              Shorthand for --skill '*' --agents '*' -y
+  --all              Shorthand for --skill '*' --targets '*' -y
 
 ${BOLD}Examples:${RESET}
   ${DIM}$${RESET} dotai remove                            ${DIM}# interactive selection${RESET}
   ${DIM}$${RESET} dotai remove my-skill                   ${DIM}# remove specific skill${RESET}
   ${DIM}$${RESET} dotai remove skill1 skill2 -y           ${DIM}# remove multiple, skip confirm${RESET}
   ${DIM}$${RESET} dotai remove --global my-skill          ${DIM}# remove from global scope${RESET}
-  ${DIM}$${RESET} dotai rm --agents claude-code my-skill   ${DIM}# remove from specific agent${RESET}
+  ${DIM}$${RESET} dotai rm --targets claude-code my-skill   ${DIM}# remove from specific target${RESET}
   ${DIM}$${RESET} dotai remove --type rule code-style     ${DIM}# remove a specific rule${RESET}
   ${DIM}$${RESET} dotai remove --type prompt -y           ${DIM}# remove all prompts${RESET}
   ${DIM}$${RESET} dotai remove --type rule,prompt         ${DIM}# interactive rule/prompt removal${RESET}

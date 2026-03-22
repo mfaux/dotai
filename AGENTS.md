@@ -20,7 +20,7 @@ Project-specific guidance for AI coding agents working in this codebase.
 
 ## Commits
 
-- **Use conventional commits.** Format: `<type>: <description>` (e.g., `feat: add --agents flag`, `fix: dry-run skip lock write`, `docs: update CLI reference`, `test: add list --help tests`, `refactor: extract help into per-command functions`, `chore: remove generated license file`).
+- **Use conventional commits.** Format: `<type>: <description>` (e.g., `feat: add --targets flag`, `fix: dry-run skip lock write`, `docs: update CLI reference`, `test: add list --help tests`, `refactor: extract help into per-command functions`, `chore: remove generated license file`).
 
 ## File Size Limits
 

@@ -87,7 +87,7 @@ async function restoreSkills(cwd: string, args: string[]): Promise<boolean> {
     try {
       await runAdd([source], {
         skill: skills,
-        agents: universalAgentNames,
+        targets: universalAgentNames,
         yes: true,
       });
     } catch (error) {
@@ -104,7 +104,7 @@ async function restoreSkills(cwd: string, args: string[]): Promise<boolean> {
     );
     try {
       const { options: syncOptions } = parseSyncOptions(args);
-      await runSync(args, { ...syncOptions, yes: true, agents: universalAgentNames });
+      await runSync(args, { ...syncOptions, yes: true, targets: universalAgentNames });
     } catch (error) {
       p.log.error(
         `Failed to sync node_modules skills: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -281,7 +281,7 @@ async function installEntries(
       force: true, // Overwrite existing — we're restoring from lock
       gitignore,
       append,
-      agents,
+      targets: agents,
     });
 
     for (const msg of result.messages) {
@@ -303,7 +303,7 @@ async function installEntries(
       promptNames: names,
       force: true, // Overwrite existing — we're restoring from lock
       gitignore,
-      agents,
+      targets: agents,
     });
 
     for (const msg of result.messages) {
@@ -325,7 +325,7 @@ async function installEntries(
       agentNames: names,
       force: true, // Overwrite existing — we're restoring from lock
       gitignore,
-      agents,
+      targets: agents,
     });
 
     for (const msg of result.messages) {

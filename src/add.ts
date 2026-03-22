@@ -42,26 +42,26 @@ const version = packageJson.version;
 setVersion(version);
 
 /**
- * Resolve transpilation target agents from --agents flag, or default to all five.
+ * Resolve transpilation target agents from --targets flag, or default to all five.
  *
- * When --agents is used for transpilation (rules/prompts/agents), values are
+ * When --targets is used for transpilation (rules/prompts/agents), values are
  * resolved as TargetAgent names or aliases (copilot, claude, cursor, windsurf, cline).
  *
- * Throws CommandError if invalid or no valid agents are specified.
+ * Throws CommandError if invalid or no valid targets are specified.
  */
 function resolveAgentsOrDefault(options: AddOptions): TargetAgent[] {
-  if (options.agents && options.agents.length > 0) {
-    const { agents: resolved, invalid } = resolveTargetAgents(options.agents);
+  if (options.targets && options.targets.length > 0) {
+    const { agents: resolved, invalid } = resolveTargetAgents(options.targets);
 
     if (invalid.length > 0) {
-      p.log.error(`Invalid target agents: ${invalid.join(', ')}`);
-      p.log.info(`Valid agents: ${TARGET_AGENTS.join(', ')}`);
+      p.log.error(`Invalid targets: ${invalid.join(', ')}`);
+      p.log.info(`Valid targets: ${TARGET_AGENTS.join(', ')}`);
       p.log.info(`Aliases: copilot, claude, cursor, windsurf, cline`);
       throw new CommandError(1);
     }
 
     if (resolved.length === 0) {
-      p.log.error('No valid target agents specified');
+      p.log.error('No valid targets specified');
       throw new CommandError(1);
     }
 
@@ -104,7 +104,7 @@ const CONTEXT_CONFIGS: Record<'rule' | 'prompt' | 'agent', ContextInstallConfig>
         sourcePath,
         projectRoot,
         ruleNames: names,
-        agents,
+        targets: agents,
         dryRun: options.dryRun,
         force: options.force,
         append: options.append,
@@ -122,7 +122,7 @@ const CONTEXT_CONFIGS: Record<'rule' | 'prompt' | 'agent', ContextInstallConfig>
         sourcePath,
         projectRoot,
         promptNames: names,
-        agents,
+        targets: agents,
         dryRun: options.dryRun,
         force: options.force,
         gitignore: options.gitignore,
@@ -139,7 +139,7 @@ const CONTEXT_CONFIGS: Record<'rule' | 'prompt' | 'agent', ContextInstallConfig>
         sourcePath,
         projectRoot,
         agentNames: names,
-        agents,
+        targets: agents,
         dryRun: options.dryRun,
         force: options.force,
         gitignore: options.gitignore,
@@ -152,7 +152,7 @@ const CONTEXT_CONFIGS: Record<'rule' | 'prompt' | 'agent', ContextInstallConfig>
 /**
  * Generic handler for rule, prompt, and agent install flows.
  *
- * Resolves `--agents` names to TargetAgent[], runs the appropriate discovery →
+ * Resolves `--targets` names to TargetAgent[], runs the appropriate discovery →
  * transpile → install pipeline, and displays results using @clack/prompts.
  */
 async function handleContextInstall(
@@ -168,7 +168,7 @@ async function handleContextInstall(
 
   // 1. Resolve target agents from --targets flag (or default to all five)
   const targetAgents = resolveAgentsOrDefault(options);
-  p.log.info(`Target agents: ${targetAgents.map((a) => pc.cyan(a)).join(', ')}`);
+  p.log.info(`Targets: ${targetAgents.map((a) => pc.cyan(a)).join(', ')}`);
 
   // 2. Run install pipeline
   const names = config.getNames(options);
@@ -251,10 +251,10 @@ export async function runAdd(args: string[], options: AddOptions = {}): Promise<
     throw new CommandError(1);
   }
 
-  // --all implies --skill '*' and --agents '*' and -y
+  // --all implies --skill '*' and --targets '*' and -y
   if (options.all) {
     options.skill = ['*'];
-    options.agents = ['*'];
+    options.targets = ['*'];
     options.yes = true;
   }
 
@@ -1019,7 +1019,7 @@ async function promptForFindSkills(
           skill: ['find-skills'],
           global: true,
           yes: true,
-          agents: findSkillsAgents,
+          targets: findSkillsAgents,
         });
       } catch {
         p.log.warn('Failed to install find-skills. You can try again with:');

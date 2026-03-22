@@ -8,7 +8,7 @@ import { consumeMultiValues, parseTypeFlag } from './cli-parse.ts';
 
 interface ListOptions {
   global?: boolean;
-  agents?: string[];
+  targets?: string[];
   type?: ContextType[];
 }
 
@@ -19,10 +19,10 @@ export function parseListOptions(args: string[]): ListOptions {
     const arg = args[i];
     if (arg === '-g' || arg === '--global') {
       options.global = true;
-    } else if (arg === '-a' || arg === '--agents') {
-      options.agents = options.agents || [];
+    } else if (arg === '-a' || arg === '--targets') {
+      options.targets = options.targets || [];
       const { values, nextIndex } = consumeMultiValues(args, i + 1);
-      options.agents.push(...values);
+      options.targets.push(...values);
       i = nextIndex - 1;
     } else if (arg === '-t' || arg === '--type') {
       options.type = options.type || [];
@@ -57,17 +57,17 @@ export async function runList(args: string[]): Promise<void> {
 
   // Validate agent filter if provided
   let agentFilter: AgentType[] | undefined;
-  if (options.agents && options.agents.length > 0) {
+  if (options.targets && options.targets.length > 0) {
     const validAgents = Object.keys(agents);
-    const invalidAgents = options.agents.filter((a) => !validAgents.includes(a));
+    const invalidAgents = options.targets.filter((a) => !validAgents.includes(a));
 
     if (invalidAgents.length > 0) {
-      console.log(`${YELLOW}Invalid agents: ${invalidAgents.join(', ')}${RESET}`);
-      console.log(`${DIM}Valid agents: ${validAgents.join(', ')}${RESET}`);
+      console.log(`${YELLOW}Invalid targets: ${invalidAgents.join(', ')}${RESET}`);
+      console.log(`${DIM}Valid targets: ${validAgents.join(', ')}${RESET}`);
       process.exit(1);
     }
 
-    agentFilter = options.agents as AgentType[];
+    agentFilter = options.targets as AgentType[];
   }
 
   // ── Fetch skills ──
@@ -180,7 +180,7 @@ export async function runList(args: string[]): Promise<void> {
     const agentInfo =
       skill.agents.length > 0 ? formatList(agentNames) : `${YELLOW}not linked${RESET}`;
     console.log(`${prefix}${CYAN}${skill.name}${RESET} ${DIM}${shortPath}${RESET}`);
-    console.log(`${prefix}  ${DIM}Agents:${RESET} ${agentInfo}`);
+    console.log(`${prefix}  ${DIM}Targets:${RESET} ${agentInfo}`);
   }
 
   function printRule(entry: LockEntry): void {
@@ -190,7 +190,7 @@ export async function runList(args: string[]): Promise<void> {
     });
     const agentInfo = agentNames.length > 0 ? formatList(agentNames) : `${YELLOW}none${RESET}`;
     console.log(`${CYAN}${entry.name}${RESET} ${DIM}${entry.source}${RESET}`);
-    console.log(`  ${DIM}Agents:${RESET} ${agentInfo}`);
+    console.log(`  ${DIM}Targets:${RESET} ${agentInfo}`);
   }
 
   // ── Skills section ──

@@ -181,7 +181,7 @@ describe('addRules --gitignore integration', () => {
       sourcePath: sourceRepo,
       projectRoot: projectDir,
       ruleNames: ['*'],
-      agents: ['cursor', 'cline'],
+      targets: ['cursor', 'cline'],
       gitignore: true,
     });
 

@@ -110,7 +110,7 @@ function makeSpinner() {
 function defaultOptions(overrides: Partial<AddOptions> = {}): AddOptions {
   return {
     yes: true,
-    agents: ['opencode'],
+    targets: ['opencode'],
     copy: true,
     ...overrides,
   };
@@ -222,13 +222,13 @@ describe('handleWellKnownSkills', () => {
     expect(installWellKnownSkillForAgent).toHaveBeenCalledTimes(1);
   });
 
-  // --- --agents '*' selects all agents ---
+  // --- --targets '*' selects all agents ---
 
-  it('installs to all agents with --agents "*"', async () => {
+  it('installs to all agents with --targets "*"', async () => {
     await handleWellKnownSkills(
       'https://example.com',
       'https://example.com',
-      defaultOptions({ agents: ['*'] }),
+      defaultOptions({ targets: ['*'] }),
       makeSpinner()
     );
 
@@ -243,7 +243,7 @@ describe('handleWellKnownSkills', () => {
     const error = await handleWellKnownSkills(
       'https://example.com',
       'https://example.com',
-      defaultOptions({ agents: ['not-a-real-agent'] }),
+      defaultOptions({ targets: ['not-a-real-agent'] }),
       makeSpinner()
     ).catch((e) => e);
 
@@ -251,15 +251,15 @@ describe('handleWellKnownSkills', () => {
     expect(error.exitCode).toBe(1);
   });
 
-  // --- Agent detection when no --agents provided ---
+  // --- Agent detection when no --targets provided ---
 
-  it('detects installed agents when --agents not provided', async () => {
+  it('detects installed agents when --targets not provided', async () => {
     vi.mocked(detectInstalledAgents).mockResolvedValue(['opencode'] as AgentType[]);
 
     await handleWellKnownSkills(
       'https://example.com',
       'https://example.com',
-      defaultOptions({ agents: undefined, yes: true }),
+      defaultOptions({ targets: undefined, yes: true }),
       makeSpinner()
     );
 
@@ -421,7 +421,7 @@ describe('handleWellKnownSkills', () => {
     await handleWellKnownSkills(
       'https://example.com',
       'https://example.com',
-      defaultOptions({ agents: ['opencode', 'claude-code'] }),
+      defaultOptions({ targets: ['opencode', 'claude-code'] }),
       makeSpinner()
     );
 

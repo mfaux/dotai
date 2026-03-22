@@ -1,5 +1,5 @@
 {
-  "agentCommand": "opencode run --agent build",
+  "agentCommand": "opencode run --agent build --thinking",
   "feedbackCommands": [
     "pnpm build",
     "pnpm test",

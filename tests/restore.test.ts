@@ -463,7 +463,7 @@ describe('dotai restore — restore rules and prompts from .dotai-lock.json', ()
       sourcePath: sourceRepo,
       projectRoot: projectDir,
       ruleNames: ['*'],
-      agents: ['cursor'],
+      targets: ['cursor'],
     });
     expect(addResult.success).toBe(true);
 

@@ -265,7 +265,7 @@ describe('install-pipeline', () => {
     it('respects agent subset filter', () => {
       const items = [canonicalRule('code-style')];
       const opts = baseOptions(tmpDir, {
-        agents: ['cursor', 'cline'] as const,
+        targets: ['cursor', 'cline'] as const,
       });
 
       const { writes } = planRuleWrites(items, opts);
@@ -300,7 +300,7 @@ describe('install-pipeline', () => {
     it('native passthrough produces no output for non-matching agents', () => {
       const items = [nativeRule('code-style', 'cursor')];
       const opts = baseOptions(tmpDir, {
-        agents: ['windsurf'] as const,
+        targets: ['windsurf'] as const,
       });
 
       const { writes, skipped } = planRuleWrites(items, opts);
@@ -314,7 +314,7 @@ describe('install-pipeline', () => {
     it('resolves absolute paths correctly', () => {
       const items = [canonicalRule('code-style')];
       const opts = baseOptions(tmpDir, {
-        agents: ['cursor'] as const,
+        targets: ['cursor'] as const,
       });
 
       const { writes } = planRuleWrites(items, opts);
@@ -328,7 +328,7 @@ describe('install-pipeline', () => {
     it('attaches correct metadata to planned writes', () => {
       const items = [canonicalRule('code-style')];
       const opts = baseOptions(tmpDir, {
-        agents: ['cursor'] as const,
+        targets: ['cursor'] as const,
         source: 'acme/repo',
       });
 
@@ -450,7 +450,7 @@ describe('install-pipeline', () => {
 
     it('creates target directories that do not exist', async () => {
       const items = [canonicalRule('code-style')];
-      const opts = baseOptions(tmpDir, { agents: ['cursor'] as const });
+      const opts = baseOptions(tmpDir, { targets: ['cursor'] as const });
 
       const result = await executeInstallPipeline(items, opts);
 
@@ -460,7 +460,7 @@ describe('install-pipeline', () => {
 
     it('written files have correct transpiled content', async () => {
       const items = [canonicalRule('code-style', { activation: 'always' })];
-      const opts = baseOptions(tmpDir, { agents: ['cursor'] as const });
+      const opts = baseOptions(tmpDir, { targets: ['cursor'] as const });
 
       const result = await executeInstallPipeline(items, opts);
 
@@ -474,7 +474,7 @@ describe('install-pipeline', () => {
 
     it('writes multiple rules in one pass', async () => {
       const items = [canonicalRule('code-style'), canonicalRule('security')];
-      const opts = baseOptions(tmpDir, { agents: ['cursor'] as const });
+      const opts = baseOptions(tmpDir, { targets: ['cursor'] as const });
 
       const result = await executeInstallPipeline(items, opts);
 
@@ -580,7 +580,7 @@ describe('install-pipeline', () => {
       const items = [canonicalRule('code-style')];
       const opts = baseOptions(tmpDir, {
         lockEntries: [existingEntry],
-        agents: ['cursor'] as const,
+        targets: ['cursor'] as const,
       });
 
       const result = await executeInstallPipeline(items, opts);
@@ -625,7 +625,7 @@ describe('install-pipeline', () => {
     it('installs only to specified agents', async () => {
       const items = [canonicalRule('code-style')];
       const opts = baseOptions(tmpDir, {
-        agents: ['cursor', 'cline'] as const,
+        targets: ['cursor', 'cline'] as const,
       });
 
       const result = await executeInstallPipeline(items, opts);
@@ -645,7 +645,7 @@ describe('install-pipeline', () => {
     it('single agent install', async () => {
       const items = [canonicalRule('code-style')];
       const opts = baseOptions(tmpDir, {
-        agents: ['github-copilot'] as const,
+        targets: ['github-copilot'] as const,
       });
 
       const result = await executeInstallPipeline(items, opts);
@@ -688,7 +688,7 @@ describe('install-pipeline', () => {
         skillItem('db-migrate'),
         nativeRule('lint', 'windsurf'),
       ];
-      const opts = baseOptions(tmpDir, { agents: ['cursor', 'windsurf'] as const });
+      const opts = baseOptions(tmpDir, { targets: ['cursor', 'windsurf'] as const });
 
       const result = await executeInstallPipeline(items, opts);
 
@@ -724,7 +724,7 @@ describe('install-pipeline', () => {
     it('respects agent subset filter for prompts', () => {
       const items = [canonicalPrompt('review-code')];
       const opts = baseOptions(tmpDir, {
-        agents: ['github-copilot'] as const,
+        targets: ['github-copilot'] as const,
       });
 
       const { writes } = planRuleWrites(items, opts);
@@ -736,7 +736,7 @@ describe('install-pipeline', () => {
     it('produces no output for agents that do not support prompts', () => {
       const items = [canonicalPrompt('review-code')];
       const opts = baseOptions(tmpDir, {
-        agents: ['cursor', 'cline'] as const,
+        targets: ['cursor', 'cline'] as const,
       });
 
       const { writes, skipped } = planRuleWrites(items, opts);
@@ -749,7 +749,7 @@ describe('install-pipeline', () => {
     it('resolves absolute paths correctly for prompts', () => {
       const items = [canonicalPrompt('review-code')];
       const opts = baseOptions(tmpDir, {
-        agents: ['github-copilot'] as const,
+        targets: ['github-copilot'] as const,
       });
 
       const { writes } = planRuleWrites(items, opts);
@@ -763,7 +763,7 @@ describe('install-pipeline', () => {
     it('attaches correct metadata to prompt planned writes', () => {
       const items = [canonicalPrompt('review-code')];
       const opts = baseOptions(tmpDir, {
-        agents: ['github-copilot'] as const,
+        targets: ['github-copilot'] as const,
         source: 'acme/repo',
       });
 
@@ -847,7 +847,7 @@ describe('install-pipeline', () => {
 
     it('written Copilot prompt has correct content', async () => {
       const items = [canonicalPrompt('review-code', { agent: 'plan' })];
-      const opts = baseOptions(tmpDir, { agents: ['github-copilot'] as const });
+      const opts = baseOptions(tmpDir, { targets: ['github-copilot'] as const });
 
       const result = await executeInstallPipeline(items, opts);
 
@@ -863,7 +863,7 @@ describe('install-pipeline', () => {
 
     it('written Claude Code prompt has correct content', async () => {
       const items = [canonicalPrompt('review-code')];
-      const opts = baseOptions(tmpDir, { agents: ['claude-code'] as const });
+      const opts = baseOptions(tmpDir, { targets: ['claude-code'] as const });
 
       const result = await executeInstallPipeline(items, opts);
 
@@ -899,7 +899,7 @@ describe('install-pipeline', () => {
 
     it('handles mixed rules + prompts in a single pipeline execution', async () => {
       const items = [canonicalRule('code-style'), canonicalPrompt('review-code')];
-      const opts = baseOptions(tmpDir, { agents: ['github-copilot', 'claude-code'] as const });
+      const opts = baseOptions(tmpDir, { targets: ['github-copilot', 'claude-code'] as const });
 
       const result = await executeInstallPipeline(items, opts);
 
@@ -943,7 +943,7 @@ describe('install-pipeline', () => {
     it('respects agent subset filter for agents', () => {
       const items = [canonicalAgent('architect')];
       const opts = baseOptions(tmpDir, {
-        agents: ['github-copilot'] as const,
+        targets: ['github-copilot'] as const,
       });
 
       const { writes } = planRuleWrites(items, opts);
@@ -955,7 +955,7 @@ describe('install-pipeline', () => {
     it('produces no output for agents that do not support agent transpilation', () => {
       const items = [canonicalAgent('architect')];
       const opts = baseOptions(tmpDir, {
-        agents: ['cursor', 'cline'] as const,
+        targets: ['cursor', 'cline'] as const,
       });
 
       const { writes, skipped } = planRuleWrites(items, opts);
@@ -968,7 +968,7 @@ describe('install-pipeline', () => {
     it('resolves absolute paths correctly for agents', () => {
       const items = [canonicalAgent('architect')];
       const opts = baseOptions(tmpDir, {
-        agents: ['github-copilot'] as const,
+        targets: ['github-copilot'] as const,
       });
 
       const { writes } = planRuleWrites(items, opts);
@@ -982,7 +982,7 @@ describe('install-pipeline', () => {
     it('attaches correct metadata to agent planned writes', () => {
       const items = [canonicalAgent('architect')];
       const opts = baseOptions(tmpDir, {
-        agents: ['github-copilot'] as const,
+        targets: ['github-copilot'] as const,
         source: 'acme/repo',
       });
 
@@ -1070,7 +1070,7 @@ describe('install-pipeline', () => {
       const items = [
         canonicalAgent('architect', { model: 'claude-sonnet-4', tools: ['Read', 'Grep'] }),
       ];
-      const opts = baseOptions(tmpDir, { agents: ['github-copilot'] as const });
+      const opts = baseOptions(tmpDir, { targets: ['github-copilot'] as const });
 
       const result = await executeInstallPipeline(items, opts);
 
@@ -1096,7 +1096,7 @@ describe('install-pipeline', () => {
           background: false,
         }),
       ];
-      const opts = baseOptions(tmpDir, { agents: ['claude-code'] as const });
+      const opts = baseOptions(tmpDir, { targets: ['claude-code'] as const });
 
       const result = await executeInstallPipeline(items, opts);
 
@@ -1145,7 +1145,7 @@ describe('install-pipeline', () => {
         canonicalPrompt('review-code'),
         canonicalAgent('architect'),
       ];
-      const opts = baseOptions(tmpDir, { agents: ['github-copilot', 'claude-code'] as const });
+      const opts = baseOptions(tmpDir, { targets: ['github-copilot', 'claude-code'] as const });
 
       const result = await executeInstallPipeline(items, opts);
 
@@ -1203,7 +1203,7 @@ describe('install-pipeline', () => {
       const items = [canonicalRule('code-style')];
       const opts = baseOptions(tmpDir, {
         append: true,
-        agents: ['github-copilot'] as const,
+        targets: ['github-copilot'] as const,
       });
 
       const { writes } = planRuleWrites(items, opts);
@@ -1246,7 +1246,7 @@ describe('install-pipeline', () => {
       const items = [canonicalRule('code-style')];
       const opts = baseOptions(tmpDir, {
         append: true,
-        agents: ['github-copilot', 'claude-code'] as const,
+        targets: ['github-copilot', 'claude-code'] as const,
       });
 
       const result = await executeInstallPipeline(items, opts);
@@ -1270,7 +1270,7 @@ describe('install-pipeline', () => {
       const items = [canonicalRule('code-style')];
       const opts = baseOptions(tmpDir, {
         append: true,
-        agents: ['github-copilot'] as const,
+        targets: ['github-copilot'] as const,
         force: true,
       });
 
@@ -1287,7 +1287,7 @@ describe('install-pipeline', () => {
       const items = [canonicalRule('code-style'), canonicalRule('security')];
       const opts = baseOptions(tmpDir, {
         append: true,
-        agents: ['github-copilot'] as const,
+        targets: ['github-copilot'] as const,
       });
 
       const result = await executeInstallPipeline(items, opts);
@@ -1305,7 +1305,7 @@ describe('install-pipeline', () => {
       const items1 = [canonicalRule('code-style')];
       const opts = baseOptions(tmpDir, {
         append: true,
-        agents: ['github-copilot'] as const,
+        targets: ['github-copilot'] as const,
       });
 
       await executeInstallPipeline(items1, opts);
@@ -1325,7 +1325,7 @@ describe('install-pipeline', () => {
       const items = [canonicalRule('code-style')];
       const opts = baseOptions(tmpDir, {
         append: true,
-        agents: ['github-copilot'] as const,
+        targets: ['github-copilot'] as const,
         dryRun: true,
       });
 

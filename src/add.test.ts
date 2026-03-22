@@ -50,7 +50,7 @@ This is a test skill.
 `
     );
 
-    const result = runCli(['add', testDir, '-y', '-g', '--agents', 'claude-code'], testDir);
+    const result = runCli(['add', testDir, '-y', '-g', '--targets', 'claude-code'], testDir);
     expect(result.stdout).toContain('test-skill');
     expect(result.exitCode).toBe(0);
   });
@@ -83,7 +83,7 @@ Instructions here.
     const targetDir = join(testDir, 'project');
     mkdirSync(targetDir, { recursive: true });
 
-    const result = runCli(['add', testDir, '-y', '-g', '--agents', 'claude-code'], targetDir);
+    const result = runCli(['add', testDir, '-y', '-g', '--targets', 'claude-code'], targetDir);
     expect(result.stdout).toContain('my-skill');
     expect(result.stdout).toContain('Done!');
     expect(result.exitCode).toBe(0);
@@ -109,7 +109,7 @@ Instructions here.
     mkdirSync(targetDir, { recursive: true });
 
     const result = runCli(
-      ['add', testDir, '-y', '--dry-run', '--agents', 'claude-code'],
+      ['add', testDir, '-y', '--dry-run', '--targets', 'claude-code'],
       targetDir
     );
 
@@ -148,7 +148,7 @@ description: Second skill
     );
 
     const result = runCli(
-      ['add', testDir, '--skill', 'skill-one', '-y', '-g', '--agents', 'claude-code'],
+      ['add', testDir, '--skill', 'skill-one', '-y', '-g', '--targets', 'claude-code'],
       testDir
     );
     expect(result.stdout).toContain('skill-one');
@@ -168,8 +168,8 @@ description: Test
 `
     );
 
-    const result = runCli(['add', testDir, '-y', '--agents', 'invalid-agent'], testDir);
-    expect(result.stdout).toContain('Invalid agents');
+    const result = runCli(['add', testDir, '-y', '--targets', 'invalid-agent'], testDir);
+    expect(result.stdout).toContain('Invalid targets');
     expect(result.exitCode).toBe(1);
   });
 
@@ -230,7 +230,7 @@ This is an internal skill.
 
       // --type skill -y will discover and install all skills; internal should be excluded
       const result = runCli(
-        ['add', testDir, '--type', 'skill', '-y', '--agents', 'claude-code'],
+        ['add', testDir, '--type', 'skill', '-y', '--targets', 'claude-code'],
         testDir
       );
       expect(result.stdout).not.toContain('internal-skill');
@@ -256,7 +256,7 @@ This is an internal skill.
       );
 
       const result = runCli(
-        ['add', testDir, '--skill', 'internal-skill', '-y', '-g', '--agents', 'claude-code'],
+        ['add', testDir, '--skill', 'internal-skill', '-y', '-g', '--targets', 'claude-code'],
         testDir,
         { INSTALL_INTERNAL_SKILLS: '1' }
       );
@@ -283,7 +283,7 @@ This is an internal skill.
       );
 
       const result = runCli(
-        ['add', testDir, '--skill', 'internal-skill', '-y', '-g', '--agents', 'claude-code'],
+        ['add', testDir, '--skill', 'internal-skill', '-y', '-g', '--targets', 'claude-code'],
         testDir,
         { INSTALL_INTERNAL_SKILLS: 'true' }
       );
@@ -321,7 +321,7 @@ description: A public skill
 
       // Without env var - only public skill visible
       const resultWithout = runCli(
-        ['add', testDir, '--type', 'skill', '-y', '--agents', 'claude-code'],
+        ['add', testDir, '--type', 'skill', '-y', '--targets', 'claude-code'],
         testDir
       );
       expect(resultWithout.stdout).toContain('public-skill');
@@ -329,7 +329,7 @@ description: A public skill
 
       // With env var - both visible
       const resultWith = runCli(
-        ['add', testDir, '--type', 'skill', '-y', '--agents', 'claude-code'],
+        ['add', testDir, '--type', 'skill', '-y', '--targets', 'claude-code'],
         testDir,
         { INSTALL_INTERNAL_SKILLS: '1' }
       );
@@ -353,7 +353,7 @@ metadata:
       );
 
       const result = runCli(
-        ['add', testDir, '--type', 'skill', '-y', '--agents', 'claude-code'],
+        ['add', testDir, '--type', 'skill', '-y', '--targets', 'claude-code'],
         testDir
       );
       expect(result.stdout).toContain('not-internal-skill');
@@ -413,23 +413,23 @@ describe('parseAddOptions', () => {
     expect(result.options.skill).toEqual(['*']);
   });
 
-  it('should parse --agent with wildcard', () => {
-    const result = parseAddOptions(['source', '--agents', '*']);
+  it('should parse --targets with wildcard', () => {
+    const result = parseAddOptions(['source', '--targets', '*']);
     expect(result.source).toEqual(['source']);
-    expect(result.options.agents).toEqual(['*']);
+    expect(result.options.targets).toEqual(['*']);
   });
 
-  it('should parse --skill wildcard with specific agents', () => {
-    const result = parseAddOptions(['source', '--skill', '*', '--agents', 'claude-code']);
+  it('should parse --skill wildcard with specific targets', () => {
+    const result = parseAddOptions(['source', '--skill', '*', '--targets', 'claude-code']);
     expect(result.source).toEqual(['source']);
     expect(result.options.skill).toEqual(['*']);
-    expect(result.options.agents).toEqual(['claude-code']);
+    expect(result.options.targets).toEqual(['claude-code']);
   });
 
-  it('should parse --agent wildcard with specific skills', () => {
-    const result = parseAddOptions(['source', '--agents', '*', '--skill', 'my-skill']);
+  it('should parse --targets wildcard with specific skills', () => {
+    const result = parseAddOptions(['source', '--targets', '*', '--skill', 'my-skill']);
     expect(result.source).toEqual(['source']);
-    expect(result.options.agents).toEqual(['*']);
+    expect(result.options.targets).toEqual(['*']);
     expect(result.options.skill).toEqual(['my-skill']);
   });
 
@@ -538,17 +538,17 @@ describe('parseAddOptions', () => {
     expect(result.options.customAgent).toEqual(['architect']);
   });
 
-  it('should parse --custom-agent with --agents combination', () => {
+  it('should parse --custom-agent with --targets combination', () => {
     const result = parseAddOptions([
       'source',
       '--custom-agent',
       'architect',
-      '--agents',
+      '--targets',
       'copilot,claude',
     ]);
     expect(result.source).toEqual(['source']);
     expect(result.options.customAgent).toEqual(['architect']);
-    expect(result.options.agents).toEqual(['copilot', 'claude']);
+    expect(result.options.targets).toEqual(['copilot', 'claude']);
   });
 
   it('should parse --type flag with single type', () => {
@@ -598,13 +598,13 @@ describe('parseAddOptions', () => {
       'source',
       '--type',
       'rule',
-      '--agents',
+      '--targets',
       'copilot,claude',
       '--force',
     ]);
     expect(result.source).toEqual(['source']);
     expect(result.options.type).toEqual(['rule']);
-    expect(result.options.agents).toEqual(['copilot', 'claude']);
+    expect(result.options.targets).toEqual(['copilot', 'claude']);
     expect(result.options.force).toBe(true);
   });
 

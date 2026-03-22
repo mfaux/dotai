@@ -4,47 +4,47 @@ Full option tables, examples, and authoring format for `dotai`. For a quick over
 
 ## add command options
 
-| Option                      | Description                                                                  |
-| --------------------------- | ---------------------------------------------------------------------------- |
-| `-g, --global`              | Install to user directory instead of project                                 |
-| `-t, --type <types...>`     | Filter by context type (`skill`, `rule`, `prompt`, `agent`; comma-separated) |
-| `-s, --skill <skills...>`   | Install specific skills by name (repeatable; supports `'*'`)                 |
-| `-r, --rule <rules...>`     | Install specific canonical rules by name (repeatable)                        |
-| `-p, --prompt <prompts...>` | Install specific canonical prompts by name (repeatable)                      |
-| `--custom-agent <names...>` | Install specific canonical custom agents by name (repeatable)                |
-| `-a, --agents <agents...>`  | Target agents (comma-separated; use `'*'` for all)                           |
-| `--copy`                    | Copy files instead of symlinking skills                                      |
-| `--dry-run`                 | Preview writes without making changes                                        |
-| `--force`                   | Overwrite conflicting managed/unmanaged outputs                              |
-| `--append`                  | Append rules to `AGENTS.md`/`CLAUDE.md` instead of per-rule files            |
-| `--gitignore`               | Add transpiled output paths to `.gitignore` (managed section)                |
-| `--full-depth`              | Search all subdirectories even when a root `SKILL.md` exists                 |
-| `-y, --yes`                 | Skip confirmation prompts                                                    |
-| `--all`                     | Shorthand for `--skill '*' --agents '*' -y`                                  |
+| Option                       | Description                                                                  |
+| ---------------------------- | ---------------------------------------------------------------------------- |
+| `-g, --global`               | Install to user directory instead of project                                 |
+| `-t, --type <types...>`      | Filter by context type (`skill`, `rule`, `prompt`, `agent`; comma-separated) |
+| `-s, --skill <skills...>`    | Install specific skills by name (repeatable; supports `'*'`)                 |
+| `-r, --rule <rules...>`      | Install specific canonical rules by name (repeatable)                        |
+| `-p, --prompt <prompts...>`  | Install specific canonical prompts by name (repeatable)                      |
+| `--custom-agent <names...>`  | Install specific canonical custom agents by name (repeatable)                |
+| `-a, --targets <targets...>` | Targets (comma-separated; use `'*'` for all)                                 |
+| `--copy`                     | Copy files instead of symlinking skills                                      |
+| `--dry-run`                  | Preview writes without making changes                                        |
+| `--force`                    | Overwrite conflicting managed/unmanaged outputs                              |
+| `--append`                   | Append rules to `AGENTS.md`/`CLAUDE.md` instead of per-rule files            |
+| `--gitignore`                | Add transpiled output paths to `.gitignore` (managed section)                |
+| `--full-depth`               | Search all subdirectories even when a root `SKILL.md` exists                 |
+| `-y, --yes`                  | Skip confirmation prompts                                                    |
+| `--all`                      | Shorthand for `--skill '*' --targets '*' -y`                                 |
 
-> **`--agents`:** A single flag for both skill install targets and transpilation targets. For skills, any of the 41 supported agents (e.g., `--agents cursor,claude-code`). For rules, prompts, and agents, the 6 transpilation targets: copilot, claude, cursor, windsurf, cline, opencode. When omitted, all detected agents are used for skills and all 6 transpilation targets for rules/prompts/agents.
+> **`--targets`:** A single flag for both skill install targets and transpilation targets. For skills, any of the 41 supported targets (e.g., `--targets cursor,claude-code`). For rules, prompts, and agents, the 6 transpilation targets: copilot, claude, cursor, windsurf, cline, opencode. When omitted, all detected targets are used for skills and all 6 transpilation targets for rules/prompts/agents.
 
 > **Zero-flag mode:** Running `dotai add owner/repo` with no type-specific flags discovers all content types (skills, rules, prompts, agents) and presents an interactive grouped selection. Use `dotai find owner/repo` for a non-interactive preview.
 
-> **`--append`:** Instead of writing individual rule files (e.g., `.github/instructions/code-style.instructions.md`), rules are appended as marker-delimited sections into `AGENTS.md` (Copilot) and `CLAUDE.md` (Claude Code). Useful for projects that prefer a single monolithic instruction file. Only applies to Copilot and Claude Code targets; other agents always get individual files.
+> **`--append`:** Instead of writing individual rule files (e.g., `.github/instructions/code-style.instructions.md`), rules are appended as marker-delimited sections into `AGENTS.md` (Copilot) and `CLAUDE.md` (Claude Code). Useful for projects that prefer a single monolithic instruction file. Only applies to Copilot and Claude Code targets; other targets always get individual files.
 
 > **`--gitignore`:** Adds transpiled output file paths to a managed `# dotai:start` / `# dotai:end` section in `.gitignore`. Use when transpiled outputs should not be committed — only the canonical source files and `.dotai-lock.json` are checked in, and teammates run `dotai add` to regenerate outputs locally.
 
 <!-- agent-names:start -->
 
-Supported agent aliases include values such as `claude-code` and `codex`. See [Supported Agents](supported-agents.md).
+Supported target aliases include values such as `claude-code` and `codex`. See [Supported Targets](supported-targets.md).
 
 <!-- agent-names:end -->
 
 ## remove command options
 
-| Option                     | Description                                                                  |
-| -------------------------- | ---------------------------------------------------------------------------- |
-| `-g, --global`             | Remove from global scope                                                     |
-| `-a, --agents <agents...>` | Remove from specific agents (use `'*'` for all agents)                       |
-| `-t, --type <types...>`    | Filter by context type (`skill`, `rule`, `prompt`, `agent`; comma-separated) |
-| `-y, --yes`                | Skip confirmation prompts                                                    |
-| `--all`                    | Remove all installed items                                                   |
+| Option                       | Description                                                                  |
+| ---------------------------- | ---------------------------------------------------------------------------- |
+| `-g, --global`               | Remove from global scope                                                     |
+| `-a, --targets <targets...>` | Remove from specific targets (use `'*'` for all targets)                     |
+| `-t, --type <types...>`      | Filter by context type (`skill`, `rule`, `prompt`, `agent`; comma-separated) |
+| `-y, --yes`                  | Skip confirmation prompts                                                    |
+| `--all`                      | Remove all installed items                                                   |
 
 ## find command
 
@@ -145,11 +145,11 @@ Convert native agent-specific rule files into canonical `RULES.md` format.
 
 ## list command options
 
-| Option                     | Description                                                                  |
-| -------------------------- | ---------------------------------------------------------------------------- |
-| `-g, --global`             | List global context (default: project)                                       |
-| `-a, --agents <agents...>` | Filter by specific agents                                                    |
-| `-t, --type <types...>`    | Filter by context type (`skill`, `rule`, `prompt`, `agent`; comma-separated) |
+| Option                       | Description                                                                  |
+| ---------------------------- | ---------------------------------------------------------------------------- |
+| `-g, --global`               | List global context (default: project)                                       |
+| `-a, --targets <targets...>` | Filter by specific targets                                                   |
+| `-t, --type <types...>`      | Filter by context type (`skill`, `rule`, `prompt`, `agent`; comma-separated) |
 
 ## Installation Scope
 
@@ -185,8 +185,8 @@ npx dotai add owner/repo --prompt review-code --rule code-style
 # Install a custom agent
 npx dotai add owner/repo --custom-agent architect
 
-# Install agents targeting specific transpilation agents
-npx dotai add owner/repo --custom-agent architect --agents copilot,claude
+# Install agents targeting specific transpilation targets
+npx dotai add owner/repo --custom-agent architect --targets copilot,claude
 
 # Force replace an existing unmanaged target file
 npx dotai add owner/repo --rule code-style --force
@@ -198,7 +198,7 @@ npx dotai add owner/repo --rule code-style --append
 npx dotai add owner/repo --rule code-style --gitignore
 
 # CI-friendly non-interactive install
-npx dotai add owner/repo --all --agents copilot,claude,cursor,windsurf,cline,opencode -y
+npx dotai add owner/repo --all --targets copilot,claude,cursor,windsurf,cline,opencode -y
 ```
 
 ## Team Sharing
@@ -215,8 +215,8 @@ npx dotai add owner/repo --prompt review-code -y
 # Share all rules and prompts from a repo
 npx dotai add owner/repo --type rule,prompt -y
 
-# CI-friendly: install everything, skip prompts, target specific agents
-npx dotai add owner/repo --all --agents copilot,claude,cursor -y
+# CI-friendly: install everything, skip prompts, limit to specific targets
+npx dotai add owner/repo --all --targets copilot,claude,cursor -y
 ```
 
 ## How transpilation works
@@ -224,7 +224,7 @@ npx dotai add owner/repo --all --agents copilot,claude,cursor -y
 When you write a canonical file (`RULES.md`, `PROMPT.md`, `AGENT.md`), dotai splits it into two parts:
 
 - **Frontmatter** (metadata like `activation`, `globs`, `model`, `tools`) is **mapped per-agent** into each target's native format.
-- **Body** (everything after the frontmatter) is **passed verbatim** to all target agents. No content is filtered, adapted, or rewritten.
+- **Body** (everything after the frontmatter) is **passed verbatim** to all targets. No content is filtered, adapted, or rewritten.
 
 This means canonical bodies should contain **agent-agnostic instructions** — describe _what_ to do, not _how_ to do it with a specific agent's tools. For example, "run the tests before committing" is portable; "use the Bash tool to run tests" is Claude Code-specific and will land unchanged in Cursor, Windsurf, Copilot, and Cline where it won't make sense.
 
@@ -241,7 +241,7 @@ dotai also discovers **native agent-specific files** in source repos and passes 
 | Windsurf       | `.windsurf/rules/*.md`                   | `.windsurf/workflows/*.md`    | —                           |
 | Cline          | `.clinerules/*.md`                       | —                             | —                           |
 
-A single source repo can contain both canonical and native files. Canonical files fan out to all target agents; native files go only to their matching agent.
+A single source repo can contain both canonical and native files. Canonical files fan out to all targets; native files go only to their matching agent.
 
 | Use case                                        | Approach              |
 | ----------------------------------------------- | --------------------- |

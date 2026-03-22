@@ -237,7 +237,7 @@ export async function updateRules(projectRoot: string): Promise<RuleUpdateResult
 
         const pipelineResult = await executeInstallPipeline([freshItem], {
           projectRoot: resolvedRoot,
-          agents,
+          targets: agents,
           source,
           lockEntries: updatedLock.items,
           force: true, // Updates should overwrite existing managed files

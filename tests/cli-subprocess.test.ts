@@ -82,7 +82,7 @@ describe('CLI --rule subprocess tests', () => {
     ]);
 
     const result = runCli(
-      ['add', sourceRepo, '--rule', 'code-style', '--agents', 'cursor,cline', '-y'],
+      ['add', sourceRepo, '--rule', 'code-style', '--targets', 'cursor,cline', '-y'],
       projectDir
     );
 
@@ -224,7 +224,7 @@ describe('CLI --custom-agent subprocess tests', () => {
     );
 
     const result = runCli(
-      ['add', sourceRepo, '--custom-agent', 'architect', '--agents', 'copilot', '-y'],
+      ['add', sourceRepo, '--custom-agent', 'architect', '--targets', 'copilot', '-y'],
       projectDir
     );
 
@@ -344,7 +344,7 @@ Instructions here.
     );
 
     const result = runCli(
-      ['add', sourceRepo, '--dry-run', '-y', '--agents', 'claude-code'],
+      ['add', sourceRepo, '--dry-run', '-y', '--targets', 'claude-code'],
       projectDir
     );
 

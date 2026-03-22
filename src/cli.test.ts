@@ -38,7 +38,7 @@ describe('dotai CLI', () => {
     it('should display essential add options', () => {
       const output = runCliOutput(['add', '--help']);
       expect(output).toContain('Usage: dotai add <package> [options]');
-      expect(output).toContain('-a, --agents');
+      expect(output).toContain('-a, --targets');
       expect(output).toContain('-t, --type');
       expect(output).toContain('-g, --global');
       expect(output).toContain('-y, --yes');
@@ -57,7 +57,7 @@ describe('dotai CLI', () => {
       expect(output).toContain('-s, --skill');
       expect(output).toContain('-r, --rule');
       expect(output).toContain('-p, --prompt');
-      expect(output).toContain('-a, --agents');
+      expect(output).toContain('-a, --targets');
       expect(output).toContain('--dry-run');
       expect(output).toContain('--force');
       expect(output).toContain('--append');
@@ -72,7 +72,7 @@ describe('dotai CLI', () => {
       const output = runCliOutput(['list', '--help']);
       expect(output).toContain('Usage: dotai list [options]');
       expect(output).toContain('-g, --global');
-      expect(output).toContain('-a, --agents');
+      expect(output).toContain('-a, --targets');
       expect(output).toContain('-t, --type');
     });
   });

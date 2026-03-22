@@ -20,7 +20,7 @@ import { CommandError } from './command-result.ts';
 
 export interface RemoveOptions {
   global?: boolean;
-  agents?: string[];
+  targets?: string[];
   yes?: boolean;
   all?: boolean;
   type?: ContextType[];
@@ -108,13 +108,13 @@ async function removeSkills(skillNames: string[], options: RemoveOptions) {
   }
 
   // Validate agent options BEFORE prompting for skill selection
-  if (options.agents && options.agents.length > 0) {
+  if (options.targets && options.targets.length > 0) {
     const validAgents = Object.keys(agents);
-    const invalidAgents = options.agents.filter((a) => !validAgents.includes(a));
+    const invalidAgents = options.targets.filter((a) => !validAgents.includes(a));
 
     if (invalidAgents.length > 0) {
-      p.log.error(`Invalid agents: ${invalidAgents.join(', ')}`);
-      p.log.info(`Valid agents: ${validAgents.join(', ')}`);
+      p.log.error(`Invalid targets: ${invalidAgents.join(', ')}`);
+      p.log.info(`Valid targets: ${validAgents.join(', ')}`);
       throw new CommandError(1);
     }
   }
@@ -153,13 +153,13 @@ async function removeSkills(skillNames: string[], options: RemoveOptions) {
   }
 
   let targetAgents: AgentType[];
-  if (options.agents && options.agents.length > 0) {
-    targetAgents = options.agents as AgentType[];
+  if (options.targets && options.targets.length > 0) {
+    targetAgents = options.targets as AgentType[];
   } else {
     // When removing, we should target all known agents to ensure
     // ghost symlinks are cleaned up, even if the agent is not detected.
     targetAgents = Object.keys(agents) as AgentType[];
-    spinner.stop(`Targeting ${targetAgents.length} potential agent(s)`);
+    spinner.stop(`Targeting ${targetAgents.length} potential target(s)`);
   }
 
   if (!options.yes) {
@@ -333,10 +333,10 @@ export function parseRemoveOptions(args: string[]): { skills: string[]; options:
       options.yes = true;
     } else if (arg === '--all') {
       options.all = true;
-    } else if (arg === '-a' || arg === '--agents') {
-      options.agents = options.agents || [];
+    } else if (arg === '-a' || arg === '--targets') {
+      options.targets = options.targets || [];
       const { values, nextIndex } = consumeMultiValues(args, i + 1);
-      options.agents.push(...values);
+      options.targets.push(...values);
       i = nextIndex - 1;
     } else if (arg === '-t' || arg === '--type') {
       options.type = options.type || [];
@@ -397,8 +397,8 @@ async function removeDotaiManagedItems(
   let candidates = lock.items.filter((entry) => typeSet.has(entry.type));
 
   // Apply agent filter if provided
-  if (options.agents && options.agents.length > 0) {
-    const agentSet = new Set<string>(options.agents);
+  if (options.targets && options.targets.length > 0) {
+    const agentSet = new Set<string>(options.targets);
     candidates = candidates.filter((entry) => entry.agents.some((a) => agentSet.has(a)));
   }
 

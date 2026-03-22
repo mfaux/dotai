@@ -202,7 +202,7 @@ describe('E2E canonical install', () => {
         sourcePath: sourceRepo,
         projectRoot,
         ruleNames: ['*'],
-        agents: ['cursor', 'cline'],
+        targets: ['cursor', 'cline'],
       });
 
       expect(result.success).toBe(true);

@@ -4,7 +4,7 @@ import { parseRemoveOptions } from './remove.ts';
 import { parseSyncOptions } from './sync.ts';
 
 /**
- * Parser parity tests: verify that shared flags (`--agents`, `--type`) produce
+ * Parser parity tests: verify that shared flags (`--targets`, `--type`) produce
  * consistent results across list, remove, and sync commands.
  *
  * Known intentional differences are documented inline:
@@ -15,28 +15,28 @@ import { parseSyncOptions } from './sync.ts';
  */
 
 // ---------------------------------------------------------------------------
-// --agents parity (list / remove / sync all use consumeMultiValues)
+// --targets parity (list / remove / sync all use consumeMultiValues)
 // ---------------------------------------------------------------------------
 
-describe('--agents parity across commands', () => {
+describe('--targets parity across commands', () => {
   it('should parse -a with a single agent', () => {
     const list = parseListOptions(['-a', 'cursor']);
     const { options: remove } = parseRemoveOptions(['-a', 'cursor']);
     const { options: sync } = parseSyncOptions(['-a', 'cursor']);
 
-    expect(list.agents).toEqual(['cursor']);
-    expect(remove.agents).toEqual(['cursor']);
-    expect(sync.agents).toEqual(['cursor']);
+    expect(list.targets).toEqual(['cursor']);
+    expect(remove.targets).toEqual(['cursor']);
+    expect(sync.targets).toEqual(['cursor']);
   });
 
   it('should parse --agent with a single agent', () => {
-    const list = parseListOptions(['--agents', 'claude-code']);
-    const { options: remove } = parseRemoveOptions(['--agents', 'claude-code']);
-    const { options: sync } = parseSyncOptions(['--agents', 'claude-code']);
+    const list = parseListOptions(['--targets', 'claude-code']);
+    const { options: remove } = parseRemoveOptions(['--targets', 'claude-code']);
+    const { options: sync } = parseSyncOptions(['--targets', 'claude-code']);
 
-    expect(list.agents).toEqual(['claude-code']);
-    expect(remove.agents).toEqual(['claude-code']);
-    expect(sync.agents).toEqual(['claude-code']);
+    expect(list.targets).toEqual(['claude-code']);
+    expect(remove.targets).toEqual(['claude-code']);
+    expect(sync.targets).toEqual(['claude-code']);
   });
 
   it('should consume multiple space-separated agents', () => {
@@ -44,9 +44,9 @@ describe('--agents parity across commands', () => {
     const { options: remove } = parseRemoveOptions(['-a', 'claude-code', 'cursor', 'codex']);
     const { options: sync } = parseSyncOptions(['-a', 'claude-code', 'cursor', 'codex']);
 
-    expect(list.agents).toEqual(['claude-code', 'cursor', 'codex']);
-    expect(remove.agents).toEqual(['claude-code', 'cursor', 'codex']);
-    expect(sync.agents).toEqual(['claude-code', 'cursor', 'codex']);
+    expect(list.targets).toEqual(['claude-code', 'cursor', 'codex']);
+    expect(remove.targets).toEqual(['claude-code', 'cursor', 'codex']);
+    expect(sync.targets).toEqual(['claude-code', 'cursor', 'codex']);
   });
 
   it('should stop consuming agents at the next flag', () => {
@@ -54,13 +54,13 @@ describe('--agents parity across commands', () => {
     const { options: remove } = parseRemoveOptions(['-a', 'claude-code', '-y']);
     const { options: sync } = parseSyncOptions(['-a', 'claude-code', '-y']);
 
-    expect(list.agents).toEqual(['claude-code']);
+    expect(list.targets).toEqual(['claude-code']);
     expect(list.global).toBe(true);
 
-    expect(remove.agents).toEqual(['claude-code']);
+    expect(remove.targets).toEqual(['claude-code']);
     expect(remove.yes).toBe(true);
 
-    expect(sync.agents).toEqual(['claude-code']);
+    expect(sync.targets).toEqual(['claude-code']);
     expect(sync.yes).toBe(true);
   });
 
@@ -69,41 +69,41 @@ describe('--agents parity across commands', () => {
     const { options: remove } = parseRemoveOptions(['-a']);
     const { options: sync } = parseSyncOptions(['-a']);
 
-    expect(list.agents).toEqual([]);
-    expect(remove.agents).toEqual([]);
-    expect(sync.agents).toEqual([]);
+    expect(list.targets).toEqual([]);
+    expect(remove.targets).toEqual([]);
+    expect(sync.targets).toEqual([]);
   });
 
   it('should accumulate agents from repeated --agent flags', () => {
-    const list = parseListOptions(['-a', 'cursor', '--agents', 'codex']);
-    const { options: remove } = parseRemoveOptions(['-a', 'cursor', '--agents', 'codex']);
-    const { options: sync } = parseSyncOptions(['-a', 'cursor', '--agents', 'codex']);
+    const list = parseListOptions(['-a', 'cursor', '--targets', 'codex']);
+    const { options: remove } = parseRemoveOptions(['-a', 'cursor', '--targets', 'codex']);
+    const { options: sync } = parseSyncOptions(['-a', 'cursor', '--targets', 'codex']);
 
-    expect(list.agents).toEqual(['cursor', 'codex']);
-    expect(remove.agents).toEqual(['cursor', 'codex']);
-    expect(sync.agents).toEqual(['cursor', 'codex']);
+    expect(list.targets).toEqual(['cursor', 'codex']);
+    expect(remove.targets).toEqual(['cursor', 'codex']);
+    expect(sync.targets).toEqual(['cursor', 'codex']);
   });
 
   it('should stop at --flag boundaries between groups', () => {
-    const list = parseListOptions(['-a', 'cursor', 'codex', '--agents', 'claude-code']);
+    const list = parseListOptions(['-a', 'cursor', 'codex', '--targets', 'claude-code']);
     const { options: remove } = parseRemoveOptions([
       '-a',
       'cursor',
       'codex',
-      '--agents',
+      '--targets',
       'claude-code',
     ]);
     const { options: sync } = parseSyncOptions([
       '-a',
       'cursor',
       'codex',
-      '--agents',
+      '--targets',
       'claude-code',
     ]);
 
-    expect(list.agents).toEqual(['cursor', 'codex', 'claude-code']);
-    expect(remove.agents).toEqual(['cursor', 'codex', 'claude-code']);
-    expect(sync.agents).toEqual(['cursor', 'codex', 'claude-code']);
+    expect(list.targets).toEqual(['cursor', 'codex', 'claude-code']);
+    expect(remove.targets).toEqual(['cursor', 'codex', 'claude-code']);
+    expect(sync.targets).toEqual(['cursor', 'codex', 'claude-code']);
   });
 });
 
@@ -189,10 +189,10 @@ describe('--type parity between list and remove', () => {
     const { options: remove } = parseRemoveOptions(['--type', 'rule', '-a', 'cursor']);
 
     expect(list.type).toEqual(['rule']);
-    expect(list.agents).toEqual(['cursor']);
+    expect(list.targets).toEqual(['cursor']);
 
     expect(remove.type).toEqual(['rule']);
-    expect(remove.agents).toEqual(['cursor']);
+    expect(remove.targets).toEqual(['cursor']);
   });
 });
 
@@ -261,17 +261,17 @@ describe('parseSyncOptions', () => {
 
   it('should parse -a with single agent', () => {
     const { options } = parseSyncOptions(['-a', 'cursor']);
-    expect(options.agents).toEqual(['cursor']);
+    expect(options.targets).toEqual(['cursor']);
   });
 
   it('should parse -a with multiple agents', () => {
     const { options } = parseSyncOptions(['-a', 'cursor', 'codex', 'claude-code']);
-    expect(options.agents).toEqual(['cursor', 'codex', 'claude-code']);
+    expect(options.targets).toEqual(['cursor', 'codex', 'claude-code']);
   });
 
   it('should stop consuming agents at next flag', () => {
     const { options } = parseSyncOptions(['-a', 'cursor', '-y']);
-    expect(options.agents).toEqual(['cursor']);
+    expect(options.targets).toEqual(['cursor']);
     expect(options.yes).toBe(true);
   });
 
@@ -279,12 +279,12 @@ describe('parseSyncOptions', () => {
     const { options } = parseSyncOptions(['-y', '-f', '-a', 'cursor', 'codex']);
     expect(options.yes).toBe(true);
     expect(options.force).toBe(true);
-    expect(options.agents).toEqual(['cursor', 'codex']);
+    expect(options.targets).toEqual(['cursor', 'codex']);
   });
 
   it('should accumulate agents from repeated -a flags', () => {
     const { options } = parseSyncOptions(['-a', 'cursor', '-a', 'codex']);
-    expect(options.agents).toEqual(['cursor', 'codex']);
+    expect(options.targets).toEqual(['cursor', 'codex']);
   });
 
   it('should ignore unknown flags', () => {
@@ -294,6 +294,6 @@ describe('parseSyncOptions', () => {
 
   it('should handle -a with no following values', () => {
     const { options } = parseSyncOptions(['-a']);
-    expect(options.agents).toEqual([]);
+    expect(options.targets).toEqual([]);
   });
 });

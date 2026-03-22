@@ -3,8 +3,8 @@ import { consumeMultiValues } from './cli-parse.ts';
 
 export interface AddOptions {
   global?: boolean;
-  /** Target agents — resolves to skill agents or transpilation targets depending on content type. */
-  agents?: string[];
+  /** Install targets — resolves to skill agents or transpilation targets depending on content type. */
+  targets?: string[];
   yes?: boolean;
   skill?: string[];
   rule?: string[];
@@ -37,10 +37,10 @@ export function parseAddOptions(args: string[]): { source: string[]; options: Ad
       options.yes = true;
     } else if (arg === '--all') {
       options.all = true;
-    } else if (arg === '-a' || arg === '--agents') {
-      options.agents = options.agents || [];
+    } else if (arg === '-a' || arg === '--targets') {
+      options.targets = options.targets || [];
       const { values, nextIndex } = consumeMultiValues(args, i + 1, { splitCommas: true });
-      options.agents.push(...values);
+      options.targets.push(...values);
       i = nextIndex - 1; // Back up one since the loop will increment
     } else if (arg === '-s' || arg === '--skill') {
       options.skill = options.skill || [];

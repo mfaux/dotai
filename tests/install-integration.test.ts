@@ -186,7 +186,7 @@ describe('integration: discover → transpile → install', () => {
       projectRoot: projectDir,
       source: 'test/repo',
       lockEntries: [],
-      agents: ['cursor'] as const,
+      targets: ['cursor'] as const,
     });
 
     expect(result.success).toBe(true);
@@ -235,7 +235,7 @@ describe('integration: discover → transpile → install', () => {
       projectRoot: projectDir,
       source: 'test/repo',
       lockEntries: [],
-      agents: ['cursor'] as const,
+      targets: ['cursor'] as const,
     });
 
     expect(result.success).toBe(true);
@@ -297,7 +297,7 @@ describe('integration: discover → transpile → install', () => {
       projectRoot: projectDir,
       source: 'test/repo',
       lockEntries: [],
-      agents: ['windsurf'] as const,
+      targets: ['windsurf'] as const,
     });
 
     expect(result.success).toBe(true);
@@ -400,7 +400,7 @@ describe('integration: discover → transpile → install', () => {
       projectRoot: projectDir,
       source: 'test/repo',
       lockEntries: [],
-      agents: ['cursor', 'cline'] as const,
+      targets: ['cursor', 'cline'] as const,
     });
 
     expect(result.success).toBe(true);
@@ -535,7 +535,7 @@ describe('integration: discover → transpile → install', () => {
       projectRoot: projectDir,
       source: 'test/repo',
       lockEntries: [existingEntry],
-      agents: ['cursor'] as const,
+      targets: ['cursor'] as const,
     });
 
     expect(result.success).toBe(true);
@@ -626,7 +626,7 @@ describe('integration: discover → transpile → install', () => {
       projectRoot: projectDir,
       source: 'test/repo',
       lockEntries: [],
-      agents: ['cursor'] as const,
+      targets: ['cursor'] as const,
     });
 
     expect(result.success).toBe(true);
@@ -660,7 +660,7 @@ describe('integration: discover → transpile → install', () => {
       projectRoot: projectDir,
       source: 'test/repo',
       lockEntries: [],
-      agents: ['cursor'] as const,
+      targets: ['cursor'] as const,
     });
 
     // One of them should collide
@@ -682,7 +682,7 @@ describe('integration: discover → transpile → install', () => {
       projectRoot: projectDir,
       source: 'test/repo',
       lockEntries: [],
-      agents: ['cursor'] as const,
+      targets: ['cursor'] as const,
     });
     expect(result1.success).toBe(true);
 
@@ -711,7 +711,7 @@ describe('integration: discover → transpile → install', () => {
       projectRoot: projectDir,
       source: 'test/repo',
       lockEntries: [lockEntry],
-      agents: ['cursor'] as const,
+      targets: ['cursor'] as const,
     });
     expect(result2.success).toBe(true);
     expect(result2.collisions).toHaveLength(0);

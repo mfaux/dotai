@@ -37,7 +37,7 @@ export interface InstallPipelineOptions {
   /** Absolute path to the project root directory. */
   projectRoot: string;
   /** Target agents to install for. Defaults to all five. */
-  agents?: readonly TargetAgent[];
+  targets?: readonly TargetAgent[];
   /** Source identifier for lock/collision tracking (e.g., "owner/repo"). */
   source: string;
   /** Existing lock entries for collision detection. */
@@ -103,7 +103,7 @@ export function planRuleWrites(
   items: DiscoveredItem[],
   options: InstallPipelineOptions
 ): { writes: PipelineWrite[]; skipped: Array<{ item: DiscoveredItem; reason: string }> } {
-  const agents = options.agents ?? ALL_AGENTS;
+  const agents = options.targets ?? ALL_AGENTS;
   const writes: PipelineWrite[] = [];
   const skipped: Array<{ item: DiscoveredItem; reason: string }> = [];
 

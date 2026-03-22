@@ -42,32 +42,32 @@ export async function resolveInstallTargets(
   let targetAgents: AgentType[];
   const validAgents = Object.keys(agents);
 
-  if (options.agents?.includes('*')) {
-    // --agents '*' selects all agents
+  if (options.targets?.includes('*')) {
+    // --targets '*' selects all agents
     targetAgents = validAgents as AgentType[];
-    p.log.info(`Installing to all ${targetAgents.length} agents`);
-  } else if (options.agents && options.agents.length > 0) {
-    const invalidAgents = options.agents.filter((a) => !validAgents.includes(a));
+    p.log.info(`Installing to all ${targetAgents.length} targets`);
+  } else if (options.targets && options.targets.length > 0) {
+    const invalidAgents = options.targets.filter((a) => !validAgents.includes(a));
 
     if (invalidAgents.length > 0) {
-      p.log.error(`Invalid agents: ${invalidAgents.join(', ')}`);
-      p.log.info(`Valid agents: ${validAgents.join(', ')}`);
+      p.log.error(`Invalid targets: ${invalidAgents.join(', ')}`);
+      p.log.info(`Valid targets: ${validAgents.join(', ')}`);
       throw new CommandError(1);
     }
 
-    targetAgents = options.agents as AgentType[];
+    targetAgents = options.targets as AgentType[];
   } else {
-    spinner.start('Loading agents...');
+    spinner.start('Loading targets...');
     const installedAgents = await detectInstalledAgents();
     const totalAgents = Object.keys(agents).length;
-    spinner.stop(`${totalAgents} agents`);
+    spinner.stop(`${totalAgents} targets`);
 
     if (installedAgents.length === 0) {
       if (options.yes) {
         targetAgents = validAgents as AgentType[];
-        p.log.info('Installing to all agents');
+        p.log.info('Installing to all targets');
       } else {
-        p.log.info('Select agents to install skills to');
+        p.log.info('Select targets to install skills to');
 
         const allAgentChoices = Object.entries(agents).map(([key, config]) => ({
           value: key as AgentType,
@@ -76,7 +76,7 @@ export async function resolveInstallTargets(
 
         // Use helper to prompt with search
         const selected = await promptForAgents(
-          'Which agents do you want to install to?',
+          'Which targets do you want to install to?',
           allAgentChoices
         );
 

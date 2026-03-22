@@ -364,8 +364,8 @@ describe('E2E native passthrough', () => {
 
       expect(result.success).toBe(true);
       expect(result.rulesInstalled).toBe(2);
-      // canonical: 5 files + native: 1 file = 6 total
-      expect(result.writtenPaths).toHaveLength(6);
+      // canonical: 6 files + native: 1 file = 7 total
+      expect(result.writtenPaths).toHaveLength(7);
 
       // Canonical rule should be in all agents
       for (const agent of ALL_AGENTS) {
@@ -382,7 +382,7 @@ describe('E2E native passthrough', () => {
       await assertLockEntryCount(projectRoot, 2);
       await assertLockEntry(projectRoot, 'rule', 'formatting', {
         format: 'canonical',
-        outputCount: 5,
+        outputCount: 6,
       });
       await assertLockEntry(projectRoot, 'rule', 'cursor-only', {
         format: 'native:cursor',
@@ -417,10 +417,10 @@ describe('E2E native passthrough', () => {
 
       expect(result.success).toBe(true);
       expect(result.promptsInstalled).toBe(2);
-      // canonical: 2 files + native: 1 file = 3 total
-      expect(result.writtenPaths).toHaveLength(3);
+      // canonical: 3 files + native: 1 file = 4 total
+      expect(result.writtenPaths).toHaveLength(4);
 
-      // Canonical prompt in copilot + claude
+      // Canonical prompt in copilot + claude + opencode
       for (const agent of PROMPT_AGENTS) {
         assertFileExists(getExpectedOutputPath(projectRoot, agent, 'prompt', 'review-code'));
       }
@@ -463,10 +463,10 @@ describe('E2E native passthrough', () => {
 
       expect(result.success).toBe(true);
       expect(result.agentsInstalled).toBe(2);
-      // canonical: 2 files + native: 1 file = 3 total
-      expect(result.writtenPaths).toHaveLength(3);
+      // canonical: 3 files + native: 1 file = 4 total
+      expect(result.writtenPaths).toHaveLength(4);
 
-      // Canonical agent in copilot + claude
+      // Canonical agent in copilot + claude + opencode
       for (const agent of AGENT_AGENTS) {
         assertFileExists(getExpectedOutputPath(projectRoot, agent, 'agent', 'architect'));
       }

@@ -458,11 +458,11 @@ describe('transpilePromptForAllAgents', () => {
     const item = makeDiscoveredPromptItem();
     const outputs = transpilePromptForAllAgents(item, TARGET_AGENTS);
 
-    // Only Copilot and Claude Code support canonical prompt transpilation
-    expect(outputs).toHaveLength(2);
+    // Copilot, Claude Code, and OpenCode support canonical prompt transpilation
+    expect(outputs).toHaveLength(3);
 
     const dirs = outputs.map((o) => o.outputDir).sort();
-    expect(dirs).toEqual(['.claude/commands', '.github/prompts']);
+    expect(dirs).toEqual(['.claude/commands', '.github/prompts', '.opencode/commands']);
   });
 
   it('produces output for only matching agent from native prompt', () => {
@@ -525,8 +525,12 @@ describe('transpilePromptForAllAgents', () => {
 // ---------------------------------------------------------------------------
 
 describe('promptTranspilers registry', () => {
-  it('has entries for Copilot and Claude Code only', () => {
-    expect(Object.keys(promptTranspilers).sort()).toEqual(['claude-code', 'github-copilot']);
+  it('has entries for Copilot, Claude Code, and OpenCode', () => {
+    expect(Object.keys(promptTranspilers).sort()).toEqual([
+      'claude-code',
+      'github-copilot',
+      'opencode',
+    ]);
   });
 
   it('does not have entries for cursor, windsurf, or cline', () => {

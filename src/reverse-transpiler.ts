@@ -422,6 +422,39 @@ const clineReverseTranspiler: ReverseTranspiler = {
 };
 
 // ---------------------------------------------------------------------------
+// OpenCode reverse parser (.opencode/rules/*.md)
+//
+// OpenCode rule files are plain markdown with no YAML frontmatter.
+// The entire content is treated as the body. Name is derived from
+// the filename.
+// ---------------------------------------------------------------------------
+
+const opencodeReverseTranspiler: ReverseTranspiler = {
+  agent: 'opencode',
+
+  parse(content: string, filename: string): ReverseParseResult {
+    const name = toKebabCase(filename, '.md');
+    if (!name) {
+      return { ok: false, error: 'could not derive name from file' };
+    }
+
+    const body = content.trim();
+
+    return {
+      ok: true,
+      rule: {
+        name,
+        description: 'Imported from OpenCode',
+        globs: [],
+        activation: 'always',
+        schemaVersion: 1,
+        body,
+      },
+    };
+  },
+};
+
+// ---------------------------------------------------------------------------
 // Registry
 // ---------------------------------------------------------------------------
 
@@ -431,4 +464,5 @@ export const reverseTranspilers: Record<TargetAgent, ReverseTranspiler> = {
   'github-copilot': copilotReverseTranspiler,
   windsurf: windsurfReverseTranspiler,
   cline: clineReverseTranspiler,
+  opencode: opencodeReverseTranspiler,
 };

@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   copilotAgentTranspiler,
   claudeCodeAgentTranspiler,
+  opencodeAgentTranspiler,
   nativeAgentPassthrough,
   agentTranspilers,
   transpileAgent,
@@ -61,6 +62,7 @@ describe('canTranspile', () => {
   it.each([
     ['copilot', copilotAgentTranspiler],
     ['claude-code', claudeCodeAgentTranspiler],
+    ['opencode', opencodeAgentTranspiler],
   ] as const)('%s accepts canonical agents', (_name, transpiler) => {
     expect(transpiler.canTranspile(canonicalAgent)).toBe(true);
   });
@@ -68,6 +70,7 @@ describe('canTranspile', () => {
   it.each([
     ['copilot', copilotAgentTranspiler],
     ['claude-code', claudeCodeAgentTranspiler],
+    ['opencode', opencodeAgentTranspiler],
   ] as const)('%s rejects native agents', (_name, transpiler) => {
     expect(transpiler.canTranspile(nativeAgent)).toBe(false);
   });
@@ -75,6 +78,7 @@ describe('canTranspile', () => {
   it.each([
     ['copilot', copilotAgentTranspiler],
     ['claude-code', claudeCodeAgentTranspiler],
+    ['opencode', opencodeAgentTranspiler],
   ] as const)('%s rejects skill items', (_name, transpiler) => {
     expect(transpiler.canTranspile(skillItem)).toBe(false);
   });
@@ -82,6 +86,7 @@ describe('canTranspile', () => {
   it.each([
     ['copilot', copilotAgentTranspiler],
     ['claude-code', claudeCodeAgentTranspiler],
+    ['opencode', opencodeAgentTranspiler],
   ] as const)('%s rejects rule items', (_name, transpiler) => {
     expect(transpiler.canTranspile(ruleItem)).toBe(false);
   });
@@ -89,6 +94,7 @@ describe('canTranspile', () => {
   it.each([
     ['copilot', copilotAgentTranspiler],
     ['claude-code', claudeCodeAgentTranspiler],
+    ['opencode', opencodeAgentTranspiler],
   ] as const)('%s rejects prompt items', (_name, transpiler) => {
     expect(transpiler.canTranspile(promptItem)).toBe(false);
   });
@@ -420,6 +426,7 @@ describe('nativeAgentPassthrough', () => {
     const agents: Array<[TargetAgent, string, string]> = [
       ['github-copilot', '.agent.md', '.github/agents'],
       ['claude-code', '.md', '.claude/agents'],
+      ['opencode', '.md', '.opencode/agents'],
     ];
 
     for (const [agent, expectedExt, expectedDir] of agents) {
@@ -518,11 +525,11 @@ describe('transpileAgentForAllAgents', () => {
     const item = makeDiscoveredAgentItem();
     const outputs = transpileAgentForAllAgents(item, TARGET_AGENTS);
 
-    // Only Copilot and Claude Code support canonical agent transpilation
-    expect(outputs).toHaveLength(2);
+    // Copilot, Claude Code, and OpenCode support canonical agent transpilation
+    expect(outputs).toHaveLength(3);
 
     const dirs = outputs.map((o) => o.outputDir).sort();
-    expect(dirs).toEqual(['.claude/agents', '.github/agents']);
+    expect(dirs).toEqual(['.claude/agents', '.github/agents', '.opencode/agents']);
   });
 
   it('produces output for only matching agent from native agent', () => {
@@ -572,8 +579,12 @@ describe('transpileAgentForAllAgents', () => {
 // ---------------------------------------------------------------------------
 
 describe('agentTranspilers registry', () => {
-  it('has entries for Copilot and Claude Code only', () => {
-    expect(Object.keys(agentTranspilers).sort()).toEqual(['claude-code', 'github-copilot']);
+  it('has entries for Copilot, Claude Code, and OpenCode only', () => {
+    expect(Object.keys(agentTranspilers).sort()).toEqual([
+      'claude-code',
+      'github-copilot',
+      'opencode',
+    ]);
   });
 
   it('does not have entries for cursor, windsurf, or cline', () => {

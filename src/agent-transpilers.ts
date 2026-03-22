@@ -131,6 +131,136 @@ export const claudeCodeAgentTranspiler: Transpiler<CanonicalAgent> = {
 };
 
 // ---------------------------------------------------------------------------
+// OpenCode agent transpiler (.opencode/agents/*.md)
+//
+// OpenCode agent files use YAML frontmatter with:
+//   - description: string
+//   - mode: "subagent" (safe default for canonical agents)
+//   - model: string (optional, in provider/model-id format)
+//   - tools: boolean map (write, edit, bash — true/false)
+//   - permission: map with deny values for disallowed tools
+// Claude-specific fields (max-turns, background) are omitted.
+// ---------------------------------------------------------------------------
+
+/**
+ * Map canonical tool names to OpenCode tool boolean keys.
+ */
+const TOOL_NAME_TO_OPENCODE: Record<string, string> = {
+  write_file: 'write',
+  create_file: 'write',
+  edit_file: 'edit',
+  run_command: 'bash',
+  bash: 'bash',
+};
+
+/**
+ * Map canonical disallowed-tool names to OpenCode permission keys.
+ */
+const DISALLOWED_TOOL_TO_OPENCODE: Record<string, string> = {
+  write_file: 'write',
+  create_file: 'write',
+  edit_file: 'edit',
+  run_command: 'bash',
+  bash: 'bash',
+};
+
+/**
+ * Build the OpenCode `tools` boolean map from a canonical tools list.
+ * When a tools list is specified, only listed tools are enabled (true);
+ * unlisted tools default to false.
+ * When no tools list is provided, all tools default to true (OpenCode default).
+ */
+function buildToolsMap(tools?: string[]): Record<string, boolean> | undefined {
+  if (!tools) {
+    // No tools specified — all default to true (OpenCode default behavior)
+    return undefined;
+  }
+
+  // Start with all tools disabled
+  const map: Record<string, boolean> = {
+    write: false,
+    edit: false,
+    bash: false,
+  };
+
+  // Enable tools that are listed
+  for (const tool of tools) {
+    const opencodeKey = TOOL_NAME_TO_OPENCODE[tool];
+    if (opencodeKey) {
+      map[opencodeKey] = true;
+    }
+  }
+
+  return map;
+}
+
+/**
+ * Build the OpenCode `permission` map from canonical disallowed-tools.
+ */
+function buildPermissionMap(disallowedTools?: string[]): Record<string, string> | undefined {
+  if (!disallowedTools || disallowedTools.length === 0) {
+    return undefined;
+  }
+
+  const map: Record<string, string> = {};
+  for (const tool of disallowedTools) {
+    const opencodeKey = DISALLOWED_TOOL_TO_OPENCODE[tool];
+    if (opencodeKey) {
+      map[opencodeKey] = 'deny';
+    }
+  }
+
+  return Object.keys(map).length > 0 ? map : undefined;
+}
+
+export const opencodeAgentTranspiler: Transpiler<CanonicalAgent> = {
+  canTranspile(item: DiscoveredItem): boolean {
+    return item.type === 'agent' && item.format === 'canonical';
+  },
+
+  transform(agent: CanonicalAgent, _targetAgent: TargetAgent): TranspiledOutput {
+    const config = getTargetAgentConfig('opencode');
+    const lines: string[] = ['---'];
+    lines.push(`description: ${quoteYaml(agent.description)}`);
+    lines.push('mode: subagent');
+
+    if (agent.model) {
+      lines.push(`model: ${quoteYaml(agent.model)}`);
+    }
+
+    const toolsMap = buildToolsMap(agent.tools);
+    if (toolsMap) {
+      lines.push('tools:');
+      for (const [key, value] of Object.entries(toolsMap)) {
+        lines.push(`  ${key}: ${value}`);
+      }
+    }
+
+    const permissionMap = buildPermissionMap(agent.disallowedTools);
+    if (permissionMap) {
+      lines.push('permission:');
+      for (const [key, value] of Object.entries(permissionMap)) {
+        lines.push(`  ${key}: ${value}`);
+      }
+    }
+
+    // max-turns and background are not supported by OpenCode — omitted
+
+    lines.push('---');
+    lines.push('');
+    lines.push(agent.body);
+    lines.push('');
+
+    return {
+      filename: `${agent.name}${config.agentsConfig!.extension}`,
+      content: lines.join('\n'),
+      outputDir: config.agentsConfig!.outputDir,
+      mode: 'write',
+    };
+  },
+};
+
+// ---------------------------------------------------------------------------
 // Native passthrough handler
 //
 // Native agent items (format: "native:<agent>") skip transpilation entirely.
@@ -184,6 +314,7 @@ export function nativeAgentPassthrough(
 export const agentTranspilers: Partial<Record<TargetAgent, Transpiler<CanonicalAgent>>> = {
   'github-copilot': copilotAgentTranspiler,
   'claude-code': claudeCodeAgentTranspiler,
+  opencode: opencodeAgentTranspiler,
   // cursor: not supported — no agent system
   // windsurf: not supported — no agent system
   // cline: not supported — no agent system

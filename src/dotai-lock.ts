@@ -300,6 +300,7 @@ const VALID_AGENTS: ReadonlySet<string> = new Set([
   'cursor',
   'windsurf',
   'cline',
+  'opencode',
 ]);
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {

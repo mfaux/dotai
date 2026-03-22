@@ -255,6 +255,30 @@ export const claudeCodeRuleTranspiler: Transpiler<CanonicalRule> = {
 };
 
 // ---------------------------------------------------------------------------
+// OpenCode transpiler (.opencode/rules/*.md)
+//
+// OpenCode rule files are plain markdown — no YAML frontmatter. The body
+// is written directly without any wrapper.
+// ---------------------------------------------------------------------------
+
+export const opencodeRuleTranspiler: Transpiler<CanonicalRule> = {
+  canTranspile(item: DiscoveredItem): boolean {
+    return item.type === 'rule' && item.format === 'canonical';
+  },
+
+  transform(rule: CanonicalRule, _targetAgent: TargetAgent): TranspiledOutput {
+    const config = getTargetAgentConfig('opencode');
+
+    return {
+      filename: `${rule.name}${config.rulesConfig.extension}`,
+      content: rule.body + '\n',
+      outputDir: config.rulesConfig.outputDir,
+      mode: 'write',
+    };
+  },
+};
+
+// ---------------------------------------------------------------------------
 // Copilot append transpiler (→ AGENTS.md with markers)
 //
 // In append mode, rules are written as marked sections into a monolithic
@@ -373,6 +397,7 @@ export const ruleTranspilers: Record<TargetAgent, Transpiler<CanonicalRule>> = {
   cline: clineRuleTranspiler,
   'github-copilot': copilotRuleTranspiler,
   'claude-code': claudeCodeRuleTranspiler,
+  opencode: opencodeRuleTranspiler,
 };
 
 /**

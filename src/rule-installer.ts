@@ -80,13 +80,14 @@ export interface InstallPipelineResult {
   error?: string;
 }
 
-/** All five target agents. */
+/** All six target agents. */
 const ALL_AGENTS: readonly TargetAgent[] = [
   'github-copilot',
   'claude-code',
   'cursor',
   'windsurf',
   'cline',
+  'opencode',
 ] as const;
 
 /**
@@ -343,13 +344,16 @@ const OUTPUT_DIR_TO_AGENT: ReadonlyArray<{ prefix: string; agent: TargetAgent }>
   { prefix: '.cursor/rules', agent: 'cursor' },
   { prefix: '.windsurf/rules', agent: 'windsurf' },
   { prefix: '.clinerules', agent: 'cline' },
+  { prefix: '.opencode/rules', agent: 'opencode' },
   // Prompts
   { prefix: '.github/prompts', agent: 'github-copilot' },
   { prefix: '.claude/commands', agent: 'claude-code' },
   { prefix: '.windsurf/workflows', agent: 'windsurf' },
+  { prefix: '.opencode/commands', agent: 'opencode' },
   // Agents
   { prefix: '.github/agents', agent: 'github-copilot' },
   { prefix: '.claude/agents', agent: 'claude-code' },
+  { prefix: '.opencode/agents', agent: 'opencode' },
 ];
 
 /**

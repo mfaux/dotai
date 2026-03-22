@@ -85,17 +85,17 @@ npx dotai add ./my-local-context                        # local path
 
 ## Commands
 
-| Command         | Description                                            |
-| --------------- | ------------------------------------------------------ |
-| `add <package>` | Discover, select, transpile, and install context       |
-| `remove [name]` | Remove installed context                               |
-| `list`          | List installed items                                   |
-| `find [query]`  | Search for skills & preview all context in a repo      |
+| Command         | Description                                               |
+| --------------- | --------------------------------------------------------- |
+| `add <package>` | Discover, select, transpile, and install context          |
+| `remove [name]` | Remove installed context                                  |
+| `list`          | List installed items                                      |
+| `find [query]`  | Search for skills & preview all context in a repo         |
 | `import`        | Convert native agent rules to canonical `RULES.md` format |
-| `check`         | Check for available updates                            |
-| `update`        | Update installed items to latest versions              |
-| `init [name]`   | Create a context template (skill, rule, prompt, agent) |
-| `restore`       | Restore from lock files                                |
+| `check`         | Check for available updates                               |
+| `update`        | Update installed items to latest versions                 |
+| `init [name]`   | Create a context template (skill, rule, prompt, agent)    |
+| `restore`       | Restore from lock files                                   |
 
 ## Supported Targets
 
@@ -106,6 +106,7 @@ npx dotai add ./my-local-context                        # local path
 | -------------- | ------ | ----- | ----------------------- | ------------------------- |
 | GitHub Copilot | ✅     | ✅    | ✅                      | ✅                        |
 | Claude Code    | ✅     | ✅    | ✅                      | ✅                        |
+| OpenCode       | ✅     | ✅    | ✅                      | ✅                        |
 | Cursor         | ✅     | ✅    | ⚠️ (native/compat only) | ⚠️ (via `.github/agents`) |
 | Windsurf       | ✅     | ✅    | ⚠️ (native passthrough) | —                         |
 | Cline          | ✅     | ✅    | —                       | —                         |
@@ -113,6 +114,7 @@ npx dotai add ./my-local-context                        # local path
 - **Cursor prompts:** Cursor reads Copilot's `.github/prompts/` path. Canonical `PROMPT.md` is not transpiled to a Cursor-specific format.
 - **Cursor agents:** Cursor reads `.github/agents/` from the Copilot path. Canonical `AGENT.md` transpiles to Copilot format, which Cursor picks up.
 - **Windsurf prompts:** Windsurf workflows use a native format. Only passthrough is supported.
+- **OpenCode rules:** OpenCode rules are plain markdown (no frontmatter). After installing, add the output paths to the `instructions` array in `opencode.json`.
 
 </details>
 

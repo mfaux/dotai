@@ -115,6 +115,47 @@ export const claudeCodePromptTranspiler: Transpiler<CanonicalPrompt> = {
 };
 
 // ---------------------------------------------------------------------------
+// OpenCode command transpiler (.opencode/commands/*.md)
+//
+// OpenCode commands use YAML frontmatter with:
+//   - description: string
+//   - model: string (optional, in provider/model-id format)
+//   - agent: string (optional, references a named agent)
+// Tools are omitted — commands inherit tools from the agent they invoke.
+// ---------------------------------------------------------------------------
+
+export const opencodeCommandTranspiler: Transpiler<CanonicalPrompt> = {
+  canTranspile(item: DiscoveredItem): boolean {
+    return item.type === 'prompt' && item.format === 'canonical';
+  },
+
+  transform(prompt: CanonicalPrompt, _targetAgent: TargetAgent): TranspiledOutput {
+    const config = getTargetAgentConfig('opencode');
+    const lines: string[] = ['---'];
+    lines.push(`description: ${quoteYaml(prompt.description)}`);
+
+    if (prompt.model) {
+      lines.push(`model: ${quoteYaml(prompt.model)}`);
+    }
+    if (prompt.agent) {
+      lines.push(`agent: ${quoteYaml(prompt.agent)}`);
+    }
+
+    lines.push('---');
+    lines.push('');
+    lines.push(prompt.body);
+    lines.push('');
+
+    return {
+      filename: `${prompt.name}${config.promptsConfig!.extension}`,
+      content: lines.join('\n'),
+      outputDir: config.promptsConfig!.outputDir,
+      mode: 'write',
+    };
+  },
+};
+
+// ---------------------------------------------------------------------------
 // Native passthrough handler
 //
 // Native prompt items (format: "native:<agent>") skip transpilation entirely.
@@ -172,6 +213,7 @@ export function nativePromptPassthrough(
 export const promptTranspilers: Partial<Record<TargetAgent, Transpiler<CanonicalPrompt>>> = {
   'github-copilot': copilotPromptTranspiler,
   'claude-code': claudeCodePromptTranspiler,
+  opencode: opencodeCommandTranspiler,
   // cursor: not supported — no prompt/command system
   // windsurf: native passthrough only — no canonical transpilation
   // cline: not supported — no prompt/command system

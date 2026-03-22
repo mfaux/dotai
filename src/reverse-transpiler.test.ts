@@ -693,12 +693,13 @@ describe('round-trip: forward → reverse', () => {
 // ---------------------------------------------------------------------------
 
 describe('reverseTranspilers registry', () => {
-  it('has entries for all 5 target agents', () => {
+  it('has entries for all 6 target agents', () => {
     expect(Object.keys(reverseTranspilers).sort()).toEqual([
       'claude-code',
       'cline',
       'cursor',
       'github-copilot',
+      'opencode',
       'windsurf',
     ]);
   });

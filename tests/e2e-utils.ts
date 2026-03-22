@@ -429,20 +429,29 @@ export async function assertLockEntryCount(
 // All-agents helpers
 // ---------------------------------------------------------------------------
 
-/** All five target agents. */
+/** All six target agents. */
 export const ALL_AGENTS: readonly TargetAgent[] = [
   'github-copilot',
   'claude-code',
   'cursor',
   'windsurf',
   'cline',
+  'opencode',
 ] as const;
 
 /** Target agents that support canonical prompt transpilation. */
-export const PROMPT_AGENTS: readonly TargetAgent[] = ['github-copilot', 'claude-code'] as const;
+export const PROMPT_AGENTS: readonly TargetAgent[] = [
+  'github-copilot',
+  'claude-code',
+  'opencode',
+] as const;
 
 /** Target agents that support canonical agent transpilation. */
-export const AGENT_AGENTS: readonly TargetAgent[] = ['github-copilot', 'claude-code'] as const;
+export const AGENT_AGENTS: readonly TargetAgent[] = [
+  'github-copilot',
+  'claude-code',
+  'opencode',
+] as const;
 
 /**
  * Write a pre-existing file at a target output path.

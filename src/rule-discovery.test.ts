@@ -78,13 +78,14 @@ const VALID_RULE = {
 // ---------------------------------------------------------------------------
 
 describe('target-agents registry', () => {
-  it('has exactly 5 target agents', () => {
-    expect(TARGET_AGENTS).toHaveLength(5);
+  it('has exactly 6 target agents', () => {
+    expect(TARGET_AGENTS).toHaveLength(6);
     expect(TARGET_AGENTS).toContain('github-copilot');
     expect(TARGET_AGENTS).toContain('claude-code');
     expect(TARGET_AGENTS).toContain('cursor');
     expect(TARGET_AGENTS).toContain('windsurf');
     expect(TARGET_AGENTS).toContain('cline');
+    expect(TARGET_AGENTS).toContain('opencode');
   });
 
   it('each agent has required config fields', () => {

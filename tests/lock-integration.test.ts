@@ -57,10 +57,10 @@ describe('addRules → lock file integration', () => {
     expect(entry.name).toBe('code-style');
     expect(entry.source).toBe('test/repo');
     expect(entry.format).toBe('canonical');
-    expect(entry.agents).toHaveLength(5);
+    expect(entry.agents).toHaveLength(6);
     expect(entry.hash).toBeTruthy();
     expect(entry.installedAt).toBeTruthy();
-    expect(entry.outputs).toHaveLength(5);
+    expect(entry.outputs).toHaveLength(6);
   });
 
   it('writes correct content hash in lock entry', async () => {

@@ -53,6 +53,7 @@ const BUILT_IN_ALIASES: Record<string, Partial<Record<TargetAgent, string | null
     cursor: null,
     windsurf: null,
     cline: null,
+    opencode: 'anthropic/claude-sonnet-4-20250514',
   },
   'claude-opus-4': {
     'github-copilot': 'claude-opus-4',
@@ -60,6 +61,7 @@ const BUILT_IN_ALIASES: Record<string, Partial<Record<TargetAgent, string | null
     cursor: null,
     windsurf: null,
     cline: null,
+    opencode: 'anthropic/claude-opus-4-20250514',
   },
   'claude-haiku-3.5': {
     'github-copilot': 'claude-3.5-haiku',
@@ -67,6 +69,7 @@ const BUILT_IN_ALIASES: Record<string, Partial<Record<TargetAgent, string | null
     cursor: null,
     windsurf: null,
     cline: null,
+    opencode: 'anthropic/claude-3-5-haiku-20241022',
   },
 
   // --- OpenAI models ---
@@ -76,6 +79,7 @@ const BUILT_IN_ALIASES: Record<string, Partial<Record<TargetAgent, string | null
     cursor: null,
     windsurf: null,
     cline: null,
+    opencode: 'openai/gpt-4o',
   },
   'gpt-4.1': {
     'github-copilot': 'gpt-4.1',
@@ -83,6 +87,7 @@ const BUILT_IN_ALIASES: Record<string, Partial<Record<TargetAgent, string | null
     cursor: null,
     windsurf: null,
     cline: null,
+    opencode: 'openai/gpt-4.1',
   },
   'o3-mini': {
     'github-copilot': 'o3-mini',
@@ -90,6 +95,7 @@ const BUILT_IN_ALIASES: Record<string, Partial<Record<TargetAgent, string | null
     cursor: null,
     windsurf: null,
     cline: null,
+    opencode: 'openai/o3-mini',
   },
 
   // --- Google models ---
@@ -99,6 +105,7 @@ const BUILT_IN_ALIASES: Record<string, Partial<Record<TargetAgent, string | null
     cursor: null,
     windsurf: null,
     cline: null,
+    opencode: 'google/gemini-2.5-pro',
   },
 };
 

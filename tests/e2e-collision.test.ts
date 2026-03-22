@@ -358,7 +358,7 @@ describe('E2E collision tests', () => {
 
       expect(result.success).toBe(true);
       expect(result.rulesInstalled).toBe(1);
-      expect(result.writtenPaths).toHaveLength(5);
+      expect(result.writtenPaths).toHaveLength(6);
 
       // All files now contain dotai-managed content
       for (const agent of ALL_AGENTS) {
@@ -370,7 +370,7 @@ describe('E2E collision tests', () => {
       await assertLockEntry(projectRoot, 'rule', 'code-style', {
         source: 'test/force-repo',
         format: 'canonical',
-        outputCount: 5,
+        outputCount: 6,
       });
     });
 

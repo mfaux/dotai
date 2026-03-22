@@ -244,14 +244,14 @@ describe('install-pipeline', () => {
   // -------------------------------------------------------------------------
 
   describe('planRuleWrites', () => {
-    it('transpiles a canonical rule to all 5 agents', () => {
+    it('transpiles a canonical rule to all 6 agents', () => {
       const items = [canonicalRule('code-style')];
       const opts = baseOptions(tmpDir);
 
       const { writes, skipped } = planRuleWrites(items, opts);
 
       expect(skipped).toHaveLength(0);
-      expect(writes).toHaveLength(5);
+      expect(writes).toHaveLength(6);
 
       const agents = writes.map((w) => w.agent);
       expect(agents).toContain('github-copilot');
@@ -259,6 +259,7 @@ describe('install-pipeline', () => {
       expect(agents).toContain('cursor');
       expect(agents).toContain('windsurf');
       expect(agents).toContain('cline');
+      expect(agents).toContain('opencode');
     });
 
     it('respects agent subset filter', () => {
@@ -345,8 +346,8 @@ describe('install-pipeline', () => {
 
       const { writes } = planRuleWrites(items, opts);
 
-      // 2 rules × 5 agents = 10 writes
-      expect(writes).toHaveLength(10);
+      // 2 rules × 6 agents = 12 writes
+      expect(writes).toHaveLength(12);
     });
 
     it('handles mixed canonical + native rules', () => {
@@ -355,8 +356,8 @@ describe('install-pipeline', () => {
 
       const { writes } = planRuleWrites(items, opts);
 
-      // 1 canonical × 5 agents + 1 native × 1 agent = 6
-      expect(writes).toHaveLength(6);
+      // 1 canonical × 6 agents + 1 native × 1 agent = 7
+      expect(writes).toHaveLength(7);
     });
 
     it('skips items with invalid content', () => {
@@ -397,7 +398,7 @@ describe('install-pipeline', () => {
       const result = await executeInstallPipeline(items, opts);
 
       expect(result.success).toBe(true);
-      expect(result.writes).toHaveLength(5);
+      expect(result.writes).toHaveLength(6);
       expect(result.written).toHaveLength(0);
 
       // No files should exist on disk
@@ -427,14 +428,14 @@ describe('install-pipeline', () => {
   // -------------------------------------------------------------------------
 
   describe('executeInstallPipeline — writes', () => {
-    it('writes transpiled rules to all 5 agent directories', async () => {
+    it('writes transpiled rules to all 6 agent directories', async () => {
       const items = [canonicalRule('code-style')];
       const opts = baseOptions(tmpDir);
 
       const result = await executeInstallPipeline(items, opts);
 
       expect(result.success).toBe(true);
-      expect(result.written).toHaveLength(5);
+      expect(result.written).toHaveLength(6);
 
       // Verify files exist on disk
       expect(existsSync(join(tmpDir, '.cursor', 'rules', 'code-style.mdc'))).toBe(true);
@@ -444,6 +445,7 @@ describe('install-pipeline', () => {
         existsSync(join(tmpDir, '.github', 'instructions', 'code-style.instructions.md'))
       ).toBe(true);
       expect(existsSync(join(tmpDir, '.claude', 'rules', 'code-style.md'))).toBe(true);
+      expect(existsSync(join(tmpDir, '.opencode', 'rules', 'code-style.md'))).toBe(true);
     });
 
     it('creates target directories that do not exist', async () => {
@@ -535,7 +537,7 @@ describe('install-pipeline', () => {
 
       expect(result.success).toBe(true);
       expect(result.collisions.length).toBeGreaterThan(0);
-      expect(result.written).toHaveLength(5);
+      expect(result.written).toHaveLength(6);
 
       // File should be overwritten with transpiled content
       const content = readFileSync(join(conflictDir, 'code-style.mdc'), 'utf-8');
@@ -703,19 +705,20 @@ describe('install-pipeline', () => {
   // -------------------------------------------------------------------------
 
   describe('planRuleWrites — prompts', () => {
-    it('transpiles a canonical prompt to Copilot and Claude Code', () => {
+    it('transpiles a canonical prompt to Copilot, Claude Code, and OpenCode', () => {
       const items = [canonicalPrompt('review-code')];
       const opts = baseOptions(tmpDir);
 
       const { writes, skipped } = planRuleWrites(items, opts);
 
       expect(skipped).toHaveLength(0);
-      // Only Copilot and Claude Code support canonical prompt transpilation
-      expect(writes).toHaveLength(2);
+      // Copilot, Claude Code, and OpenCode support canonical prompt transpilation
+      expect(writes).toHaveLength(3);
 
       const agents = writes.map((w) => w.agent);
       expect(agents).toContain('github-copilot');
       expect(agents).toContain('claude-code');
+      expect(agents).toContain('opencode');
     });
 
     it('respects agent subset filter for prompts', () => {
@@ -778,8 +781,8 @@ describe('install-pipeline', () => {
 
       const { writes } = planRuleWrites(items, opts);
 
-      // 2 prompts × 2 supported agents = 4 writes
-      expect(writes).toHaveLength(4);
+      // 2 prompts × 3 supported agents = 6 writes
+      expect(writes).toHaveLength(6);
     });
 
     it('handles native prompt passthrough — only targets matching agent', () => {
@@ -814,10 +817,10 @@ describe('install-pipeline', () => {
 
       const { writes, skipped } = planRuleWrites(items, opts);
 
-      // canonical rule: 5 agents
-      // canonical prompt: 2 agents (copilot + claude-code)
+      // canonical rule: 6 agents
+      // canonical prompt: 3 agents (copilot + claude-code + opencode)
       // skill: silently skipped
-      expect(writes).toHaveLength(7);
+      expect(writes).toHaveLength(9);
       expect(skipped).toHaveLength(0);
     });
   });
@@ -827,18 +830,19 @@ describe('install-pipeline', () => {
   // -------------------------------------------------------------------------
 
   describe('executeInstallPipeline — prompt writes', () => {
-    it('writes transpiled prompts to Copilot and Claude Code directories', async () => {
+    it('writes transpiled prompts to Copilot, Claude Code, and OpenCode directories', async () => {
       const items = [canonicalPrompt('review-code')];
       const opts = baseOptions(tmpDir);
 
       const result = await executeInstallPipeline(items, opts);
 
       expect(result.success).toBe(true);
-      expect(result.written).toHaveLength(2);
+      expect(result.written).toHaveLength(3);
 
       // Verify files exist on disk
       expect(existsSync(join(tmpDir, '.github', 'prompts', 'review-code.prompt.md'))).toBe(true);
       expect(existsSync(join(tmpDir, '.claude', 'commands', 'review-code.md'))).toBe(true);
+      expect(existsSync(join(tmpDir, '.opencode', 'commands', 'review-code.md'))).toBe(true);
     });
 
     it('written Copilot prompt has correct content', async () => {
@@ -876,7 +880,7 @@ describe('install-pipeline', () => {
       const result = await executeInstallPipeline(items, opts);
 
       expect(result.success).toBe(true);
-      expect(result.writes).toHaveLength(2);
+      expect(result.writes).toHaveLength(3);
       expect(result.written).toHaveLength(0);
       expect(existsSync(join(tmpDir, '.github', 'prompts', 'review-code.prompt.md'))).toBe(false);
     });
@@ -920,19 +924,20 @@ describe('install-pipeline', () => {
   // -------------------------------------------------------------------------
 
   describe('planRuleWrites — agents', () => {
-    it('transpiles a canonical agent to Copilot and Claude Code', () => {
+    it('transpiles a canonical agent to Copilot, Claude Code, and OpenCode', () => {
       const items = [canonicalAgent('architect')];
       const opts = baseOptions(tmpDir);
 
       const { writes, skipped } = planRuleWrites(items, opts);
 
       expect(skipped).toHaveLength(0);
-      // Only Copilot and Claude Code support agent transpilation
-      expect(writes).toHaveLength(2);
+      // Copilot, Claude Code, and OpenCode support agent transpilation
+      expect(writes).toHaveLength(3);
 
       const agents = writes.map((w) => w.agent);
       expect(agents).toContain('github-copilot');
       expect(agents).toContain('claude-code');
+      expect(agents).toContain('opencode');
     });
 
     it('respects agent subset filter for agents', () => {
@@ -995,8 +1000,8 @@ describe('install-pipeline', () => {
 
       const { writes } = planRuleWrites(items, opts);
 
-      // 2 agents × 2 supported target agents = 4 writes
-      expect(writes).toHaveLength(4);
+      // 2 agents × 3 supported target agents = 6 writes
+      expect(writes).toHaveLength(6);
     });
 
     it('handles native agent passthrough — only targets matching agent', () => {
@@ -1032,11 +1037,11 @@ describe('install-pipeline', () => {
 
       const { writes, skipped } = planRuleWrites(items, opts);
 
-      // canonical rule: 5 agents
-      // canonical prompt: 2 agents (copilot + claude-code)
-      // canonical agent: 2 agents (copilot + claude-code)
+      // canonical rule: 6 agents
+      // canonical prompt: 3 agents (copilot + claude-code + opencode)
+      // canonical agent: 3 agents (copilot + claude-code + opencode)
       // skill: silently skipped
-      expect(writes).toHaveLength(9);
+      expect(writes).toHaveLength(12);
       expect(skipped).toHaveLength(0);
     });
   });
@@ -1046,18 +1051,19 @@ describe('install-pipeline', () => {
   // -------------------------------------------------------------------------
 
   describe('executeInstallPipeline — agent writes', () => {
-    it('writes transpiled agents to Copilot and Claude Code directories', async () => {
+    it('writes transpiled agents to Copilot, Claude Code, and OpenCode directories', async () => {
       const items = [canonicalAgent('architect')];
       const opts = baseOptions(tmpDir);
 
       const result = await executeInstallPipeline(items, opts);
 
       expect(result.success).toBe(true);
-      expect(result.written).toHaveLength(2);
+      expect(result.written).toHaveLength(3);
 
       // Verify files exist on disk
       expect(existsSync(join(tmpDir, '.github', 'agents', 'architect.agent.md'))).toBe(true);
       expect(existsSync(join(tmpDir, '.claude', 'agents', 'architect.md'))).toBe(true);
+      expect(existsSync(join(tmpDir, '.opencode', 'agents', 'architect.md'))).toBe(true);
     });
 
     it('written Copilot agent has correct content', async () => {
@@ -1113,7 +1119,7 @@ describe('install-pipeline', () => {
       const result = await executeInstallPipeline(items, opts);
 
       expect(result.success).toBe(true);
-      expect(result.writes).toHaveLength(2);
+      expect(result.writes).toHaveLength(3);
       expect(result.written).toHaveLength(0);
       expect(existsSync(join(tmpDir, '.github', 'agents', 'architect.agent.md'))).toBe(false);
     });
@@ -1175,8 +1181,8 @@ describe('install-pipeline', () => {
       const { writes, skipped } = planRuleWrites(items, opts);
 
       expect(skipped).toHaveLength(0);
-      // 5 agents: copilot (AGENTS.md), claude-code (CLAUDE.md), cursor, windsurf, cline
-      expect(writes).toHaveLength(5);
+      // 6 agents: copilot (AGENTS.md), claude-code (CLAUDE.md), cursor, windsurf, cline, opencode
+      expect(writes).toHaveLength(6);
 
       const copilotWrite = writes.find((w) => w.agent === 'github-copilot');
       expect(copilotWrite).toBeDefined();
@@ -1188,7 +1194,7 @@ describe('install-pipeline', () => {
       expect(claudeWrite!.planned.output.mode).toBe('append');
       expect(claudeWrite!.planned.output.filename).toBe('CLAUDE.md');
 
-      // Cursor, Windsurf, Cline remain per-rule file mode
+      // Cursor, Windsurf, Cline, OpenCode remain per-rule file mode
       const cursorWrite = writes.find((w) => w.agent === 'cursor');
       expect(cursorWrite!.planned.output.mode).toBe('write');
     });
@@ -1223,8 +1229,8 @@ describe('install-pipeline', () => {
 
       const { writes } = planRuleWrites(items, opts);
 
-      // prompt: 2 agents, agent: 2 agents = 4
-      expect(writes).toHaveLength(4);
+      // prompt: 3 agents, agent: 3 agents = 6
+      expect(writes).toHaveLength(6);
       for (const w of writes) {
         expect(w.planned.output.mode).toBe('write');
       }
@@ -1338,8 +1344,8 @@ describe('install-pipeline', () => {
       const result = await executeInstallPipeline(items, opts);
 
       expect(result.success).toBe(true);
-      // 5 writes: AGENTS.md, CLAUDE.md, .cursor/rules, .windsurf/rules, .clinerules
-      expect(result.written).toHaveLength(5);
+      // 6 writes: AGENTS.md, CLAUDE.md, .cursor/rules, .windsurf/rules, .clinerules, .opencode/rules
+      expect(result.written).toHaveLength(6);
 
       // Append targets
       expect(existsSync(join(tmpDir, 'AGENTS.md'))).toBe(true);
@@ -1349,6 +1355,7 @@ describe('install-pipeline', () => {
       expect(existsSync(join(tmpDir, '.cursor', 'rules', 'code-style.mdc'))).toBe(true);
       expect(existsSync(join(tmpDir, '.windsurf', 'rules', 'code-style.md'))).toBe(true);
       expect(existsSync(join(tmpDir, '.clinerules', 'code-style.md'))).toBe(true);
+      expect(existsSync(join(tmpDir, '.opencode', 'rules', 'code-style.md'))).toBe(true);
     });
   });
 });

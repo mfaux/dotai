@@ -191,6 +191,35 @@ export const targetAgents: Record<TargetAgent, TargetAgentConfig> = {
     },
     // Cline has no prompt/command system
   },
+  opencode: {
+    name: 'opencode',
+    displayName: 'OpenCode',
+    skillsDir: '.opencode/skills',
+    rulesConfig: {
+      outputDir: '.opencode/rules',
+      extension: '.md',
+    },
+    nativeRuleDiscovery: {
+      sourceDir: '.opencode/rules',
+      pattern: '*.md',
+    },
+    promptsConfig: {
+      outputDir: '.opencode/commands',
+      extension: '.md',
+    },
+    nativePromptDiscovery: {
+      sourceDir: '.opencode/commands',
+      pattern: '*.md',
+    },
+    agentsConfig: {
+      outputDir: '.opencode/agents',
+      extension: '.md',
+    },
+    nativeAgentDiscovery: {
+      sourceDir: '.opencode/agents',
+      pattern: '*.md',
+    },
+  },
 };
 
 /** All target agent identifiers. */

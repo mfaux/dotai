@@ -73,6 +73,7 @@ const AGENT_ALIASES: Record<string, TargetAgent> = {
   cursor: 'cursor',
   windsurf: 'windsurf',
   cline: 'cline',
+  opencode: 'opencode',
 };
 
 /**

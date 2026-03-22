@@ -636,7 +636,7 @@ describe('transpileRule', () => {
     expect(output!.content).toContain('alwaysApply: false');
   });
 
-  it('transpiles canonical rule for all 5 agents', () => {
+  it('transpiles canonical rule for all 6 agents', () => {
     const item = makeDiscoveredItem();
 
     for (const agent of TARGET_AGENTS) {
@@ -738,11 +738,11 @@ describe('transpileRule', () => {
 // ---------------------------------------------------------------------------
 
 describe('transpileRuleForAllAgents', () => {
-  it('produces outputs for all 5 agents from canonical rule', () => {
+  it('produces outputs for all 6 agents from canonical rule', () => {
     const item = makeDiscoveredItem();
     const outputs = transpileRuleForAllAgents(item, TARGET_AGENTS);
 
-    expect(outputs).toHaveLength(5);
+    expect(outputs).toHaveLength(6);
 
     const dirs = outputs.map((o) => o.outputDir).sort();
     expect(dirs).toEqual([
@@ -750,6 +750,7 @@ describe('transpileRuleForAllAgents', () => {
       '.clinerules',
       '.cursor/rules',
       '.github/instructions',
+      '.opencode/rules',
       '.windsurf/rules',
     ]);
   });
@@ -790,7 +791,7 @@ describe('transpileRuleForAllAgents', () => {
     const item = makeDiscoveredItem();
     const outputs = transpileRuleForAllAgents(item, TARGET_AGENTS, true);
 
-    expect(outputs).toHaveLength(5);
+    expect(outputs).toHaveLength(6);
 
     const appendOutputs = outputs.filter((o) => o.mode === 'append');
     expect(appendOutputs).toHaveLength(2);
@@ -799,10 +800,15 @@ describe('transpileRuleForAllAgents', () => {
     expect(appendFiles).toEqual(['AGENTS.md', 'CLAUDE.md']);
 
     const writeOutputs = outputs.filter((o) => o.mode === 'write');
-    expect(writeOutputs).toHaveLength(3);
+    expect(writeOutputs).toHaveLength(4);
 
     const writeDirs = writeOutputs.map((o) => o.outputDir).sort();
-    expect(writeDirs).toEqual(['.clinerules', '.cursor/rules', '.windsurf/rules']);
+    expect(writeDirs).toEqual([
+      '.clinerules',
+      '.cursor/rules',
+      '.opencode/rules',
+      '.windsurf/rules',
+    ]);
   });
 
   it('mixes per-rule and append outputs correctly', () => {
@@ -823,7 +829,7 @@ describe('transpileRuleForAllAgents', () => {
 // ---------------------------------------------------------------------------
 
 describe('ruleTranspilers registry', () => {
-  it('has entries for all 5 target agents', () => {
+  it('has entries for all 6 target agents', () => {
     expect(Object.keys(ruleTranspilers).sort()).toEqual([...TARGET_AGENTS].sort());
   });
 

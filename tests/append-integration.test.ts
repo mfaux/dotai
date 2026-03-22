@@ -57,10 +57,11 @@ describe('addRules --append integration', () => {
     expect(claudeMd).toContain('<!-- dotai:code-style:end -->');
     expect(claudeMd).toContain('Use const over let');
 
-    // Per-rule files should still be written for cursor, windsurf, cline
+    // Per-rule files should still be written for cursor, windsurf, cline, opencode
     expect(existsSync(join(projectDir, '.cursor', 'rules', 'code-style.mdc'))).toBe(true);
     expect(existsSync(join(projectDir, '.windsurf', 'rules', 'code-style.md'))).toBe(true);
     expect(existsSync(join(projectDir, '.clinerules', 'code-style.md'))).toBe(true);
+    expect(existsSync(join(projectDir, '.opencode', 'rules', 'code-style.md'))).toBe(true);
 
     // Per-rule files should NOT be written for copilot/claude (append mode instead)
     expect(

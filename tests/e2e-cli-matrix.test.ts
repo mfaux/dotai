@@ -94,7 +94,7 @@ describe('E2E CLI matrix: four-type flows', () => {
       expect(result.success).toBe(true);
       expect(result.rulesInstalled).toBe(1);
 
-      // Rule files exist for all 5 agents
+      // Rule files exist for all 6 agents
       for (const agent of ALL_AGENTS) {
         assertFileExists(getExpectedOutputPath(projectRoot, agent, 'rule', 'style-guide'));
       }
@@ -836,7 +836,7 @@ description: A test skill
       expect(result.success).toBe(true);
       expect(result.rulesInstalled).toBe(1);
 
-      // 4. Verify: output files exist for all 5 target agents
+      // 4. Verify: output files exist for all 6 target agents
       for (const agent of ALL_AGENTS) {
         const outputPath = getExpectedOutputPath(projectRoot, agent, 'rule', 'code-style');
         assertFileExists(outputPath, 'Use 2-space indentation');
@@ -846,7 +846,7 @@ description: A test skill
       const lockEntry = await assertLockEntry(projectRoot, 'rule', 'code-style', {
         source: 'team/shared-rules',
         format: 'canonical',
-        outputCount: 5,
+        outputCount: 6,
       });
       expect(lockEntry.hash).toMatch(/^[a-f0-9]{64}$/);
       await assertLockEntryCount(projectRoot, 1);

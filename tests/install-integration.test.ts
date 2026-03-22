@@ -22,13 +22,14 @@ import type { LockEntry, TargetAgent } from '../src/types.ts';
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** All five target agents. */
+/** All six target agents. */
 const ALL_AGENTS: readonly TargetAgent[] = [
   'github-copilot',
   'claude-code',
   'cursor',
   'windsurf',
   'cline',
+  'opencode',
 ] as const;
 
 /** Create a canonical RULES.md file with valid frontmatter. */
@@ -93,10 +94,10 @@ describe('integration: discover → transpile → install', () => {
   });
 
   // -------------------------------------------------------------------------
-  // Happy path: single rule → all 5 agents
+  // Happy path: single rule → all 6 agents
   // -------------------------------------------------------------------------
 
-  it('discovers and installs a single canonical rule to all 5 agents', async () => {
+  it('discovers and installs a single canonical rule to all 6 agents', async () => {
     // Source repo has one canonical rule
     const ruleDir = join(sourceDir, 'rules', 'code-style');
     mkdirSync(ruleDir, { recursive: true });
@@ -120,7 +121,7 @@ describe('integration: discover → transpile → install', () => {
     });
 
     expect(result.success).toBe(true);
-    expect(result.written).toHaveLength(5);
+    expect(result.written).toHaveLength(6);
     expect(result.collisions).toHaveLength(0);
 
     // Verify each agent got the file
@@ -131,6 +132,7 @@ describe('integration: discover → transpile → install', () => {
       existsSync(join(projectDir, '.github', 'instructions', 'code-style.instructions.md'))
     ).toBe(true);
     expect(existsSync(join(projectDir, '.claude', 'rules', 'code-style.md'))).toBe(true);
+    expect(existsSync(join(projectDir, '.opencode', 'rules', 'code-style.md'))).toBe(true);
 
     // Verify content is correctly transpiled
     const cursorContent = readFileSync(
@@ -326,7 +328,7 @@ describe('integration: discover → transpile → install', () => {
     });
 
     expect(result.success).toBe(true);
-    expect(result.written).toHaveLength(5);
+    expect(result.written).toHaveLength(6);
 
     // Cursor: globs as comma-separated string
     const cursor = readFileSync(join(projectDir, '.cursor', 'rules', 'ts-style.mdc'), 'utf-8');
@@ -372,7 +374,7 @@ describe('integration: discover → transpile → install', () => {
     });
 
     expect(result.success).toBe(true);
-    expect(result.writes).toHaveLength(5);
+    expect(result.writes).toHaveLength(6);
     expect(result.written).toHaveLength(0);
 
     // No files should have been created
@@ -381,6 +383,7 @@ describe('integration: discover → transpile → install', () => {
     expect(existsSync(join(projectDir, '.clinerules'))).toBe(false);
     expect(existsSync(join(projectDir, '.github'))).toBe(false);
     expect(existsSync(join(projectDir, '.claude'))).toBe(false);
+    expect(existsSync(join(projectDir, '.opencode'))).toBe(false);
   });
 
   // -------------------------------------------------------------------------
@@ -409,6 +412,7 @@ describe('integration: discover → transpile → install', () => {
     expect(existsSync(join(projectDir, '.windsurf'))).toBe(false);
     expect(existsSync(join(projectDir, '.github'))).toBe(false);
     expect(existsSync(join(projectDir, '.claude'))).toBe(false);
+    expect(existsSync(join(projectDir, '.opencode'))).toBe(false);
   });
 
   // -------------------------------------------------------------------------
@@ -466,7 +470,7 @@ describe('integration: discover → transpile → install', () => {
 
     expect(result.success).toBe(true);
     expect(result.collisions.length).toBeGreaterThan(0); // collisions detected but forced
-    expect(result.written).toHaveLength(5);
+    expect(result.written).toHaveLength(6);
 
     // File should now have transpiled content, not user content
     const content = readFileSync(join(conflictDir, 'code-style.mdc'), 'utf-8');

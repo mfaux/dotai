@@ -99,8 +99,14 @@ export interface RemoteSkill {
 // Canonical context types (dotai extensions)
 // ---------------------------------------------------------------------------
 
-/** The five target agents for dotai transpilation (MVP scope). */
-export type TargetAgent = 'github-copilot' | 'claude-code' | 'cursor' | 'windsurf' | 'cline';
+/** The six target agents for dotai transpilation. */
+export type TargetAgent =
+  | 'github-copilot'
+  | 'claude-code'
+  | 'cursor'
+  | 'windsurf'
+  | 'cline'
+  | 'opencode';
 
 /** Context item types supported by dotai. */
 export type ContextType = 'skill' | 'rule' | 'prompt' | 'agent';

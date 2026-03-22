@@ -55,6 +55,7 @@ describe('CLI --rule subprocess tests', () => {
     ).toBe(true);
     expect(existsSync(join(projectDir, '.windsurf', 'rules', 'code-style.md'))).toBe(true);
     expect(existsSync(join(projectDir, '.clinerules', 'code-style.md'))).toBe(true);
+    expect(existsSync(join(projectDir, '.opencode', 'rules', 'code-style.md'))).toBe(true);
   });
 
   it('add --rule --dry-run does not create files', async () => {
@@ -97,6 +98,7 @@ describe('CLI --rule subprocess tests', () => {
       existsSync(join(projectDir, '.github', 'instructions', 'code-style.instructions.md'))
     ).toBe(false);
     expect(existsSync(join(projectDir, '.windsurf', 'rules', 'code-style.md'))).toBe(false);
+    expect(existsSync(join(projectDir, '.opencode', 'rules', 'code-style.md'))).toBe(false);
 
     // Lock file should only list targeted agents
     const lock = await readLockFileFromDisk(projectDir);
@@ -183,9 +185,10 @@ describe('CLI --custom-agent subprocess tests', () => {
     expect(agentEntries[0]!.name).toBe('architect');
     expect(agentEntries[0]!.type).toBe('agent');
 
-    // Verify transpiled files exist for Copilot and Claude Code only
+    // Verify transpiled files exist for Copilot, Claude Code, and OpenCode
     expect(existsSync(join(projectDir, '.github', 'agents', 'architect.agent.md'))).toBe(true);
     expect(existsSync(join(projectDir, '.claude', 'agents', 'architect.md'))).toBe(true);
+    expect(existsSync(join(projectDir, '.opencode', 'agents', 'architect.md'))).toBe(true);
 
     // No agent files for Cursor, Windsurf, Cline (no agent support)
     expect(existsSync(join(projectDir, '.cursor', 'agents'))).toBe(false);

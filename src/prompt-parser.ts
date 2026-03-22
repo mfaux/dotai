@@ -1,11 +1,12 @@
 import matter from 'gray-matter';
-import type { CanonicalPrompt } from './types.ts';
+import type { CanonicalPrompt, PromptOverrideFields, TargetAgent } from './types.ts';
 import {
   SUPPORTED_SCHEMA_VERSION,
   validateName,
   validateDescription,
   validateSchemaVersion,
 } from './validation.ts';
+import { extractOverrides } from './override-parser.ts';
 
 // ---------------------------------------------------------------------------
 // Prompt-specific validation constants
@@ -32,7 +33,7 @@ const MAX_TOOL_LENGTH = 128;
 
 /** Result of parsing a PROMPT.md file. */
 export type ParsePromptResult =
-  | { ok: true; prompt: CanonicalPrompt }
+  | { ok: true; prompt: CanonicalPrompt; warnings: string[] }
   | { ok: false; error: string };
 
 // ---------------------------------------------------------------------------
@@ -102,13 +103,85 @@ function validateTools(tools: unknown): string | null {
 }
 
 // ---------------------------------------------------------------------------
+// Override support
+// ---------------------------------------------------------------------------
+
+/** Base field names recognized in PROMPT.md frontmatter (not override blocks). */
+const PROMPT_BASE_FIELDS: ReadonlySet<string> = new Set([
+  'name',
+  'description',
+  'argument-hint',
+  'agent',
+  'model',
+  'tools',
+  'schema-version',
+]);
+
+/** Fields that are not allowed in override blocks (identity / structural). */
+const NON_OVERRIDABLE_PROMPT_FIELDS: ReadonlySet<string> = new Set([
+  'name',
+  'schema-version',
+  'body',
+]);
+
+/**
+ * Extract and validate prompt override fields from an agent override block.
+ */
+function extractPromptOverrideFields(
+  agentData: Record<string, unknown>,
+  _agentName: TargetAgent
+): { fields: PromptOverrideFields; error: string | null } {
+  const fields: PromptOverrideFields = {};
+
+  for (const key of Object.keys(agentData)) {
+    if (NON_OVERRIDABLE_PROMPT_FIELDS.has(key)) {
+      // Silently ignore non-overridable fields
+      continue;
+    }
+  }
+
+  // Validate and extract each overridable field
+  if ('description' in agentData) {
+    const err = validateDescription(agentData.description);
+    if (err) return { fields, error: err };
+    fields.description = agentData.description as string;
+  }
+
+  if ('argument-hint' in agentData) {
+    const err = validateArgumentHint(agentData['argument-hint']);
+    if (err) return { fields, error: err };
+    fields.argumentHint = agentData['argument-hint'] as string;
+  }
+
+  if ('agent' in agentData) {
+    const err = validateAgent(agentData.agent);
+    if (err) return { fields, error: err };
+    fields.agent = agentData.agent as string;
+  }
+
+  if ('model' in agentData) {
+    const err = validateModel(agentData.model);
+    if (err) return { fields, error: err };
+    fields.model = agentData.model as string;
+  }
+
+  if ('tools' in agentData) {
+    const err = validateTools(agentData.tools);
+    if (err) return { fields, error: err };
+    fields.tools = Array.isArray(agentData.tools) ? (agentData.tools as string[]) : [];
+  }
+
+  return { fields, error: null };
+}
+
+// ---------------------------------------------------------------------------
 // Parser
 // ---------------------------------------------------------------------------
 
 /**
  * Parse and validate a PROMPT.md file from its raw content string.
  *
- * Returns a discriminated union: `{ ok: true, prompt }` on success,
+ * Returns a discriminated union: `{ ok: true, prompt, warnings }` on success,
  * `{ ok: false, error }` on validation failure.
  */
 export function parsePromptContent(content: string): ParsePromptResult {
@@ -146,6 +219,13 @@ export function parsePromptContent(content: string): ParsePromptResult {
   const versionError = validateSchemaVersion(schemaVersionRaw);
   if (versionError) return { ok: false, error: versionError };
 
+  // Extract per-agent overrides
+  const { overrides, warnings } = extractOverrides<PromptOverrideFields>(
+    data,
+    PROMPT_BASE_FIELDS,
+    extractPromptOverrideFields
+  );
+
   const prompt: CanonicalPrompt = {
     name: data.name as string,
     description: data.description as string,
@@ -167,5 +247,9 @@ export function parsePromptContent(content: string): ParsePromptResult {
     prompt.model = data.model as string;
   }
 
-  return { ok: true, prompt };
+  if (overrides) {
+    prompt.overrides = overrides;
+  }
+
+  return { ok: true, prompt, warnings };
 }

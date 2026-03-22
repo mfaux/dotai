@@ -10,6 +10,7 @@ import { parseAgentContent } from './agent-parser.ts';
 import { getTargetAgentConfig } from './target-agents.ts';
 import { resolveModel, type ModelOverrides } from './model-aliases.ts';
 import { quoteYaml } from './rule-transpilers.ts';
+import { mergeOverrides } from './override-parser.ts';
 
 // ---------------------------------------------------------------------------
 // Agent transpilers — canonical AGENT.md → per-agent output
@@ -219,8 +220,8 @@ export function transpileAgent(
     return null;
   }
 
-  // Resolve model alias for the target agent
-  const agent = parsed.agent;
+  // Merge per-agent overrides on top of base fields
+  const agent = mergeOverrides(parsed.agent, targetAgent) as CanonicalAgent;
   if (agent.model) {
     const resolution = resolveModel(agent.model, targetAgent, modelOverrides);
     if (resolution.warning) {

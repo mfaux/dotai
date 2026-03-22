@@ -1,11 +1,12 @@
 import matter from 'gray-matter';
-import type { CanonicalAgent } from './types.ts';
+import type { CanonicalAgent, AgentOverrideFields, TargetAgent } from './types.ts';
 import {
   SUPPORTED_SCHEMA_VERSION,
   validateName,
   validateDescription,
   validateSchemaVersion,
 } from './validation.ts';
+import { extractOverrides } from './override-parser.ts';
 
 // ---------------------------------------------------------------------------
 // Agent-specific validation constants
@@ -31,7 +32,9 @@ const MAX_TURNS_LIMIT = 1000;
 // ---------------------------------------------------------------------------
 
 /** Result of parsing an AGENT.md file. */
-export type ParseAgentResult = { ok: true; agent: CanonicalAgent } | { ok: false; error: string };
+export type ParseAgentResult =
+  | { ok: true; agent: CanonicalAgent; warnings: string[] }
+  | { ok: false; error: string };
 
 // ---------------------------------------------------------------------------
 // Validation helpers
@@ -121,6 +124,87 @@ function validateBackground(background: unknown): string | null {
 }
 
 // ---------------------------------------------------------------------------
+// Override support
+// ---------------------------------------------------------------------------
+
+/** Base field names recognized in AGENT.md frontmatter (not override blocks). */
+const AGENT_BASE_FIELDS: ReadonlySet<string> = new Set([
+  'name',
+  'description',
+  'model',
+  'tools',
+  'disallowed-tools',
+  'max-turns',
+  'background',
+  'schema-version',
+]);
+
+/** Fields that are not allowed in override blocks (identity / structural). */
+const NON_OVERRIDABLE_AGENT_FIELDS: ReadonlySet<string> = new Set(['name', 'body', 'raw']);
+
+/**
+ * Extract and validate agent override fields from an agent override block.
+ *
+ * Agent-exclusive fields (disallowedTools, maxTurns, background) are valid
+ * in any agent's override block. The transpiler will ignore unsupported
+ * fields as it does today.
+ */
+function extractAgentOverrideFields(
+  agentData: Record<string, unknown>,
+  _agentName: TargetAgent
+): { fields: AgentOverrideFields; error: string | null } {
+  const fields: AgentOverrideFields = {};
+
+  for (const key of Object.keys(agentData)) {
+    if (NON_OVERRIDABLE_AGENT_FIELDS.has(key)) {
+      // Silently ignore non-overridable fields
+      continue;
+    }
+  }
+
+  // Validate and extract each overridable field
+  if ('description' in agentData) {
+    const err = validateDescription(agentData.description);
+    if (err) return { fields, error: err };
+    fields.description = agentData.description as string;
+  }
+
+  if ('model' in agentData) {
+    const err = validateModel(agentData.model);
+    if (err) return { fields, error: err };
+    fields.model = agentData.model as string;
+  }
+
+  if ('tools' in agentData) {
+    const err = validateTools(agentData.tools);
+    if (err) return { fields, error: err };
+    fields.tools = Array.isArray(agentData.tools) ? (agentData.tools as string[]) : undefined;
+  }
+
+  if ('disallowed-tools' in agentData) {
+    const err = validateDisallowedTools(agentData['disallowed-tools']);
+    if (err) return { fields, error: err };
+    fields.disallowedTools = Array.isArray(agentData['disallowed-tools'])
+      ? (agentData['disallowed-tools'] as string[])
+      : undefined;
+  }
+
+  if ('max-turns' in agentData) {
+    const err = validateMaxTurns(agentData['max-turns']);
+    if (err) return { fields, error: err };
+    fields.maxTurns = agentData['max-turns'] as number;
+  }
+
+  if ('background' in agentData) {
+    const err = validateBackground(agentData.background);
+    if (err) return { fields, error: err };
+    fields.background = agentData.background as boolean;
+  }
+
+  return { fields, error: null };
+}
+
+// ---------------------------------------------------------------------------
 // Parser
 // ---------------------------------------------------------------------------
 
@@ -168,6 +252,13 @@ export function parseAgentContent(content: string): ParseAgentResult {
   const versionError = validateSchemaVersion(schemaVersionRaw);
   if (versionError) return { ok: false, error: versionError };
 
+  // Extract per-agent overrides
+  const { overrides, warnings } = extractOverrides<AgentOverrideFields>(
+    data,
+    AGENT_BASE_FIELDS,
+    extractAgentOverrideFields
+  );
+
   const agent: CanonicalAgent = {
     name: data.name as string,
     description: data.description as string,
@@ -195,5 +286,9 @@ export function parseAgentContent(content: string): ParseAgentResult {
     agent.background = data.background as boolean;
   }
 
-  return { ok: true, agent };
+  if (overrides) {
+    agent.overrides = overrides;
+  }
+
+  return { ok: true, agent, warnings };
 }

@@ -8,6 +8,7 @@ import type {
 } from './types.ts';
 import { parseRuleContent } from './rule-parser.ts';
 import { getTargetAgentConfig } from './target-agents.ts';
+import { mergeOverrides } from './override-parser.ts';
 
 // ---------------------------------------------------------------------------
 // Rule transpilers — canonical RULES.md → per-agent output
@@ -409,16 +410,19 @@ export function transpileRule(
     return null;
   }
 
+  // Merge per-agent overrides on top of base fields
+  const rule = mergeOverrides(parsed.rule, targetAgent) as CanonicalRule;
+
   // Use append transpiler if requested and available for this agent
   if (append) {
     const appendTranspiler = appendRuleTranspilers[targetAgent];
     if (appendTranspiler) {
-      return appendTranspiler.transform(parsed.rule, targetAgent);
+      return appendTranspiler.transform(rule, targetAgent);
     }
   }
 
   const transpiler = ruleTranspilers[targetAgent];
-  return transpiler.transform(parsed.rule, targetAgent);
+  return transpiler.transform(rule, targetAgent);
 }
 
 /**

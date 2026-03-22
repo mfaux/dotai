@@ -130,6 +130,11 @@ export interface DiscoveredItem {
   rawContent: string;
 }
 
+/** Fields that can be overridden per target agent (excludes identity and structural fields). */
+export type RuleOverrideFields = Partial<
+  Omit<CanonicalRule, 'name' | 'schemaVersion' | 'body' | 'overrides'>
+>;
+
 /**
  * Canonical RULES.md representation after parsing and validation.
  */
@@ -148,7 +153,14 @@ export interface CanonicalRule {
   schemaVersion: number;
   /** The markdown body (everything after frontmatter). */
   body: string;
+  /** Per-agent override blocks from frontmatter. */
+  overrides?: Partial<Record<TargetAgent, RuleOverrideFields>>;
 }
+
+/** Fields that can be overridden per target agent for prompts. */
+export type PromptOverrideFields = Partial<
+  Omit<CanonicalPrompt, 'name' | 'schemaVersion' | 'body' | 'overrides'>
+>;
 
 /**
  * Canonical PROMPT.md representation after parsing and validation.
@@ -170,7 +182,14 @@ export interface CanonicalPrompt {
   schemaVersion: number;
   /** The markdown body (everything after frontmatter). */
   body: string;
+  /** Per-agent override blocks from frontmatter. */
+  overrides?: Partial<Record<TargetAgent, PromptOverrideFields>>;
 }
+
+/** Fields that can be overridden per target agent for agents. */
+export type AgentOverrideFields = Partial<
+  Omit<CanonicalAgent, 'name' | 'body' | 'raw' | 'overrides'>
+>;
 
 /**
  * Canonical AGENT.md representation after parsing and validation.
@@ -194,6 +213,8 @@ export interface CanonicalAgent {
   body: string;
   /** The raw file content for hashing. */
   raw: string;
+  /** Per-agent override blocks from frontmatter. */
+  overrides?: Partial<Record<TargetAgent, AgentOverrideFields>>;
 }
 
 /**

@@ -1,11 +1,12 @@
 import matter from 'gray-matter';
-import type { CanonicalRule, RuleActivation } from './types.ts';
+import type { CanonicalRule, RuleActivation, RuleOverrideFields, TargetAgent } from './types.ts';
 import {
   SUPPORTED_SCHEMA_VERSION,
   validateName,
   validateDescription,
   validateSchemaVersion,
 } from './validation.ts';
+import { extractOverrides } from './override-parser.ts';
 
 // ---------------------------------------------------------------------------
 // Rule-specific validation constants
@@ -25,7 +26,9 @@ const VALID_ACTIVATIONS: readonly RuleActivation[] = ['always', 'auto', 'manual'
 // ---------------------------------------------------------------------------
 
 /** Result of parsing a RULES.md file. */
-export type ParseRuleResult = { ok: true; rule: CanonicalRule } | { ok: false; error: string };
+export type ParseRuleResult =
+  | { ok: true; rule: CanonicalRule; warnings: string[] }
+  | { ok: false; error: string };
 
 // ---------------------------------------------------------------------------
 // Validation helpers
@@ -79,13 +82,78 @@ function validateSeverity(severity: unknown): string | null {
 }
 
 // ---------------------------------------------------------------------------
+// Override support
+// ---------------------------------------------------------------------------
+
+/** Base field names recognized in RULES.md frontmatter (not override blocks). */
+const RULE_BASE_FIELDS: ReadonlySet<string> = new Set([
+  'name',
+  'description',
+  'globs',
+  'activation',
+  'severity',
+  'schema-version',
+]);
+
+/** Fields that are not allowed in override blocks (identity / structural). */
+const NON_OVERRIDABLE_RULE_FIELDS: ReadonlySet<string> = new Set([
+  'name',
+  'schema-version',
+  'body',
+]);
+
+/**
+ * Extract and validate rule override fields from an agent override block.
+ */
+function extractRuleOverrideFields(
+  agentData: Record<string, unknown>,
+  _agentName: TargetAgent
+): { fields: RuleOverrideFields; error: string | null } {
+  const fields: RuleOverrideFields = {};
+
+  for (const key of Object.keys(agentData)) {
+    if (NON_OVERRIDABLE_RULE_FIELDS.has(key)) {
+      // Silently ignore non-overridable fields
+      continue;
+    }
+  }
+
+  // Validate and extract each overridable field
+  if ('description' in agentData) {
+    const err = validateDescription(agentData.description);
+    if (err) return { fields, error: err };
+    fields.description = agentData.description as string;
+  }
+
+  if ('globs' in agentData) {
+    const err = validateGlobs(agentData.globs);
+    if (err) return { fields, error: err };
+    fields.globs = Array.isArray(agentData.globs) ? (agentData.globs as string[]) : [];
+  }
+
+  if ('activation' in agentData) {
+    const err = validateActivation(agentData.activation);
+    if (err) return { fields, error: err };
+    fields.activation = agentData.activation as RuleActivation;
+  }
+
+  if ('severity' in agentData) {
+    const err = validateSeverity(agentData.severity);
+    if (err) return { fields, error: err };
+    fields.severity = agentData.severity as string;
+  }
+
+  return { fields, error: null };
+}
+
+// ---------------------------------------------------------------------------
 // Parser
 // ---------------------------------------------------------------------------
 
 /**
  * Parse and validate a RULES.md file from its raw content string.
  *
- * Returns a discriminated union: `{ ok: true, rule }` on success,
+ * Returns a discriminated union: `{ ok: true, rule, warnings }` on success,
  * `{ ok: false, error }` on validation failure.
  */
 export function parseRuleContent(content: string): ParseRuleResult {
@@ -120,6 +188,13 @@ export function parseRuleContent(content: string): ParseRuleResult {
   const versionError = validateSchemaVersion(schemaVersionRaw);
   if (versionError) return { ok: false, error: versionError };
 
+  // Extract per-agent overrides
+  const { overrides, warnings } = extractOverrides<RuleOverrideFields>(
+    data,
+    RULE_BASE_FIELDS,
+    extractRuleOverrideFields
+  );
+
   const rule: CanonicalRule = {
     name: data.name as string,
     description: data.description as string,
@@ -134,5 +209,9 @@ export function parseRuleContent(content: string): ParseRuleResult {
     rule.severity = data.severity as string;
   }
 
-  return { ok: true, rule };
+  if (overrides) {
+    rule.overrides = overrides;
+  }
+
+  return { ok: true, rule, warnings };
 }

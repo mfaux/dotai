@@ -1,24 +1,21 @@
-<!-- Canonical rule with per-agent overrides. The base fields apply to all
-     target agents. Agent-namespaced blocks override specific fields when
-     transpiling for that agent. -->
-
 ---
-
 name: code-style
 description: Enforce TypeScript style conventions
 globs:
-
-- "\*.ts"
-- "\*.tsx"
-  activation: auto
+  - '*.ts'
+  - '*.tsx'
+activation: auto
 
 github-copilot:
-activation: always
+  activation: always
 
 claude-code:
-severity: error
-
+  severity: error
 ---
+
+<!-- Per-agent overrides: the base fields apply to all target agents.
+     Agent-namespaced blocks override specific fields when transpiling
+     for that agent. -->
 
 Use `const` over `let` when the variable is never reassigned.
 

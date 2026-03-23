@@ -1,18 +1,15 @@
-<!-- Canonical rule: the body below is installed verbatim to all 5 target agents.
-     Keep instructions agent-agnostic — avoid referencing agent-specific tools
-     or workflows. Use native files (e.g. .cursor/rules/*.mdc) for agent-specific content. -->
-
 ---
-
 name: typescript-style
 description: Enforce TypeScript coding style conventions
 globs:
-
-- '\*.ts'
-- '\*.tsx'
-  activation: always
-
+  - '*.ts'
+  - '*.tsx'
+activation: always
 ---
+
+<!-- Keep instructions agent-agnostic. Avoid referencing agent-specific tools
+     or workflows. Use native files (e.g. .cursor/rules/*.mdc) for
+     agent-specific content. -->
 
 Use `const` over `let` when the variable is never reassigned.
 

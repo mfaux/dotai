@@ -82,21 +82,21 @@ cursor:
 
   it('parses override with description field', () => {
     const yaml = `${BASE_YAML}
-windsurf:
-  description: Windsurf-specific description`;
+opencode:
+  description: OpenCode-specific description`;
     const result = parseRuleContent(ruleYaml(yaml));
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
-    expect(result.rule.overrides!['windsurf']).toEqual({
-      description: 'Windsurf-specific description',
+    expect(result.rule.overrides!['opencode']).toEqual({
+      description: 'OpenCode-specific description',
     });
   });
 
   it('parses override with globs field', () => {
     const yaml = `${BASE_YAML}
-cline:
+cursor:
   globs:
     - "*.js"
     - "*.jsx"`;
@@ -105,7 +105,7 @@ cline:
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
-    expect(result.rule.overrides!['cline']).toEqual({
+    expect(result.rule.overrides!['cursor']).toEqual({
       globs: ['*.js', '*.jsx'],
     });
   });

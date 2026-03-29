@@ -81,15 +81,15 @@ claude-code:
 
   it('parses override with description field', () => {
     const yaml = `${BASE_YAML}
-windsurf:
-  description: Windsurf-specific review prompt`;
+cursor:
+  description: Cursor-specific review prompt`;
     const result = parsePromptContent(promptYaml(yaml));
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
-    expect(result.prompt.overrides!['windsurf']).toEqual({
-      description: 'Windsurf-specific review prompt',
+    expect(result.prompt.overrides!['cursor']).toEqual({
+      description: 'Cursor-specific review prompt',
     });
   });
 

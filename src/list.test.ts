@@ -452,7 +452,7 @@ description: A test skill
               name: 'testing-rule',
               source: 'test/repo',
               format: 'canonical',
-              agents: ['cursor', 'windsurf'],
+              agents: ['cursor', 'opencode'],
               hash: 'def456',
               installedAt: '2025-01-01T00:00:00.000Z',
               outputs: [],
@@ -464,7 +464,7 @@ description: A test skill
       const result = runCli(['list'], testDir);
       expect(result.stdout).toContain('testing-rule');
       expect(result.stdout).toContain('Cursor');
-      expect(result.stdout).toContain('Windsurf');
+      expect(result.stdout).toContain('OpenCode');
       expect(result.exitCode).toBe(0);
     });
 
@@ -493,7 +493,7 @@ description: A skill
               name: 'my-rule',
               source: 'owner/repo',
               format: 'canonical',
-              agents: ['cline'],
+              agents: ['github-copilot'],
               hash: 'ghi789',
               installedAt: '2025-01-01T00:00:00.000Z',
               outputs: [],
@@ -553,10 +553,10 @@ description: A test skill
             },
             {
               type: 'rule',
-              name: 'cline-rule',
+              name: 'opencode-rule',
               source: 'owner/repo',
               format: 'canonical',
-              agents: ['cline'],
+              agents: ['opencode'],
               hash: 'bbb',
               installedAt: '2025-01-01T00:00:00.000Z',
               outputs: [],
@@ -567,7 +567,7 @@ description: A test skill
 
       const result = runCli(['list', '-t', 'rule', '-a', 'cursor'], testDir);
       expect(result.stdout).toContain('cursor-rule');
-      expect(result.stdout).not.toContain('cline-rule');
+      expect(result.stdout).not.toContain('opencode-rule');
       expect(result.exitCode).toBe(0);
     });
 

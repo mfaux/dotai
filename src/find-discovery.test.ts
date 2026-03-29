@@ -218,34 +218,6 @@ describe('discoverRemoteContext', () => {
     });
   });
 
-  it('discovers Windsurf native rules and workflows', () => {
-    const entries = [blob('.windsurf/rules/style.md'), blob('.windsurf/workflows/deploy.md')];
-    const result = discoverRemoteContext(entries);
-
-    expect(result.rules).toHaveLength(1);
-    expect(result.rules[0]).toMatchObject({
-      name: 'style',
-      native: 'windsurf',
-    });
-
-    expect(result.prompts).toHaveLength(1);
-    expect(result.prompts[0]).toMatchObject({
-      name: 'deploy',
-      native: 'windsurf',
-    });
-  });
-
-  it('discovers Cline native rules', () => {
-    const entries = [blob('.clinerules/safety.md')];
-    const result = discoverRemoteContext(entries);
-
-    expect(result.rules).toHaveLength(1);
-    expect(result.rules[0]).toMatchObject({
-      name: 'safety',
-      native: 'cline',
-    });
-  });
-
   it('mixes canonical and native items', () => {
     const entries = [
       blob('rules/code-style/RULES.md'),

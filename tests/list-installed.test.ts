@@ -143,8 +143,8 @@ ${skillData.description}
 
   // Issue #225 part 1: Only installed agents should be attributed
   it('should only attribute skills to installed agents (issue #225)', async () => {
-    // Mock: only Amp is installed (not Kimi, even though they share .agents/skills)
-    vi.spyOn(agentsModule, 'detectInstalledAgents').mockResolvedValue(['amp']);
+    // Mock: only codex is installed (not others that share .agents/skills)
+    vi.spyOn(agentsModule, 'detectInstalledAgents').mockResolvedValue(['codex']);
 
     await createSkillDir(testDir, 'test-skill', {
       name: 'test-skill',
@@ -154,9 +154,8 @@ ${skillData.description}
     const skills = await listInstalledSkills({ global: false, cwd: testDir });
 
     expect(skills).toHaveLength(1);
-    // Should only show amp, not kimi-cli
-    expect(skills[0]!.agents).toContain('amp');
-    expect(skills[0]!.agents).not.toContain('kimi-cli');
+    // Should only show codex
+    expect(skills[0]!.agents).toContain('codex');
 
     vi.restoreAllMocks();
   });

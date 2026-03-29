@@ -47,11 +47,11 @@ describe('E2E canonical install', () => {
   });
 
   // -------------------------------------------------------------------------
-  // Canonical rule → all 6 agents → lock updated
+  // Canonical rule → all 4 agents → lock updated
   // -------------------------------------------------------------------------
 
   describe('canonical rule install', () => {
-    it('installs a canonical rule to all 6 agents and updates lock', async () => {
+    it('installs a canonical rule to all 4 agents and updates lock', async () => {
       // Create a canonical rule in the source repo
       const ruleContent = makeRuleContent('code-style', {
         description: 'Code style guidelines',
@@ -71,9 +71,9 @@ describe('E2E canonical install', () => {
       // Verify success
       expect(result.success).toBe(true);
       expect(result.rulesInstalled).toBe(1);
-      expect(result.writtenPaths).toHaveLength(6);
+      expect(result.writtenPaths).toHaveLength(4);
 
-      // Verify output files exist for all 6 agents
+      // Verify output files exist for all 4 agents
       for (const agent of ALL_AGENTS) {
         const outputPath = getExpectedOutputPath(projectRoot, agent, 'rule', 'code-style');
         assertFileExists(outputPath);
@@ -107,9 +107,9 @@ describe('E2E canonical install', () => {
       const lockEntry = await assertLockEntry(projectRoot, 'rule', 'code-style', {
         source: 'test/e2e-repo',
         format: 'canonical',
-        outputCount: 6,
+        outputCount: 4,
       });
-      expect(lockEntry.agents).toHaveLength(6);
+      expect(lockEntry.agents).toHaveLength(4);
       expect(lockEntry.hash).toBeTruthy();
       await assertLockEntryCount(projectRoot, 1);
     });
@@ -137,8 +137,8 @@ describe('E2E canonical install', () => {
 
       expect(result.success).toBe(true);
       expect(result.rulesInstalled).toBe(2);
-      // 2 rules x 6 agents = 12 output files
-      expect(result.writtenPaths).toHaveLength(12);
+      // 2 rules x 4 agents = 8 output files
+      expect(result.writtenPaths).toHaveLength(8);
 
       // Both rules should have output files for all agents
       for (const agent of ALL_AGENTS) {
@@ -202,28 +202,27 @@ describe('E2E canonical install', () => {
         sourcePath: sourceRepo,
         projectRoot,
         ruleNames: ['*'],
-        targets: ['cursor', 'cline'],
+        targets: ['cursor', 'opencode'],
       });
 
       expect(result.success).toBe(true);
       expect(result.writtenPaths).toHaveLength(2);
 
-      // Only cursor and cline should have output files
+      // Only cursor and opencode should have output files
       assertFileExists(getExpectedOutputPath(projectRoot, 'cursor', 'rule', 'code-style'));
-      assertFileExists(getExpectedOutputPath(projectRoot, 'cline', 'rule', 'code-style'));
+      assertFileExists(getExpectedOutputPath(projectRoot, 'opencode', 'rule', 'code-style'));
 
       // Others should NOT exist
       assertFileNotExists(
         getExpectedOutputPath(projectRoot, 'github-copilot', 'rule', 'code-style')
       );
       assertFileNotExists(getExpectedOutputPath(projectRoot, 'claude-code', 'rule', 'code-style'));
-      assertFileNotExists(getExpectedOutputPath(projectRoot, 'windsurf', 'rule', 'code-style'));
 
       // Lock entry should reflect only the 2 agents
       const lockEntry = await assertLockEntry(projectRoot, 'rule', 'code-style', {
         outputCount: 2,
       });
-      expect(lockEntry.agents.sort()).toEqual(['cline', 'cursor']);
+      expect(lockEntry.agents.sort()).toEqual(['cursor', 'opencode']);
     });
 
     it('filters rules by name', async () => {
@@ -308,7 +307,6 @@ describe('E2E canonical install', () => {
 
       // Agents that don't support prompts should have no output
       assertFileNotExists(join(projectRoot, '.cursor', 'prompts', 'review-code.mdc'));
-      assertFileNotExists(join(projectRoot, '.clinerules', 'review-code.md'));
 
       // Verify lock file
       const lockEntry = await assertLockEntry(projectRoot, 'prompt', 'review-code', {
@@ -555,7 +553,7 @@ describe('E2E canonical install', () => {
       expect(agentResult.success).toBe(true);
 
       // Verify all output files exist
-      // Rule: 6 agents
+      // Rule: 4 agents
       for (const agent of ALL_AGENTS) {
         assertFileExists(getExpectedOutputPath(projectRoot, agent, 'rule', 'code-style'));
       }

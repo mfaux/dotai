@@ -661,7 +661,7 @@ describe('E2E update flow', () => {
       await assertLockEntryCount(projectRoot, 1);
     });
 
-    it('update outputs all 6 agent files for a rule (same as initial install)', async () => {
+    it('update outputs all 4 agent files for a rule (same as initial install)', async () => {
       writeCanonicalFile(
         sourceRepo,
         'rule',
@@ -686,11 +686,11 @@ describe('E2E update flow', () => {
 
       await updateRules(projectRoot);
 
-      // All 6 agents should have output files with new content
+      // All 4 agents should have output files with new content
       const updatedEntry = await assertLockEntry(projectRoot, 'rule', 'code-style', {
-        outputCount: 6,
+        outputCount: 4,
       });
-      expect(updatedEntry.agents).toHaveLength(6);
+      expect(updatedEntry.agents).toHaveLength(4);
 
       for (const agent of ALL_AGENTS) {
         assertFileExists(

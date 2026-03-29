@@ -19,9 +19,8 @@ import { mergeOverrides } from './override-parser.ts';
 // prompt/command file format. The `Transpiler<CanonicalPrompt>` interface
 // guarantees consistent shape across all implementations.
 //
-// Only Copilot and Claude Code support canonical prompt transpilation.
-// Windsurf supports native passthrough only. Cursor and Cline have no
-// prompt/command system.
+// Only Copilot, Claude Code, and OpenCode support canonical prompt
+// transpilation. Cursor has no prompt/command system.
 //
 // Reference: dotai-plan.md Phase 5 (Transpilation Engine)
 // ---------------------------------------------------------------------------
@@ -164,7 +163,7 @@ export const opencodeCommandTranspiler: Transpiler<CanonicalPrompt> = {
 // Supports:
 // - Copilot: .github/prompts/*.prompt.md
 // - Claude Code: .claude/commands/*.md
-// - Windsurf: .windsurf/workflows/*.md (native passthrough only, no canonical)
+// - OpenCode: .opencode/commands/*.md
 // ---------------------------------------------------------------------------
 
 /**
@@ -187,7 +186,6 @@ export function nativePromptPassthrough(
   const promptsConfig = config.promptsConfig;
 
   // If agent has no prompts config, check for native discovery only
-  // (e.g., Windsurf has nativePromptDiscovery but no promptsConfig for canonical)
   if (!promptsConfig && !config.nativePromptDiscovery) {
     return null;
   }
@@ -215,8 +213,6 @@ export const promptTranspilers: Partial<Record<TargetAgent, Transpiler<Canonical
   'claude-code': claudeCodePromptTranspiler,
   opencode: opencodeCommandTranspiler,
   // cursor: not supported — no prompt/command system
-  // windsurf: native passthrough only — no canonical transpilation
-  // cline: not supported — no prompt/command system
 };
 
 /**

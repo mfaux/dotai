@@ -57,10 +57,10 @@ describe('addRules → lock file integration', () => {
     expect(entry.name).toBe('code-style');
     expect(entry.source).toBe('test/repo');
     expect(entry.format).toBe('canonical');
-    expect(entry.agents).toHaveLength(6);
+    expect(entry.agents).toHaveLength(4);
     expect(entry.hash).toBeTruthy();
     expect(entry.installedAt).toBeTruthy();
-    expect(entry.outputs).toHaveLength(6);
+    expect(entry.outputs).toHaveLength(4);
   });
 
   it('writes correct content hash in lock entry', async () => {
@@ -118,7 +118,7 @@ describe('addRules → lock file integration', () => {
       sourcePath: sourceRepo,
       projectRoot: projectDir,
       ruleNames: ['*'],
-      targets: ['cursor', 'cline'],
+      targets: ['cursor', 'opencode'],
     });
 
     const lock = await readLockFileFromDisk(projectDir);
@@ -126,7 +126,7 @@ describe('addRules → lock file integration', () => {
 
     expect(entry.agents).toHaveLength(2);
     expect(entry.agents).toContain('cursor');
-    expect(entry.agents).toContain('cline');
+    expect(entry.agents).toContain('opencode');
     expect(entry.outputs).toHaveLength(2);
   });
 

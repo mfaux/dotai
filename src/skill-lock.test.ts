@@ -176,12 +176,12 @@ describe('readSkillLock', () => {
     const lockFile: SkillLockFile = {
       version: 3,
       skills: {},
-      lastSelectedAgents: ['cursor', 'windsurf'],
+      lastSelectedAgents: ['cursor', 'opencode'],
     };
     await writeFile(getSkillLockPath(), JSON.stringify(lockFile), 'utf-8');
 
     const lock = await readSkillLock();
-    expect(lock.lastSelectedAgents).toEqual(['cursor', 'windsurf']);
+    expect(lock.lastSelectedAgents).toEqual(['cursor', 'opencode']);
   });
 });
 
@@ -438,10 +438,10 @@ describe('getLastSelectedAgents', () => {
   });
 
   it('returns saved agents', async () => {
-    await saveSelectedAgents(['cursor', 'windsurf', 'cline']);
+    await saveSelectedAgents(['cursor', 'opencode', 'claude-code']);
 
     const agents = await getLastSelectedAgents();
-    expect(agents).toEqual(['cursor', 'windsurf', 'cline']);
+    expect(agents).toEqual(['cursor', 'opencode', 'claude-code']);
   });
 });
 
@@ -455,10 +455,10 @@ describe('saveSelectedAgents', () => {
 
   it('overwrites previous agent selection', async () => {
     await saveSelectedAgents(['cursor']);
-    await saveSelectedAgents(['windsurf', 'cline']);
+    await saveSelectedAgents(['opencode', 'claude-code']);
 
     const agents = await getLastSelectedAgents();
-    expect(agents).toEqual(['windsurf', 'cline']);
+    expect(agents).toEqual(['opencode', 'claude-code']);
   });
 
   it('preserves existing skills when saving agents', async () => {

@@ -4,8 +4,6 @@ import {
   cursorRuleTranspiler,
   copilotRuleTranspiler,
   claudeCodeRuleTranspiler,
-  windsurfRuleTranspiler,
-  clineRuleTranspiler,
 } from './rule-transpilers.ts';
 import { mergeOverrides } from './override-parser.ts';
 import type { CanonicalRule, DiscoveredItem, TargetAgent } from './types.ts';
@@ -117,19 +115,19 @@ describe('rule transpiler override merging', () => {
   it('description override is used in transpiled output', () => {
     const rule = makeRule({
       overrides: {
-        windsurf: { description: 'Windsurf-specific description' },
+        'claude-code': { description: 'Claude-specific description' },
       },
     });
-    const merged = mergeOverrides(rule, 'windsurf') as CanonicalRule;
-    const output = windsurfRuleTranspiler.transform(merged, 'windsurf');
+    const merged = mergeOverrides(rule, 'claude-code') as CanonicalRule;
+    const output = claudeCodeRuleTranspiler.transform(merged, 'claude-code');
 
-    expect(output.content).toContain('description: "Windsurf-specific description"');
+    expect(output.content).toContain('description: "Claude-specific description"');
   });
 
   it('base description used for non-overridden agent', () => {
     const rule = makeRule({
       overrides: {
-        windsurf: { description: 'Windsurf-specific description' },
+        'claude-code': { description: 'Claude-specific description' },
       },
     });
     const merged = mergeOverrides(rule, 'cursor') as CanonicalRule;
@@ -142,14 +140,14 @@ describe('rule transpiler override merging', () => {
     const rule = makeRule({
       activation: 'glob',
       overrides: {
-        cline: { globs: ['*.py'] },
+        cursor: { globs: ['*.py'] },
       },
     });
-    const merged = mergeOverrides(rule, 'cline') as CanonicalRule;
-    const output = clineRuleTranspiler.transform(merged, 'cline');
+    const merged = mergeOverrides(rule, 'cursor') as CanonicalRule;
+    const output = cursorRuleTranspiler.transform(merged, 'cursor');
 
-    expect(output.content).toContain('`*.py`');
-    expect(output.content).not.toContain('`*.ts`');
+    expect(output.content).toContain('*.py');
+    expect(output.content).not.toContain('*.ts');
   });
 
   it('rule with no overrides produces identical output to today', () => {

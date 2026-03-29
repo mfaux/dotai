@@ -181,7 +181,7 @@ describe('addRules --gitignore integration', () => {
       sourcePath: sourceRepo,
       projectRoot: projectDir,
       ruleNames: ['*'],
-      targets: ['cursor', 'cline'],
+      targets: ['cursor', 'opencode'],
       gitignore: true,
     });
 
@@ -190,11 +190,11 @@ describe('addRules --gitignore integration', () => {
     expect(lock.items[0]!.agents).toHaveLength(2);
     expect(lock.items[0]!.outputs).toHaveLength(2);
 
-    // Only cursor and cline paths should be in .gitignore
+    // Only cursor and opencode paths should be in .gitignore
     const managedPaths = await readManagedPaths(projectDir);
     expect(managedPaths).toHaveLength(2);
     expect(managedPaths.some((p) => p.includes('.cursor/'))).toBe(true);
-    expect(managedPaths.some((p) => p.includes('.clinerules/'))).toBe(true);
+    expect(managedPaths.some((p) => p.includes('.opencode/'))).toBe(true);
   });
 });
 

@@ -397,8 +397,7 @@ describe('installer copy mode (--copy flag / Windows fallback)', () => {
  *
  * Tests a matrix of agents spanning:
  * - Universal agents (skillsDir === '.agents/skills'): cursor, github-copilot
- * - Non-universal agents with distinct skillsDir values: claude-code, windsurf,
- *   antigravity, augment, goose
+ * - Non-universal agents with distinct skillsDir values: claude-code
  *
  * For each agent, verifies:
  * - Copy mode installs files correctly
@@ -422,10 +421,6 @@ describe('symlink fallback — agent matrix', () => {
   // Representative non-universal agents with distinct skillsDir values
   const nonUniversalAgents: AgentType[] = [
     'claude-code', // .claude/skills
-    'windsurf', // .windsurf/skills
-    'antigravity', // .agent/skills (note: singular .agent, close to .agents)
-    'augment', // .augment/skills
-    'goose', // .goose/skills
   ];
 
   const allTestAgents = [...universalAgents, ...nonUniversalAgents];
@@ -656,7 +651,7 @@ describe('symlink failure fallback behavior', () => {
   });
 
   it('installRemoteSkillForAgent copy mode works for all representative agents', async () => {
-    const testAgents: AgentType[] = ['claude-code', 'windsurf', 'augment', 'cursor'];
+    const testAgents: AgentType[] = ['claude-code', 'cursor'];
 
     for (const agentType of testAgents) {
       const agentProjectDir = join(root, `remote-${agentType}`);
@@ -692,7 +687,7 @@ describe('symlink failure fallback behavior', () => {
   });
 
   it('installWellKnownSkillForAgent copy mode works for all representative agents', async () => {
-    const testAgents: AgentType[] = ['claude-code', 'windsurf', 'augment', 'cursor'];
+    const testAgents: AgentType[] = ['claude-code', 'cursor'];
 
     for (const agentType of testAgents) {
       const agentProjectDir = join(root, `wellknown-${agentType}`);
@@ -733,7 +728,7 @@ describe('symlink failure fallback behavior', () => {
   });
 
   it('copy mode handles nested directory structures across agents', async () => {
-    const testAgents: AgentType[] = ['claude-code', 'windsurf', 'goose'];
+    const testAgents: AgentType[] = ['claude-code', 'cursor'];
 
     for (const agentType of testAgents) {
       const agentProjectDir = join(root, `nested-${agentType}`);
@@ -767,7 +762,7 @@ describe('symlink failure fallback behavior', () => {
   });
 
   it('excluded files are filtered out in copy mode across agents', async () => {
-    const testAgents: AgentType[] = ['claude-code', 'windsurf', 'antigravity' as AgentType];
+    const testAgents: AgentType[] = ['claude-code', 'cursor'];
 
     for (const agentType of testAgents) {
       const agentProjectDir = join(root, `excluded-${agentType}`);

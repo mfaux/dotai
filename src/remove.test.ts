@@ -114,9 +114,9 @@ This is a test skill.
       createSymlink('skill-one', claudeSkillsDir);
       createSymlink('skill-two', claudeSkillsDir);
 
-      const clineSkillsDir = createAgentSkillsDir('.cline');
-      createSymlink('skill-one', clineSkillsDir);
-      createSymlink('skill-three', clineSkillsDir);
+      const cursorSkillsDir = createAgentSkillsDir('.cursor');
+      createSymlink('skill-one', cursorSkillsDir);
+      createSymlink('skill-three', cursorSkillsDir);
     });
 
     it('should remove specific skill by name with -y flag', () => {

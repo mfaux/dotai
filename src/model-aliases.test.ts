@@ -55,7 +55,7 @@ describe('resolveModel — built-in aliases', () => {
     expect(result.model).toBe('gemini-2.5-pro');
   });
 
-  it.each(['cursor', 'windsurf', 'cline'] as TargetAgent[])(
+  it.each(['cursor'] as TargetAgent[])(
     'returns null with warning for any model on %s (no model selection)',
     (agent) => {
       const result = resolveModel('claude-sonnet-4', agent);

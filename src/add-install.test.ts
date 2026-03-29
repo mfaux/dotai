@@ -150,30 +150,30 @@ describe('resolveInstallTargets', () => {
     });
 
     it('multiple detected + --yes auto-selects with universal agents', async () => {
-      vi.mocked(detectInstalledAgents).mockResolvedValue(['cursor', 'windsurf']);
+      vi.mocked(detectInstalledAgents).mockResolvedValue(['cursor', 'opencode']);
 
       const options: AddOptions = { yes: true, copy: true };
       const result = await resolveInstallTargets(options, makeSpinner());
 
       expect(result).not.toBeNull();
       expect(result!.targetAgents).toContain('cursor');
-      expect(result!.targetAgents).toContain('windsurf');
+      expect(result!.targetAgents).toContain('opencode');
     });
 
     it('multiple detected + interactive prompts via selectAgentsInteractive', async () => {
-      vi.mocked(detectInstalledAgents).mockResolvedValue(['cursor', 'windsurf']);
-      vi.mocked(selectAgentsInteractive).mockResolvedValue(['cursor', 'windsurf'] as any);
+      vi.mocked(detectInstalledAgents).mockResolvedValue(['cursor', 'opencode']);
+      vi.mocked(selectAgentsInteractive).mockResolvedValue(['cursor', 'opencode'] as any);
 
       const options: AddOptions = { copy: true };
       const result = await resolveInstallTargets(options, makeSpinner());
 
       expect(result).not.toBeNull();
-      expect(result!.targetAgents).toEqual(['cursor', 'windsurf']);
+      expect(result!.targetAgents).toEqual(['cursor', 'opencode']);
       expect(selectAgentsInteractive).toHaveBeenCalled();
     });
 
     it('multiple detected + interactive cancel returns null', async () => {
-      vi.mocked(detectInstalledAgents).mockResolvedValue(['cursor', 'windsurf']);
+      vi.mocked(detectInstalledAgents).mockResolvedValue(['cursor', 'opencode']);
       vi.mocked(selectAgentsInteractive).mockResolvedValue(cancelSymbol);
 
       const options: AddOptions = { copy: true };
@@ -349,7 +349,7 @@ describe('checkOverwrites', () => {
     vi.mocked(isSkillInstalled).mockResolvedValue(false);
 
     const skills = [{ name: 'skill-a' }, { name: 'skill-b' }];
-    const agentTypes = ['claude-code', 'cursor', 'windsurf'] as AgentType[];
+    const agentTypes = ['claude-code', 'cursor', 'opencode'] as AgentType[];
 
     const result = await checkOverwrites(skills, agentTypes, false);
 

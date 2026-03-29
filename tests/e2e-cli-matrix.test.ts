@@ -846,7 +846,7 @@ description: A test skill
       const lockEntry = await assertLockEntry(projectRoot, 'rule', 'code-style', {
         source: 'team/shared-rules',
         format: 'canonical',
-        outputCount: 6,
+        outputCount: 4,
       });
       expect(lockEntry.hash).toMatch(/^[a-f0-9]{64}$/);
       await assertLockEntryCount(projectRoot, 1);

@@ -3,15 +3,15 @@
 Share AI agent context across tools and teams.
 
 dotai takes canonical context files — skills, rules, prompts, and agent
-definitions — and installs them into the config directories of 40+ AI coding
-agents. Write once, distribute everywhere. Your team gets consistent AI behavior
-across Copilot, Claude Code, Cursor, and dozens more.
+definitions — and installs them into the config directories of supported AI
+coding agents. Write once, distribute everywhere. Your team gets consistent AI
+behavior across Copilot, Claude Code, Cursor, and more.
 
 Requires Node.js 18+ (or Bun/Deno).
 
 <!-- agent-list:start -->
 
-Supports **OpenCode**, **Claude Code**, **Codex**, **Cursor**, and [37 more](docs/supported-targets.md).
+Supports **OpenCode**, **Claude Code**, **Codex**, **Cursor**, and **GitHub Copilot**.
 
 <!-- agent-list:end -->
 
@@ -33,7 +33,7 @@ dotai solves this with **canonical authoring**: write a single `RULES.md`,
 native format automatically.
 
 - **Write once** — one canonical file fans out to all targets
-- **40+ targets** — Copilot, Claude Code, Cursor, Windsurf, Cline, and more
+- **5 targets** — Copilot, Claude Code, Cursor, Codex, OpenCode
 - **Team sharing** — `npx dotai add owner/repo` gives every teammate the same context
 - **No lock-in** — canonical files are plain markdown with YAML frontmatter
 
@@ -108,17 +108,15 @@ npx dotai add ./my-local-context                        # local path
 | Claude Code    | ✅     | ✅    | ✅                      | ✅                        |
 | OpenCode       | ✅     | ✅    | ✅                      | ✅                        |
 | Cursor         | ✅     | ✅    | ⚠️ (native/compat only) | ⚠️ (via `.github/agents`) |
-| Windsurf       | ✅     | ✅    | ⚠️ (native passthrough) | —                         |
-| Cline          | ✅     | ✅    | —                       | —                         |
+| Codex          | ✅     | —    | —                       | —                         |
 
 - **Cursor prompts:** Cursor reads Copilot's `.github/prompts/` path. Canonical `PROMPT.md` is not transpiled to a Cursor-specific format.
 - **Cursor agents:** Cursor reads `.github/agents/` from the Copilot path. Canonical `AGENT.md` transpiles to Copilot format, which Cursor picks up.
-- **Windsurf prompts:** Windsurf workflows use a native format. Only passthrough is supported.
 - **OpenCode rules:** OpenCode rules are plain markdown (no frontmatter). After installing, add the output paths to the `instructions` array in `opencode.json`.
 
 </details>
 
-Skill installs target [41 targets](docs/supported-targets.md). **GitHub Copilot**, **Claude Code**, and **OpenCode** are actively tested; other targets follow the [Agent Skills specification](https://agentskills.io) but are not individually verified.
+Skill installs target [5 targets](docs/supported-targets.md).
 
 ## Reference
 

@@ -383,8 +383,7 @@ describe('nativeAgentPassthrough', () => {
 
     expect(nativeAgentPassthrough(item, 'claude-code')).toBeNull();
     expect(nativeAgentPassthrough(item, 'cursor')).toBeNull();
-    expect(nativeAgentPassthrough(item, 'windsurf')).toBeNull();
-    expect(nativeAgentPassthrough(item, 'cline')).toBeNull();
+    expect(nativeAgentPassthrough(item, 'opencode')).toBeNull();
   });
 
   it('returns null for agents without agent support', () => {
@@ -393,20 +392,8 @@ describe('nativeAgentPassthrough', () => {
       name: 'test-agent',
       rawContent: 'content',
     });
-    const windsurfItem = makeDiscoveredAgentItem({
-      format: 'native:windsurf',
-      name: 'test-agent',
-      rawContent: 'content',
-    });
-    const clineItem = makeDiscoveredAgentItem({
-      format: 'native:cline',
-      name: 'test-agent',
-      rawContent: 'content',
-    });
 
     expect(nativeAgentPassthrough(cursorItem, 'cursor')).toBeNull();
-    expect(nativeAgentPassthrough(windsurfItem, 'windsurf')).toBeNull();
-    expect(nativeAgentPassthrough(clineItem, 'cline')).toBeNull();
   });
 
   it('preserves raw content unchanged', () => {
@@ -481,14 +468,14 @@ describe('transpileAgent', () => {
 
   it('returns null for windsurf (unsupported)', () => {
     const item = makeDiscoveredAgentItem();
-    const output = transpileAgent(item, 'windsurf');
+    const output = transpileAgent(item, 'windsurf' as TargetAgent);
 
     expect(output).toBeNull();
   });
 
   it('returns null for cline (unsupported)', () => {
     const item = makeDiscoveredAgentItem();
-    const output = transpileAgent(item, 'cline');
+    const output = transpileAgent(item, 'cline' as TargetAgent);
 
     expect(output).toBeNull();
   });
@@ -559,14 +546,14 @@ describe('transpileAgentForAllAgents', () => {
   it('returns empty array for native agent with no matching agent in subset', () => {
     const item = makeDiscoveredAgentItem({ format: 'native:github-copilot' });
 
-    const outputs = transpileAgentForAllAgents(item, ['cursor', 'cline']);
+    const outputs = transpileAgentForAllAgents(item, ['cursor']);
 
     expect(outputs).toHaveLength(0);
   });
 
   it('returns empty array for unsupported agents only', () => {
     const item = makeDiscoveredAgentItem();
-    const agents: TargetAgent[] = ['cursor', 'cline', 'windsurf'];
+    const agents: TargetAgent[] = ['cursor'];
 
     const outputs = transpileAgentForAllAgents(item, agents);
 

@@ -83,100 +83,6 @@ export const cursorRuleTranspiler: Transpiler<CanonicalRule> = {
 };
 
 // ---------------------------------------------------------------------------
-// Windsurf transpiler (.windsurf/rules/*.md)
-//
-// Windsurf uses YAML frontmatter with:
-//   - trigger: "always_on" | "model_decision" | "manual" | "glob"
-//   - description: string — used for model_decision context
-//   - globs: string[] — when trigger is "glob"
-// ---------------------------------------------------------------------------
-
-function windsurfTrigger(rule: CanonicalRule): 'always_on' | 'model_decision' | 'manual' | 'glob' {
-  switch (rule.activation) {
-    case 'always':
-      return 'always_on';
-    case 'auto':
-      return 'model_decision';
-    case 'manual':
-      return 'manual';
-    case 'glob':
-      return 'glob';
-  }
-}
-
-export const windsurfRuleTranspiler: Transpiler<CanonicalRule> = {
-  canTranspile(item: DiscoveredItem): boolean {
-    return item.type === 'rule' && item.format === 'canonical';
-  },
-
-  transform(rule: CanonicalRule, _targetAgent: TargetAgent): TranspiledOutput {
-    const config = getTargetAgentConfig('windsurf');
-    const lines: string[] = ['---'];
-    lines.push(`trigger: ${windsurfTrigger(rule)}`);
-    lines.push(`description: ${quoteYaml(rule.description)}`);
-
-    if (rule.activation === 'glob' && rule.globs.length > 0) {
-      lines.push('globs:');
-      for (const glob of rule.globs) {
-        lines.push(`  - "${glob}"`);
-      }
-    }
-
-    lines.push('---');
-    lines.push('');
-    lines.push(rule.body);
-    lines.push('');
-
-    return {
-      filename: `${rule.name}${config.rulesConfig.extension}`,
-      content: lines.join('\n'),
-      outputDir: config.rulesConfig.outputDir,
-      mode: 'write',
-    };
-  },
-};
-
-// ---------------------------------------------------------------------------
-// Cline transpiler (.clinerules/*.md)
-//
-// Cline rule files are plain markdown. Activation and globs are expressed
-// through the file's presence and content rather than structured frontmatter.
-// For glob-scoped rules, we prepend a "Applies to:" line.
-// ---------------------------------------------------------------------------
-
-export const clineRuleTranspiler: Transpiler<CanonicalRule> = {
-  canTranspile(item: DiscoveredItem): boolean {
-    return item.type === 'rule' && item.format === 'canonical';
-  },
-
-  transform(rule: CanonicalRule, _targetAgent: TargetAgent): TranspiledOutput {
-    const config = getTargetAgentConfig('cline');
-    const lines: string[] = [];
-
-    // Add description as a comment-style header
-    lines.push(`# ${rule.name}`);
-    lines.push('');
-    lines.push(`> ${rule.description}`);
-    lines.push('');
-
-    if (rule.activation === 'glob' && rule.globs.length > 0) {
-      lines.push(`**Applies to:** ${rule.globs.map((g) => `\`${g}\``).join(', ')}`);
-      lines.push('');
-    }
-
-    lines.push(rule.body);
-    lines.push('');
-
-    return {
-      filename: `${rule.name}${config.rulesConfig.extension}`,
-      content: lines.join('\n'),
-      outputDir: config.rulesConfig.outputDir,
-      mode: 'write',
-    };
-  },
-};
-
-// ---------------------------------------------------------------------------
 // Copilot transpiler (.github/instructions/*.instructions.md)
 //
 // Copilot uses YAML frontmatter with:
@@ -393,8 +299,6 @@ export function nativePassthrough(
 /** Map of target agents to their rule transpilers (per-rule file mode). */
 export const ruleTranspilers: Record<TargetAgent, Transpiler<CanonicalRule>> = {
   cursor: cursorRuleTranspiler,
-  windsurf: windsurfRuleTranspiler,
-  cline: clineRuleTranspiler,
   'github-copilot': copilotRuleTranspiler,
   'claude-code': claudeCodeRuleTranspiler,
   opencode: opencodeRuleTranspiler,

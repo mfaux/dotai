@@ -244,28 +244,26 @@ describe('install-pipeline', () => {
   // -------------------------------------------------------------------------
 
   describe('planRuleWrites', () => {
-    it('transpiles a canonical rule to all 6 agents', () => {
+    it('transpiles a canonical rule to all 4 agents', () => {
       const items = [canonicalRule('code-style')];
       const opts = baseOptions(tmpDir);
 
       const { writes, skipped } = planRuleWrites(items, opts);
 
       expect(skipped).toHaveLength(0);
-      expect(writes).toHaveLength(6);
+      expect(writes).toHaveLength(4);
 
       const agents = writes.map((w) => w.agent);
       expect(agents).toContain('github-copilot');
       expect(agents).toContain('claude-code');
       expect(agents).toContain('cursor');
-      expect(agents).toContain('windsurf');
-      expect(agents).toContain('cline');
       expect(agents).toContain('opencode');
     });
 
     it('respects agent subset filter', () => {
       const items = [canonicalRule('code-style')];
       const opts = baseOptions(tmpDir, {
-        targets: ['cursor', 'cline'] as const,
+        targets: ['cursor', 'opencode'] as const,
       });
 
       const { writes } = planRuleWrites(items, opts);
@@ -273,7 +271,7 @@ describe('install-pipeline', () => {
       expect(writes).toHaveLength(2);
       const agents = writes.map((w) => w.agent);
       expect(agents).toContain('cursor');
-      expect(agents).toContain('cline');
+      expect(agents).toContain('opencode');
     });
 
     it('skips skill items (handled by existing installer)', () => {
@@ -300,12 +298,12 @@ describe('install-pipeline', () => {
     it('native passthrough produces no output for non-matching agents', () => {
       const items = [nativeRule('code-style', 'cursor')];
       const opts = baseOptions(tmpDir, {
-        targets: ['windsurf'] as const,
+        targets: ['opencode'] as const,
       });
 
       const { writes, skipped } = planRuleWrites(items, opts);
 
-      // native:cursor with only windsurf target → transpilation produces no output
+      // native:cursor with only opencode target → transpilation produces no output
       expect(writes).toHaveLength(0);
       expect(skipped).toHaveLength(1);
       expect(skipped[0]!.reason).toContain('no outputs');
@@ -346,8 +344,8 @@ describe('install-pipeline', () => {
 
       const { writes } = planRuleWrites(items, opts);
 
-      // 2 rules × 6 agents = 12 writes
-      expect(writes).toHaveLength(12);
+      // 2 rules × 4 agents = 8 writes
+      expect(writes).toHaveLength(8);
     });
 
     it('handles mixed canonical + native rules', () => {
@@ -356,8 +354,8 @@ describe('install-pipeline', () => {
 
       const { writes } = planRuleWrites(items, opts);
 
-      // 1 canonical × 6 agents + 1 native × 1 agent = 7
-      expect(writes).toHaveLength(7);
+      // 1 canonical × 4 agents + 1 native × 1 agent = 5
+      expect(writes).toHaveLength(5);
     });
 
     it('skips items with invalid content', () => {
@@ -398,7 +396,7 @@ describe('install-pipeline', () => {
       const result = await executeInstallPipeline(items, opts);
 
       expect(result.success).toBe(true);
-      expect(result.writes).toHaveLength(6);
+      expect(result.writes).toHaveLength(4);
       expect(result.written).toHaveLength(0);
 
       // No files should exist on disk
@@ -428,19 +426,17 @@ describe('install-pipeline', () => {
   // -------------------------------------------------------------------------
 
   describe('executeInstallPipeline — writes', () => {
-    it('writes transpiled rules to all 6 agent directories', async () => {
+    it('writes transpiled rules to all 4 agent directories', async () => {
       const items = [canonicalRule('code-style')];
       const opts = baseOptions(tmpDir);
 
       const result = await executeInstallPipeline(items, opts);
 
       expect(result.success).toBe(true);
-      expect(result.written).toHaveLength(6);
+      expect(result.written).toHaveLength(4);
 
       // Verify files exist on disk
       expect(existsSync(join(tmpDir, '.cursor', 'rules', 'code-style.mdc'))).toBe(true);
-      expect(existsSync(join(tmpDir, '.windsurf', 'rules', 'code-style.md'))).toBe(true);
-      expect(existsSync(join(tmpDir, '.clinerules', 'code-style.md'))).toBe(true);
       expect(
         existsSync(join(tmpDir, '.github', 'instructions', 'code-style.instructions.md'))
       ).toBe(true);
@@ -537,7 +533,7 @@ describe('install-pipeline', () => {
 
       expect(result.success).toBe(true);
       expect(result.collisions.length).toBeGreaterThan(0);
-      expect(result.written).toHaveLength(6);
+      expect(result.written).toHaveLength(4);
 
       // File should be overwritten with transpiled content
       const content = readFileSync(join(conflictDir, 'code-style.mdc'), 'utf-8');
@@ -596,12 +592,12 @@ describe('install-pipeline', () => {
 
   describe('executeInstallPipeline — rollback', () => {
     it('rolls back all writes if a write fails', async () => {
-      // Write cursor rule first, then make the windsurf dir read-only to trigger failure
+      // Write cursor rule first, then make a dir read-only to trigger failure
       // We'll simulate this by writing to a path that can't be created
       const items = [canonicalRule('code-style')];
 
       // Create a file where a directory is expected to force a write error
-      const blockerPath = join(tmpDir, '.windsurf');
+      const blockerPath = join(tmpDir, '.opencode');
       writeFileSync(blockerPath, 'I am a file, not a directory');
 
       const opts = baseOptions(tmpDir);
@@ -613,7 +609,6 @@ describe('install-pipeline', () => {
       expect(result.written).toHaveLength(0);
 
       // Files written before the failure should have been cleaned up
-      // (cursor writes happen before windsurf in the write order)
     });
   });
 
@@ -625,7 +620,7 @@ describe('install-pipeline', () => {
     it('installs only to specified agents', async () => {
       const items = [canonicalRule('code-style')];
       const opts = baseOptions(tmpDir, {
-        targets: ['cursor', 'cline'] as const,
+        targets: ['cursor', 'opencode'] as const,
       });
 
       const result = await executeInstallPipeline(items, opts);
@@ -633,9 +628,8 @@ describe('install-pipeline', () => {
       expect(result.success).toBe(true);
       expect(result.written).toHaveLength(2);
       expect(existsSync(join(tmpDir, '.cursor', 'rules', 'code-style.mdc'))).toBe(true);
-      expect(existsSync(join(tmpDir, '.clinerules', 'code-style.md'))).toBe(true);
+      expect(existsSync(join(tmpDir, '.opencode', 'rules', 'code-style.md'))).toBe(true);
       // Others should NOT exist
-      expect(existsSync(join(tmpDir, '.windsurf', 'rules', 'code-style.md'))).toBe(false);
       expect(
         existsSync(join(tmpDir, '.github', 'instructions', 'code-style.instructions.md'))
       ).toBe(false);
@@ -686,16 +680,16 @@ describe('install-pipeline', () => {
       const items = [
         canonicalRule('code-style'),
         skillItem('db-migrate'),
-        nativeRule('lint', 'windsurf'),
+        nativeRule('lint', 'opencode'),
       ];
-      const opts = baseOptions(tmpDir, { targets: ['cursor', 'windsurf'] as const });
+      const opts = baseOptions(tmpDir, { targets: ['cursor', 'opencode'] as const });
 
       const result = await executeInstallPipeline(items, opts);
 
       expect(result.success).toBe(true);
       // canonical rule: 2 agents = 2 writes
       // skill: skipped (0 writes)
-      // native windsurf: 1 write
+      // native opencode: 1 write
       expect(result.written).toHaveLength(3);
     });
   });
@@ -736,7 +730,7 @@ describe('install-pipeline', () => {
     it('produces no output for agents that do not support prompts', () => {
       const items = [canonicalPrompt('review-code')];
       const opts = baseOptions(tmpDir, {
-        targets: ['cursor', 'cline'] as const,
+        targets: ['cursor'] as const,
       });
 
       const { writes, skipped } = planRuleWrites(items, opts);
@@ -796,15 +790,15 @@ describe('install-pipeline', () => {
       expect(writes[0]!.agent).toBe('github-copilot');
     });
 
-    it('native prompt passthrough for windsurf', () => {
-      const items = [nativePrompt('deploy', 'windsurf')];
+    it('native prompt passthrough for opencode', () => {
+      const items = [nativePrompt('deploy', 'opencode')];
       const opts = baseOptions(tmpDir);
 
       const { writes, skipped } = planRuleWrites(items, opts);
 
       expect(skipped).toHaveLength(0);
       expect(writes).toHaveLength(1);
-      expect(writes[0]!.agent).toBe('windsurf');
+      expect(writes[0]!.agent).toBe('opencode');
     });
 
     it('handles mixed rules + prompts + skills together', () => {
@@ -817,10 +811,10 @@ describe('install-pipeline', () => {
 
       const { writes, skipped } = planRuleWrites(items, opts);
 
-      // canonical rule: 6 agents
+      // canonical rule: 4 agents
       // canonical prompt: 3 agents (copilot + claude-code + opencode)
       // skill: silently skipped
-      expect(writes).toHaveLength(9);
+      expect(writes).toHaveLength(7);
       expect(skipped).toHaveLength(0);
     });
   });
@@ -955,7 +949,7 @@ describe('install-pipeline', () => {
     it('produces no output for agents that do not support agent transpilation', () => {
       const items = [canonicalAgent('architect')];
       const opts = baseOptions(tmpDir, {
-        targets: ['cursor', 'cline'] as const,
+        targets: ['cursor'] as const,
       });
 
       const { writes, skipped } = planRuleWrites(items, opts);
@@ -1037,11 +1031,11 @@ describe('install-pipeline', () => {
 
       const { writes, skipped } = planRuleWrites(items, opts);
 
-      // canonical rule: 6 agents
+      // canonical rule: 4 agents
       // canonical prompt: 3 agents (copilot + claude-code + opencode)
       // canonical agent: 3 agents (copilot + claude-code + opencode)
       // skill: silently skipped
-      expect(writes).toHaveLength(12);
+      expect(writes).toHaveLength(10);
       expect(skipped).toHaveLength(0);
     });
   });
@@ -1181,8 +1175,8 @@ describe('install-pipeline', () => {
       const { writes, skipped } = planRuleWrites(items, opts);
 
       expect(skipped).toHaveLength(0);
-      // 6 agents: copilot (AGENTS.md), claude-code (CLAUDE.md), cursor, windsurf, cline, opencode
-      expect(writes).toHaveLength(6);
+      // 4 agents: copilot (AGENTS.md), claude-code (CLAUDE.md), cursor, opencode
+      expect(writes).toHaveLength(4);
 
       const copilotWrite = writes.find((w) => w.agent === 'github-copilot');
       expect(copilotWrite).toBeDefined();
@@ -1194,7 +1188,7 @@ describe('install-pipeline', () => {
       expect(claudeWrite!.planned.output.mode).toBe('append');
       expect(claudeWrite!.planned.output.filename).toBe('CLAUDE.md');
 
-      // Cursor, Windsurf, Cline, OpenCode remain per-rule file mode
+      // Cursor and OpenCode remain per-rule file mode
       const cursorWrite = writes.find((w) => w.agent === 'cursor');
       expect(cursorWrite!.planned.output.mode).toBe('write');
     });
@@ -1344,8 +1338,8 @@ describe('install-pipeline', () => {
       const result = await executeInstallPipeline(items, opts);
 
       expect(result.success).toBe(true);
-      // 6 writes: AGENTS.md, CLAUDE.md, .cursor/rules, .windsurf/rules, .clinerules, .opencode/rules
-      expect(result.written).toHaveLength(6);
+      // 4 writes: AGENTS.md, CLAUDE.md, .cursor/rules, .opencode/rules
+      expect(result.written).toHaveLength(4);
 
       // Append targets
       expect(existsSync(join(tmpDir, 'AGENTS.md'))).toBe(true);
@@ -1353,8 +1347,6 @@ describe('install-pipeline', () => {
 
       // Per-rule targets
       expect(existsSync(join(tmpDir, '.cursor', 'rules', 'code-style.mdc'))).toBe(true);
-      expect(existsSync(join(tmpDir, '.windsurf', 'rules', 'code-style.md'))).toBe(true);
-      expect(existsSync(join(tmpDir, '.clinerules', 'code-style.md'))).toBe(true);
       expect(existsSync(join(tmpDir, '.opencode', 'rules', 'code-style.md'))).toBe(true);
     });
   });

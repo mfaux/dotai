@@ -22,13 +22,11 @@ import type { LockEntry, TargetAgent } from '../src/types.ts';
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** All six target agents. */
+/** All four target agents. */
 const ALL_AGENTS: readonly TargetAgent[] = [
   'github-copilot',
   'claude-code',
   'cursor',
-  'windsurf',
-  'cline',
   'opencode',
 ] as const;
 
@@ -94,10 +92,10 @@ describe('integration: discover → transpile → install', () => {
   });
 
   // -------------------------------------------------------------------------
-  // Happy path: single rule → all 6 agents
+  // Happy path: single rule → all 4 agents
   // -------------------------------------------------------------------------
 
-  it('discovers and installs a single canonical rule to all 6 agents', async () => {
+  it('discovers and installs a single canonical rule to all 4 agents', async () => {
     // Source repo has one canonical rule
     const ruleDir = join(sourceDir, 'rules', 'code-style');
     mkdirSync(ruleDir, { recursive: true });
@@ -121,13 +119,11 @@ describe('integration: discover → transpile → install', () => {
     });
 
     expect(result.success).toBe(true);
-    expect(result.written).toHaveLength(6);
+    expect(result.written).toHaveLength(4);
     expect(result.collisions).toHaveLength(0);
 
     // Verify each agent got the file
     expect(existsSync(join(projectDir, '.cursor', 'rules', 'code-style.mdc'))).toBe(true);
-    expect(existsSync(join(projectDir, '.windsurf', 'rules', 'code-style.md'))).toBe(true);
-    expect(existsSync(join(projectDir, '.clinerules', 'code-style.md'))).toBe(true);
     expect(
       existsSync(join(projectDir, '.github', 'instructions', 'code-style.instructions.md'))
     ).toBe(true);
@@ -141,16 +137,6 @@ describe('integration: discover → transpile → install', () => {
     );
     expect(cursorContent).toContain('alwaysApply: true');
     expect(cursorContent).toContain('- Use const over let');
-
-    const windsurfContent = readFileSync(
-      join(projectDir, '.windsurf', 'rules', 'code-style.md'),
-      'utf-8'
-    );
-    expect(windsurfContent).toContain('trigger: always_on');
-
-    const clineContent = readFileSync(join(projectDir, '.clinerules', 'code-style.md'), 'utf-8');
-    expect(clineContent).toContain('# code-style');
-    expect(clineContent).toContain('- Use const over let');
 
     const copilotContent = readFileSync(
       join(projectDir, '.github', 'instructions', 'code-style.instructions.md'),
@@ -285,26 +271,26 @@ describe('integration: discover → transpile → install', () => {
     mkdirSync(canonDir, { recursive: true });
     writeRulesMd(canonDir, 'code-style');
 
-    // Native windsurf rule
-    const nativeDir = join(sourceDir, '.windsurf', 'rules');
+    // Native cursor rule
+    const nativeDir = join(sourceDir, '.cursor', 'rules');
     mkdirSync(nativeDir, { recursive: true });
-    writeFileSync(join(nativeDir, 'native-lint.md'), 'Native windsurf lint content');
+    writeFileSync(join(nativeDir, 'native-lint.mdc'), 'Native cursor lint content');
 
     const { items } = await discover(sourceDir);
 
-    // Install only to windsurf — both canonical and native should work
+    // Install only to cursor — both canonical and native should work
     const result = await executeInstallPipeline(items, {
       projectRoot: projectDir,
       source: 'test/repo',
       lockEntries: [],
-      targets: ['windsurf'] as const,
+      targets: ['cursor'] as const,
     });
 
     expect(result.success).toBe(true);
-    // 1 canonical rule → 1 windsurf output + 1 native windsurf passthrough
+    // 1 canonical rule → 1 cursor output + 1 native cursor passthrough
     expect(result.written).toHaveLength(2);
-    expect(existsSync(join(projectDir, '.windsurf', 'rules', 'code-style.md'))).toBe(true);
-    expect(existsSync(join(projectDir, '.windsurf', 'rules', 'native-lint.md'))).toBe(true);
+    expect(existsSync(join(projectDir, '.cursor', 'rules', 'code-style.mdc'))).toBe(true);
+    expect(existsSync(join(projectDir, '.cursor', 'rules', 'native-lint.mdc'))).toBe(true);
   });
 
   // -------------------------------------------------------------------------
@@ -328,18 +314,12 @@ describe('integration: discover → transpile → install', () => {
     });
 
     expect(result.success).toBe(true);
-    expect(result.written).toHaveLength(6);
+    expect(result.written).toHaveLength(4);
 
     // Cursor: globs as comma-separated string
     const cursor = readFileSync(join(projectDir, '.cursor', 'rules', 'ts-style.mdc'), 'utf-8');
     expect(cursor).toContain('globs: *.ts, *.tsx');
     expect(cursor).toContain('alwaysApply: false');
-
-    // Windsurf: globs as YAML array
-    const windsurf = readFileSync(join(projectDir, '.windsurf', 'rules', 'ts-style.md'), 'utf-8');
-    expect(windsurf).toContain('trigger: glob');
-    expect(windsurf).toContain('"*.ts"');
-    expect(windsurf).toContain('"*.tsx"');
 
     // Copilot: applyTo with globs
     const copilot = readFileSync(
@@ -348,12 +328,6 @@ describe('integration: discover → transpile → install', () => {
     );
     expect(copilot).toContain('applyTo:');
     expect(copilot).toContain('*.ts');
-
-    // Cline: Applies to line
-    const cline = readFileSync(join(projectDir, '.clinerules', 'ts-style.md'), 'utf-8');
-    expect(cline).toContain('**Applies to:**');
-    expect(cline).toContain('`*.ts`');
-    expect(cline).toContain('`*.tsx`');
   });
 
   // -------------------------------------------------------------------------
@@ -374,13 +348,11 @@ describe('integration: discover → transpile → install', () => {
     });
 
     expect(result.success).toBe(true);
-    expect(result.writes).toHaveLength(6);
+    expect(result.writes).toHaveLength(4);
     expect(result.written).toHaveLength(0);
 
     // No files should have been created
     expect(existsSync(join(projectDir, '.cursor'))).toBe(false);
-    expect(existsSync(join(projectDir, '.windsurf'))).toBe(false);
-    expect(existsSync(join(projectDir, '.clinerules'))).toBe(false);
     expect(existsSync(join(projectDir, '.github'))).toBe(false);
     expect(existsSync(join(projectDir, '.claude'))).toBe(false);
     expect(existsSync(join(projectDir, '.opencode'))).toBe(false);
@@ -400,19 +372,17 @@ describe('integration: discover → transpile → install', () => {
       projectRoot: projectDir,
       source: 'test/repo',
       lockEntries: [],
-      targets: ['cursor', 'cline'] as const,
+      targets: ['cursor', 'opencode'] as const,
     });
 
     expect(result.success).toBe(true);
     expect(result.written).toHaveLength(2);
     expect(existsSync(join(projectDir, '.cursor', 'rules', 'code-style.mdc'))).toBe(true);
-    expect(existsSync(join(projectDir, '.clinerules', 'code-style.md'))).toBe(true);
+    expect(existsSync(join(projectDir, '.opencode', 'rules', 'code-style.md'))).toBe(true);
 
     // Others should NOT exist
-    expect(existsSync(join(projectDir, '.windsurf'))).toBe(false);
     expect(existsSync(join(projectDir, '.github'))).toBe(false);
     expect(existsSync(join(projectDir, '.claude'))).toBe(false);
-    expect(existsSync(join(projectDir, '.opencode'))).toBe(false);
   });
 
   // -------------------------------------------------------------------------
@@ -470,7 +440,7 @@ describe('integration: discover → transpile → install', () => {
 
     expect(result.success).toBe(true);
     expect(result.collisions.length).toBeGreaterThan(0); // collisions detected but forced
-    expect(result.written).toHaveLength(6);
+    expect(result.written).toHaveLength(4);
 
     // File should now have transpiled content, not user content
     const content = readFileSync(join(conflictDir, 'code-style.mdc'), 'utf-8');
@@ -557,7 +527,7 @@ describe('integration: discover → transpile → install', () => {
 
     // Block one agent directory by creating a file where a directory is expected
     // This causes mkdir to fail when the pipeline tries to create subdirectories
-    writeFileSync(join(projectDir, '.windsurf'), 'blocker-file');
+    writeFileSync(join(projectDir, '.opencode'), 'blocker-file');
 
     const { items } = await discover(sourceDir);
     const result = await executeInstallPipeline(items, {
@@ -571,7 +541,7 @@ describe('integration: discover → transpile → install', () => {
     expect(result.written).toHaveLength(0);
 
     // Files that were written before the failure should be rolled back
-    // Cursor is alphabetically before windsurf in the output order, so
+    // Cursor is alphabetically before opencode in the output order, so
     // it may have been written first — verify cleanup happened
     const cursorFile = join(projectDir, '.cursor', 'rules', 'code-style.mdc');
     const copilotFile = join(projectDir, '.github', 'instructions', 'code-style.instructions.md');
@@ -750,6 +720,6 @@ describe('integration: discover → transpile → install', () => {
 
     // Neither rule should have been written
     expect(existsSync(join(projectDir, '.cursor', 'rules', 'rule-b.mdc'))).toBe(false);
-    expect(existsSync(join(projectDir, '.windsurf', 'rules', 'rule-b.md'))).toBe(false);
+    expect(existsSync(join(projectDir, '.opencode', 'rules', 'rule-b.md'))).toBe(false);
   });
 });

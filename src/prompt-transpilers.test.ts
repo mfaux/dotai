@@ -289,30 +289,12 @@ describe('nativePromptPassthrough', () => {
     expect(output!.mode).toBe('write');
   });
 
-  it('returns TranspiledOutput for matching Windsurf agent (native passthrough)', () => {
-    const item = makeDiscoveredPromptItem({
-      format: 'native:windsurf',
-      name: 'my-workflow',
-      rawContent: 'Native windsurf workflow content',
-    });
-
-    const output = nativePromptPassthrough(item, 'windsurf');
-
-    expect(output).not.toBeNull();
-    expect(output!.filename).toBe('my-workflow.md');
-    expect(output!.content).toBe('Native windsurf workflow content');
-    // Windsurf has nativePromptDiscovery but no promptsConfig, so uses sourceDir
-    expect(output!.outputDir).toBe('.windsurf/workflows');
-    expect(output!.mode).toBe('write');
-  });
-
   it('returns null for non-matching agent', () => {
     const item = makeDiscoveredPromptItem({ format: 'native:github-copilot' });
 
     expect(nativePromptPassthrough(item, 'claude-code')).toBeNull();
-    expect(nativePromptPassthrough(item, 'windsurf')).toBeNull();
     expect(nativePromptPassthrough(item, 'cursor')).toBeNull();
-    expect(nativePromptPassthrough(item, 'cline')).toBeNull();
+    expect(nativePromptPassthrough(item, 'opencode')).toBeNull();
   });
 
   it('returns null for agents without prompt support', () => {
@@ -321,14 +303,8 @@ describe('nativePromptPassthrough', () => {
       name: 'test-prompt',
       rawContent: 'content',
     });
-    const clineItem = makeDiscoveredPromptItem({
-      format: 'native:cline',
-      name: 'test-prompt',
-      rawContent: 'content',
-    });
 
     expect(nativePromptPassthrough(cursorItem, 'cursor')).toBeNull();
-    expect(nativePromptPassthrough(clineItem, 'cline')).toBeNull();
   });
 
   it('preserves raw content unchanged', () => {
@@ -348,7 +324,6 @@ describe('nativePromptPassthrough', () => {
     const agents: Array<[TargetAgent, string, string]> = [
       ['github-copilot', '.prompt.md', '.github/prompts'],
       ['claude-code', '.md', '.claude/commands'],
-      ['windsurf', '.md', '.windsurf/workflows'],
     ];
 
     for (const [agent, expectedExt, expectedDir] of agents) {
@@ -397,33 +372,6 @@ describe('transpilePrompt', () => {
     const output = transpilePrompt(item, 'cursor');
 
     expect(output).toBeNull();
-  });
-
-  it('returns null for cline (unsupported)', () => {
-    const item = makeDiscoveredPromptItem();
-    const output = transpilePrompt(item, 'cline');
-
-    expect(output).toBeNull();
-  });
-
-  it('returns null for windsurf canonical prompts (no canonical transpiler)', () => {
-    const item = makeDiscoveredPromptItem();
-    const output = transpilePrompt(item, 'windsurf');
-
-    expect(output).toBeNull();
-  });
-
-  it('handles native passthrough for windsurf', () => {
-    const item = makeDiscoveredPromptItem({
-      format: 'native:windsurf',
-      rawContent: 'Windsurf workflow content',
-    });
-
-    const output = transpilePrompt(item, 'windsurf');
-
-    expect(output).not.toBeNull();
-    expect(output!.content).toBe('Windsurf workflow content');
-    expect(output!.outputDir).toBe('.windsurf/workflows');
   });
 
   it('returns null for invalid canonical content', () => {
@@ -492,27 +440,14 @@ describe('transpilePromptForAllAgents', () => {
   it('returns empty array for native prompt with no matching agent in subset', () => {
     const item = makeDiscoveredPromptItem({ format: 'native:github-copilot' });
 
-    const outputs = transpilePromptForAllAgents(item, ['cursor', 'cline']);
+    const outputs = transpilePromptForAllAgents(item, ['cursor']);
 
     expect(outputs).toHaveLength(0);
   });
 
-  it('includes windsurf native passthrough', () => {
-    const item = makeDiscoveredPromptItem({
-      format: 'native:windsurf',
-      rawContent: 'Windsurf workflow',
-    });
-
-    const outputs = transpilePromptForAllAgents(item, TARGET_AGENTS);
-
-    expect(outputs).toHaveLength(1);
-    expect(outputs[0]!.outputDir).toBe('.windsurf/workflows');
-    expect(outputs[0]!.content).toBe('Windsurf workflow');
-  });
-
   it('returns empty array for unsupported agents only', () => {
     const item = makeDiscoveredPromptItem();
-    const agents: TargetAgent[] = ['cursor', 'cline', 'windsurf'];
+    const agents: TargetAgent[] = ['cursor'];
 
     const outputs = transpilePromptForAllAgents(item, agents);
 
@@ -533,10 +468,8 @@ describe('promptTranspilers registry', () => {
     ]);
   });
 
-  it('does not have entries for cursor, windsurf, or cline', () => {
+  it('does not have entries for cursor', () => {
     expect(promptTranspilers['cursor' as TargetAgent]).toBeUndefined();
-    expect(promptTranspilers['windsurf' as TargetAgent]).toBeUndefined();
-    expect(promptTranspilers['cline' as TargetAgent]).toBeUndefined();
   });
 
   it('all entries implement canTranspile and transform', () => {

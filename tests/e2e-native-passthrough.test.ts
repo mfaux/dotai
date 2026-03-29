@@ -364,8 +364,8 @@ describe('E2E native passthrough', () => {
 
       expect(result.success).toBe(true);
       expect(result.rulesInstalled).toBe(2);
-      // canonical: 6 files + native: 1 file = 7 total
-      expect(result.writtenPaths).toHaveLength(7);
+      // canonical: 4 files + native: 1 file = 5 total
+      expect(result.writtenPaths).toHaveLength(5);
 
       // Canonical rule should be in all agents
       for (const agent of ALL_AGENTS) {
@@ -382,7 +382,7 @@ describe('E2E native passthrough', () => {
       await assertLockEntryCount(projectRoot, 2);
       await assertLockEntry(projectRoot, 'rule', 'formatting', {
         format: 'canonical',
-        outputCount: 6,
+        outputCount: 4,
       });
       await assertLockEntry(projectRoot, 'rule', 'cursor-only', {
         format: 'native:cursor',

@@ -42,8 +42,7 @@ export interface ModelResolution {
  * model identifier it expects, or `null` if the agent does not support
  * model selection for that model.
  *
- * Agents that don't support model selection at all (Cursor, Windsurf, Cline)
- * always map to `null`.
+ * Agents that don't support model selection at all (Cursor) always map to `null`.
  */
 const BUILT_IN_ALIASES: Record<string, Partial<Record<TargetAgent, string | null>>> = {
   // --- Anthropic models ---
@@ -51,24 +50,18 @@ const BUILT_IN_ALIASES: Record<string, Partial<Record<TargetAgent, string | null
     'github-copilot': 'claude-sonnet-4',
     'claude-code': 'claude-sonnet-4',
     cursor: null,
-    windsurf: null,
-    cline: null,
     opencode: 'anthropic/claude-sonnet-4-20250514',
   },
   'claude-opus-4': {
     'github-copilot': 'claude-opus-4',
     'claude-code': 'claude-opus-4',
     cursor: null,
-    windsurf: null,
-    cline: null,
     opencode: 'anthropic/claude-opus-4-20250514',
   },
   'claude-haiku-3.5': {
     'github-copilot': 'claude-3.5-haiku',
     'claude-code': 'claude-3-5-haiku-latest',
     cursor: null,
-    windsurf: null,
-    cline: null,
     opencode: 'anthropic/claude-3-5-haiku-20241022',
   },
 
@@ -77,24 +70,18 @@ const BUILT_IN_ALIASES: Record<string, Partial<Record<TargetAgent, string | null
     'github-copilot': 'gpt-4o',
     'claude-code': null,
     cursor: null,
-    windsurf: null,
-    cline: null,
     opencode: 'openai/gpt-4o',
   },
   'gpt-4.1': {
     'github-copilot': 'gpt-4.1',
     'claude-code': null,
     cursor: null,
-    windsurf: null,
-    cline: null,
     opencode: 'openai/gpt-4.1',
   },
   'o3-mini': {
     'github-copilot': 'o3-mini',
     'claude-code': null,
     cursor: null,
-    windsurf: null,
-    cline: null,
     opencode: 'openai/o3-mini',
   },
 
@@ -103,8 +90,6 @@ const BUILT_IN_ALIASES: Record<string, Partial<Record<TargetAgent, string | null
     'github-copilot': 'gemini-2.5-pro',
     'claude-code': null,
     cursor: null,
-    windsurf: null,
-    cline: null,
     opencode: 'google/gemini-2.5-pro',
   },
 };

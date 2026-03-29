@@ -171,8 +171,8 @@ describe('buildSecurityLines', () => {
 
 describe('splitAgentsByType', () => {
   it('splits agents into universal and symlinked groups', () => {
-    // codex uses .agents/skills (universal), windsurf uses .windsurf/skills (non-universal)
-    const result = splitAgentsByType(['codex', 'windsurf'] as AgentType[]);
+    // codex uses .agents/skills (universal), claude-code uses .claude/skills (non-universal)
+    const result = splitAgentsByType(['codex', 'claude-code'] as AgentType[]);
     expect(result.universal.length).toBe(1);
     expect(result.symlinked.length).toBe(1);
   });
@@ -191,17 +191,17 @@ describe('splitAgentsByType', () => {
   });
 
   it('puts non-universal agents in the symlinked group', () => {
-    // windsurf uses .windsurf/skills, claude-code uses .claude/skills (both non-universal)
-    const result = splitAgentsByType(['windsurf', 'claude-code'] as AgentType[]);
-    expect(result.universal.length).toBe(0);
-    expect(result.symlinked.length).toBe(2);
+    // claude-code uses .claude/skills (non-universal), cursor uses .agents/skills (universal)
+    const result = splitAgentsByType(['cursor', 'claude-code'] as AgentType[]);
+    expect(result.universal.length).toBe(1);
+    expect(result.symlinked.length).toBe(1);
   });
 });
 
 describe('buildAgentSummaryLines', () => {
   it('shows universal and symlink lines in symlink mode', () => {
-    // codex is universal (.agents/skills), windsurf is non-universal (.windsurf/skills)
-    const agentList: AgentType[] = ['codex', 'windsurf'];
+    // codex is universal (.agents/skills), claude-code is non-universal (.claude/skills)
+    const agentList: AgentType[] = ['codex', 'claude-code'];
     const lines = buildAgentSummaryLines(agentList, 'symlink');
     const text = lines.map(stripAnsi).join('\n');
     expect(text).toContain('universal:');
@@ -209,7 +209,7 @@ describe('buildAgentSummaryLines', () => {
   });
 
   it('shows copy line in copy mode', () => {
-    const agentList: AgentType[] = ['codex', 'windsurf'];
+    const agentList: AgentType[] = ['codex', 'claude-code'];
     const lines = buildAgentSummaryLines(agentList, 'copy');
     const text = lines.map(stripAnsi).join('\n');
     expect(text).toContain('copy');
@@ -223,10 +223,10 @@ describe('buildAgentSummaryLines', () => {
 
 describe('ensureUniversalAgents', () => {
   it('adds missing universal agents', () => {
-    // windsurf is non-universal; universal agents should be added
-    const result = ensureUniversalAgents(['windsurf'] as AgentType[]);
-    // Should include windsurf plus all universal agents
-    expect(result).toContain('windsurf');
+    // claude-code is non-universal; universal agents should be added
+    const result = ensureUniversalAgents(['claude-code'] as AgentType[]);
+    // Should include claude-code plus all universal agents
+    expect(result).toContain('claude-code');
     expect(result.length).toBeGreaterThan(1);
   });
 
@@ -247,11 +247,11 @@ describe('buildResultLines', () => {
   it('groups results by universal, symlinked, and copied', () => {
     const results = [
       { agent: 'Codex', symlinkFailed: false },
-      { agent: 'Windsurf', symlinkFailed: false },
-      { agent: 'Augment', symlinkFailed: true },
+      { agent: 'Claude Code', symlinkFailed: false },
+      { agent: 'Claude Code', symlinkFailed: true },
     ];
-    // codex is universal (.agents/skills), windsurf and augment are non-universal
-    const targetAgents: AgentType[] = ['codex', 'windsurf', 'augment'];
+    // codex is universal (.agents/skills), claude-code is non-universal (.claude/skills)
+    const targetAgents: AgentType[] = ['codex', 'claude-code', 'claude-code'];
     const lines = buildResultLines(results, targetAgents);
     const text = lines.map(stripAnsi).join('\n');
     expect(text).toContain('universal:');
@@ -260,9 +260,9 @@ describe('buildResultLines', () => {
   });
 
   it('omits groups with no members', () => {
-    // windsurf is non-universal, so it should appear in symlinked group only
-    const results = [{ agent: 'Windsurf', symlinkFailed: false }];
-    const targetAgents: AgentType[] = ['windsurf'];
+    // claude-code is non-universal, so it should appear in symlinked group only
+    const results = [{ agent: 'Claude Code', symlinkFailed: false }];
+    const targetAgents: AgentType[] = ['claude-code'];
     const lines = buildResultLines(results, targetAgents);
     const text = lines.map(stripAnsi).join('\n');
     expect(text).not.toContain('universal:');

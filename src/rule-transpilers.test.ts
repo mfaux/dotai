@@ -1,8 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
   cursorRuleTranspiler,
-  windsurfRuleTranspiler,
-  clineRuleTranspiler,
   copilotRuleTranspiler,
   claudeCodeRuleTranspiler,
   copilotAppendRuleTranspiler,
@@ -69,8 +67,6 @@ describe('canTranspile', () => {
 
   it.each([
     ['cursor', cursorRuleTranspiler],
-    ['windsurf', windsurfRuleTranspiler],
-    ['cline', clineRuleTranspiler],
     ['copilot', copilotRuleTranspiler],
     ['claude-code', claudeCodeRuleTranspiler],
   ] as const)('%s accepts canonical rules', (_name, transpiler) => {
@@ -79,8 +75,6 @@ describe('canTranspile', () => {
 
   it.each([
     ['cursor', cursorRuleTranspiler],
-    ['windsurf', windsurfRuleTranspiler],
-    ['cline', clineRuleTranspiler],
     ['copilot', copilotRuleTranspiler],
     ['claude-code', claudeCodeRuleTranspiler],
   ] as const)('%s rejects native rules', (_name, transpiler) => {
@@ -89,8 +83,6 @@ describe('canTranspile', () => {
 
   it.each([
     ['cursor', cursorRuleTranspiler],
-    ['windsurf', windsurfRuleTranspiler],
-    ['cline', clineRuleTranspiler],
     ['copilot', copilotRuleTranspiler],
     ['claude-code', claudeCodeRuleTranspiler],
   ] as const)('%s rejects skill items', (_name, transpiler) => {
@@ -167,130 +159,6 @@ describe('Cursor transpiler', () => {
     const output = cursorRuleTranspiler.transform(rule, 'cursor');
 
     expect(output.content).not.toMatch(/^globs:/m);
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Windsurf transpiler
-// ---------------------------------------------------------------------------
-
-describe('Windsurf transpiler', () => {
-  it('produces .md file in .windsurf/rules/', () => {
-    const rule = makeRule();
-    const output = windsurfRuleTranspiler.transform(rule, 'windsurf');
-
-    expect(output.filename).toBe('code-style.md');
-    expect(output.outputDir).toBe('.windsurf/rules');
-    expect(output.mode).toBe('write');
-  });
-
-  it('maps always activation to always_on trigger', () => {
-    const rule = makeRule({ activation: 'always' });
-    const output = windsurfRuleTranspiler.transform(rule, 'windsurf');
-
-    expect(output.content).toContain('trigger: always_on');
-  });
-
-  it('maps auto activation to model_decision trigger', () => {
-    const rule = makeRule({ activation: 'auto' });
-    const output = windsurfRuleTranspiler.transform(rule, 'windsurf');
-
-    expect(output.content).toContain('trigger: model_decision');
-  });
-
-  it('maps manual activation to manual trigger', () => {
-    const rule = makeRule({ activation: 'manual' });
-    const output = windsurfRuleTranspiler.transform(rule, 'windsurf');
-
-    expect(output.content).toContain('trigger: manual');
-  });
-
-  it('maps glob activation to glob trigger with globs array', () => {
-    const rule = makeRule({ activation: 'glob', globs: ['*.ts', '*.tsx'] });
-    const output = windsurfRuleTranspiler.transform(rule, 'windsurf');
-
-    expect(output.content).toContain('trigger: glob');
-    expect(output.content).toContain('globs:');
-    expect(output.content).toContain('  - "*.ts"');
-    expect(output.content).toContain('  - "*.tsx"');
-  });
-
-  it('includes description in frontmatter', () => {
-    const rule = makeRule();
-    const output = windsurfRuleTranspiler.transform(rule, 'windsurf');
-
-    expect(output.content).toContain('description: "Enforce TypeScript code style conventions"');
-  });
-
-  it('omits globs for non-glob activation', () => {
-    const rule = makeRule({ activation: 'always', globs: ['*.ts'] });
-    const output = windsurfRuleTranspiler.transform(rule, 'windsurf');
-
-    expect(output.content).not.toMatch(/^globs:/m);
-  });
-
-  it('includes rule body after frontmatter', () => {
-    const rule = makeRule({ body: 'Use const over let.' });
-    const output = windsurfRuleTranspiler.transform(rule, 'windsurf');
-
-    expect(output.content).toContain('---\n\nUse const over let.\n');
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Cline transpiler
-// ---------------------------------------------------------------------------
-
-describe('Cline transpiler', () => {
-  it('produces .md file in .clinerules/', () => {
-    const rule = makeRule();
-    const output = clineRuleTranspiler.transform(rule, 'cline');
-
-    expect(output.filename).toBe('code-style.md');
-    expect(output.outputDir).toBe('.clinerules');
-    expect(output.mode).toBe('write');
-  });
-
-  it('includes name as heading', () => {
-    const rule = makeRule();
-    const output = clineRuleTranspiler.transform(rule, 'cline');
-
-    expect(output.content).toContain('# code-style');
-  });
-
-  it('includes description as blockquote', () => {
-    const rule = makeRule();
-    const output = clineRuleTranspiler.transform(rule, 'cline');
-
-    expect(output.content).toContain('> Enforce TypeScript code style conventions');
-  });
-
-  it('includes "Applies to" with globs for glob activation', () => {
-    const rule = makeRule({ activation: 'glob', globs: ['*.ts', '*.tsx'] });
-    const output = clineRuleTranspiler.transform(rule, 'cline');
-
-    expect(output.content).toContain('**Applies to:** `*.ts`, `*.tsx`');
-  });
-
-  it('omits "Applies to" for non-glob activation', () => {
-    const rule = makeRule({ activation: 'always' });
-    const output = clineRuleTranspiler.transform(rule, 'cline');
-
-    expect(output.content).not.toContain('Applies to');
-  });
-
-  it('includes rule body', () => {
-    const rule = makeRule({ body: 'Use const over let.' });
-    const output = clineRuleTranspiler.transform(rule, 'cline');
-
-    expect(output.content).toContain('Use const over let.');
-  });
-
-  it('omits "Applies to" when glob activation but empty globs', () => {
-    const rule = makeRule({ activation: 'glob', globs: [] });
-    const output = clineRuleTranspiler.transform(rule, 'cline');
-
-    expect(output.content).not.toContain('Applies to');
   });
 });
 
@@ -578,8 +446,8 @@ describe('nativePassthrough', () => {
   it('returns null for non-matching agent', () => {
     const item = makeDiscoveredItem({ format: 'native:cursor' });
 
-    expect(nativePassthrough(item, 'windsurf')).toBeNull();
-    expect(nativePassthrough(item, 'cline')).toBeNull();
+    expect(nativePassthrough(item, 'opencode')).toBeNull();
+    expect(nativePassthrough(item, 'claude-code')).toBeNull();
     expect(nativePassthrough(item, 'github-copilot')).toBeNull();
     expect(nativePassthrough(item, 'claude-code')).toBeNull();
   });
@@ -587,10 +455,9 @@ describe('nativePassthrough', () => {
   it('uses correct extension for each agent', () => {
     const agents: Array<[TargetAgent, string, string]> = [
       ['cursor', '.mdc', '.cursor/rules'],
-      ['windsurf', '.md', '.windsurf/rules'],
-      ['cline', '.md', '.clinerules'],
       ['github-copilot', '.instructions.md', '.github/instructions'],
       ['claude-code', '.md', '.claude/rules'],
+      ['opencode', '.md', '.opencode/rules'],
     ];
 
     for (const [agent, expectedExt, expectedDir] of agents) {
@@ -611,11 +478,11 @@ describe('nativePassthrough', () => {
   it('preserves raw content unchanged', () => {
     const rawContent = '---\ncustom: frontmatter\n---\n\nAgent-specific content here';
     const item = makeDiscoveredItem({
-      format: 'native:windsurf',
+      format: 'native:opencode',
       rawContent,
     });
 
-    const output = nativePassthrough(item, 'windsurf');
+    const output = nativePassthrough(item, 'opencode');
 
     expect(output!.content).toBe(rawContent);
   });
@@ -664,8 +531,8 @@ describe('transpileRule', () => {
     expect(cursorOutput).not.toBeNull();
     expect(cursorOutput!.content).toBe('Native content');
 
-    const windsurfOutput = transpileRule(item, 'windsurf');
-    expect(windsurfOutput).toBeNull();
+    const claudeOutput = transpileRule(item, 'claude-code');
+    expect(claudeOutput).toBeNull();
   });
 
   it('uses append transpiler for copilot when append=true', () => {
@@ -700,23 +567,13 @@ describe('transpileRule', () => {
     expect(output!.mode).toBe('write');
   });
 
-  it('falls back to per-rule file for windsurf when append=true', () => {
+  it('falls back to per-rule file for opencode when append=true', () => {
     const item = makeDiscoveredItem();
-    const output = transpileRule(item, 'windsurf', true);
+    const output = transpileRule(item, 'opencode', true);
 
     expect(output).not.toBeNull();
     expect(output!.filename).toBe('code-style.md');
-    expect(output!.outputDir).toBe('.windsurf/rules');
-    expect(output!.mode).toBe('write');
-  });
-
-  it('falls back to per-rule file for cline when append=true', () => {
-    const item = makeDiscoveredItem();
-    const output = transpileRule(item, 'cline', true);
-
-    expect(output).not.toBeNull();
-    expect(output!.filename).toBe('code-style.md');
-    expect(output!.outputDir).toBe('.clinerules');
+    expect(output!.outputDir).toBe('.opencode/rules');
     expect(output!.mode).toBe('write');
   });
 
@@ -738,20 +595,18 @@ describe('transpileRule', () => {
 // ---------------------------------------------------------------------------
 
 describe('transpileRuleForAllAgents', () => {
-  it('produces outputs for all 6 agents from canonical rule', () => {
+  it('produces outputs for all 4 agents from canonical rule', () => {
     const item = makeDiscoveredItem();
     const outputs = transpileRuleForAllAgents(item, TARGET_AGENTS);
 
-    expect(outputs).toHaveLength(6);
+    expect(outputs).toHaveLength(4);
 
     const dirs = outputs.map((o) => o.outputDir).sort();
     expect(dirs).toEqual([
       '.claude/rules',
-      '.clinerules',
       '.cursor/rules',
       '.github/instructions',
       '.opencode/rules',
-      '.windsurf/rules',
     ]);
   });
 
@@ -771,18 +626,18 @@ describe('transpileRuleForAllAgents', () => {
 
   it('handles subset of target agents', () => {
     const item = makeDiscoveredItem();
-    const agents: TargetAgent[] = ['cursor', 'cline'];
+    const agents: TargetAgent[] = ['cursor', 'opencode'];
 
     const outputs = transpileRuleForAllAgents(item, agents);
 
     expect(outputs).toHaveLength(2);
-    expect(outputs.map((o) => o.outputDir).sort()).toEqual(['.clinerules', '.cursor/rules']);
+    expect(outputs.map((o) => o.outputDir).sort()).toEqual(['.cursor/rules', '.opencode/rules']);
   });
 
   it('returns empty array for native rule with no matching agent in subset', () => {
     const item = makeDiscoveredItem({ format: 'native:cursor' });
 
-    const outputs = transpileRuleForAllAgents(item, ['windsurf', 'cline']);
+    const outputs = transpileRuleForAllAgents(item, ['opencode', 'claude-code']);
 
     expect(outputs).toHaveLength(0);
   });
@@ -791,7 +646,7 @@ describe('transpileRuleForAllAgents', () => {
     const item = makeDiscoveredItem();
     const outputs = transpileRuleForAllAgents(item, TARGET_AGENTS, true);
 
-    expect(outputs).toHaveLength(6);
+    expect(outputs).toHaveLength(4);
 
     const appendOutputs = outputs.filter((o) => o.mode === 'append');
     expect(appendOutputs).toHaveLength(2);
@@ -800,15 +655,10 @@ describe('transpileRuleForAllAgents', () => {
     expect(appendFiles).toEqual(['AGENTS.md', 'CLAUDE.md']);
 
     const writeOutputs = outputs.filter((o) => o.mode === 'write');
-    expect(writeOutputs).toHaveLength(4);
+    expect(writeOutputs).toHaveLength(2);
 
     const writeDirs = writeOutputs.map((o) => o.outputDir).sort();
-    expect(writeDirs).toEqual([
-      '.clinerules',
-      '.cursor/rules',
-      '.opencode/rules',
-      '.windsurf/rules',
-    ]);
+    expect(writeDirs).toEqual(['.cursor/rules', '.opencode/rules']);
   });
 
   it('mixes per-rule and append outputs correctly', () => {
@@ -829,7 +679,7 @@ describe('transpileRuleForAllAgents', () => {
 // ---------------------------------------------------------------------------
 
 describe('ruleTranspilers registry', () => {
-  it('has entries for all 6 target agents', () => {
+  it('has entries for all 4 target agents', () => {
     expect(Object.keys(ruleTranspilers).sort()).toEqual([...TARGET_AGENTS].sort());
   });
 
@@ -977,12 +827,9 @@ describe('YAML injection prevention', () => {
   it('descriptions containing colons produce valid YAML in all frontmatter transpilers', () => {
     const rule = makeRule({ description: 'Use this: always follow the rules' });
 
-    // Cursor, Windsurf, Claude Code all use YAML frontmatter with description
+    // Cursor and Claude Code both use YAML frontmatter with description
     const cursorOutput = cursorRuleTranspiler.transform(rule, 'cursor');
     expect(cursorOutput.content).toContain('description: "Use this: always follow the rules"');
-
-    const windsurfOutput = windsurfRuleTranspiler.transform(rule, 'windsurf');
-    expect(windsurfOutput.content).toContain('description: "Use this: always follow the rules"');
 
     const claudeOutput = claudeCodeRuleTranspiler.transform(rule, 'claude-code');
     expect(claudeOutput.content).toContain('description: "Use this: always follow the rules"');
@@ -993,9 +840,6 @@ describe('YAML injection prevention', () => {
 
     const cursorOutput = cursorRuleTranspiler.transform(rule, 'cursor');
     expect(cursorOutput.content).toContain('description: "Use \\"strict\\" mode always"');
-
-    const windsurfOutput = windsurfRuleTranspiler.transform(rule, 'windsurf');
-    expect(windsurfOutput.content).toContain('description: "Use \\"strict\\" mode always"');
 
     const claudeOutput = claudeCodeRuleTranspiler.transform(rule, 'claude-code');
     expect(claudeOutput.content).toContain('description: "Use \\"strict\\" mode always"');

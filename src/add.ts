@@ -42,10 +42,10 @@ const version = packageJson.version;
 setVersion(version);
 
 /**
- * Resolve transpilation target agents from --targets flag, or default to all five.
+ * Resolve transpilation target agents from --targets flag, or default to all four.
  *
  * When --targets is used for transpilation (rules/prompts/agents), values are
- * resolved as TargetAgent names or aliases (copilot, claude, cursor, windsurf, cline).
+ * resolved as TargetAgent names or aliases (copilot, claude, cursor).
  *
  * Throws CommandError if invalid or no valid targets are specified.
  */
@@ -56,7 +56,7 @@ function resolveAgentsOrDefault(options: AddOptions): TargetAgent[] {
     if (invalid.length > 0) {
       p.log.error(`Invalid targets: ${invalid.join(', ')}`);
       p.log.info(`Valid targets: ${TARGET_AGENTS.join(', ')}`);
-      p.log.info(`Aliases: copilot, claude, cursor, windsurf, cline`);
+      p.log.info(`Aliases: copilot, claude, cursor`);
       throw new CommandError(1);
     }
 
@@ -999,13 +999,12 @@ async function promptForFindSkills(
     }
 
     if (install) {
-      // Install find-skills to the same agents the user selected, excluding replit
+      // Install find-skills to the selected agents
       await dismissPrompt('findSkillsPrompt');
 
-      // Filter out replit from target agents
-      const findSkillsAgents = targetAgents?.filter((a) => a !== 'replit');
+      const findSkillsAgents = targetAgents;
 
-      // Skip if no valid agents remain after filtering
+      // Skip if no valid agents remain
       if (!findSkillsAgents || findSkillsAgents.length === 0) {
         return;
       }

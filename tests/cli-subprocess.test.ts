@@ -53,8 +53,6 @@ describe('CLI --rule subprocess tests', () => {
     expect(
       existsSync(join(projectDir, '.github', 'instructions', 'code-style.instructions.md'))
     ).toBe(true);
-    expect(existsSync(join(projectDir, '.windsurf', 'rules', 'code-style.md'))).toBe(true);
-    expect(existsSync(join(projectDir, '.clinerules', 'code-style.md'))).toBe(true);
     expect(existsSync(join(projectDir, '.opencode', 'rules', 'code-style.md'))).toBe(true);
   });
 
@@ -82,30 +80,28 @@ describe('CLI --rule subprocess tests', () => {
     ]);
 
     const result = runCli(
-      ['add', sourceRepo, '--rule', 'code-style', '--targets', 'cursor,cline', '-y'],
+      ['add', sourceRepo, '--rule', 'code-style', '--targets', 'cursor,opencode', '-y'],
       projectDir
     );
 
     expect(result.exitCode).toBe(0);
 
-    // Only cursor and cline should have files
+    // Only cursor and opencode should have files
     expect(existsSync(join(projectDir, '.cursor', 'rules', 'code-style.mdc'))).toBe(true);
-    expect(existsSync(join(projectDir, '.clinerules', 'code-style.md'))).toBe(true);
+    expect(existsSync(join(projectDir, '.opencode', 'rules', 'code-style.md'))).toBe(true);
 
     // Other agents should not
     expect(existsSync(join(projectDir, '.claude', 'rules', 'code-style.md'))).toBe(false);
     expect(
       existsSync(join(projectDir, '.github', 'instructions', 'code-style.instructions.md'))
     ).toBe(false);
-    expect(existsSync(join(projectDir, '.windsurf', 'rules', 'code-style.md'))).toBe(false);
-    expect(existsSync(join(projectDir, '.opencode', 'rules', 'code-style.md'))).toBe(false);
 
     // Lock file should only list targeted agents
     const lock = await readLockFileFromDisk(projectDir);
     const agents = lock.items[0]!.agents;
     expect(agents).toHaveLength(2);
     expect(agents).toContain('cursor');
-    expect(agents).toContain('cline');
+    expect(agents).toContain('opencode');
   });
 
   it('add --rule --force overrides existing file', async () => {
@@ -190,10 +186,8 @@ describe('CLI --custom-agent subprocess tests', () => {
     expect(existsSync(join(projectDir, '.claude', 'agents', 'architect.md'))).toBe(true);
     expect(existsSync(join(projectDir, '.opencode', 'agents', 'architect.md'))).toBe(true);
 
-    // No agent files for Cursor, Windsurf, Cline (no agent support)
+    // No agent files for Cursor (no agent support)
     expect(existsSync(join(projectDir, '.cursor', 'agents'))).toBe(false);
-    expect(existsSync(join(projectDir, '.windsurf', 'agents'))).toBe(false);
-    expect(existsSync(join(projectDir, '.clinerules'))).toBe(false);
   });
 
   it('add --custom-agent --dry-run does not create files', async () => {

@@ -78,13 +78,11 @@ const VALID_RULE = {
 // ---------------------------------------------------------------------------
 
 describe('target-agents registry', () => {
-  it('has exactly 6 target agents', () => {
-    expect(TARGET_AGENTS).toHaveLength(6);
+  it('has exactly 4 target agents', () => {
+    expect(TARGET_AGENTS).toHaveLength(4);
     expect(TARGET_AGENTS).toContain('github-copilot');
     expect(TARGET_AGENTS).toContain('claude-code');
     expect(TARGET_AGENTS).toContain('cursor');
-    expect(TARGET_AGENTS).toContain('windsurf');
-    expect(TARGET_AGENTS).toContain('cline');
     expect(TARGET_AGENTS).toContain('opencode');
   });
 
@@ -105,16 +103,12 @@ describe('target-agents registry', () => {
     expect(targetAgents['github-copilot'].rulesConfig.outputDir).toBe('.github/instructions');
     expect(targetAgents['claude-code'].rulesConfig.outputDir).toBe('.claude/rules');
     expect(targetAgents['cursor'].rulesConfig.outputDir).toBe('.cursor/rules');
-    expect(targetAgents['windsurf'].rulesConfig.outputDir).toBe('.windsurf/rules');
-    expect(targetAgents['cline'].rulesConfig.outputDir).toBe('.clinerules');
   });
 
   it('maps correct rules extensions', () => {
     expect(getRuleExtension('github-copilot')).toBe('.instructions.md');
     expect(getRuleExtension('claude-code')).toBe('.md');
     expect(getRuleExtension('cursor')).toBe('.mdc');
-    expect(getRuleExtension('windsurf')).toBe('.md');
-    expect(getRuleExtension('cline')).toBe('.md');
   });
 
   it('getTargetAgentConfig returns correct config', () => {
@@ -131,7 +125,7 @@ describe('target-agents registry', () => {
 
   it('getOutputDir returns rules dir for rules', () => {
     expect(getOutputDir('github-copilot', 'rule')).toBe('.github/instructions');
-    expect(getOutputDir('cline', 'rule')).toBe('.clinerules');
+    expect(getOutputDir('cursor', 'rule')).toBe('.cursor/rules');
   });
 
   it('getOutputDir returns prompts dir for agents that support prompts', () => {
@@ -141,8 +135,6 @@ describe('target-agents registry', () => {
 
   it('getOutputDir returns undefined for agents that do not support prompts', () => {
     expect(getOutputDir('cursor', 'prompt')).toBeUndefined();
-    expect(getOutputDir('windsurf', 'prompt')).toBeUndefined();
-    expect(getOutputDir('cline', 'prompt')).toBeUndefined();
   });
 
   it('maps correct prompt output directories', () => {
@@ -157,20 +149,10 @@ describe('target-agents registry', () => {
 
   it('returns undefined prompt extension for unsupported agents', () => {
     expect(getPromptExtension('cursor')).toBeUndefined();
-    expect(getPromptExtension('windsurf')).toBeUndefined();
-    expect(getPromptExtension('cline')).toBeUndefined();
   });
 
   it('agents without promptsConfig have no prompt support', () => {
     expect(targetAgents['cursor'].promptsConfig).toBeUndefined();
-    expect(targetAgents['cline'].promptsConfig).toBeUndefined();
-  });
-
-  it('windsurf has nativePromptDiscovery but no promptsConfig', () => {
-    expect(targetAgents['windsurf'].promptsConfig).toBeUndefined();
-    expect(targetAgents['windsurf'].nativePromptDiscovery).toBeDefined();
-    expect(targetAgents['windsurf'].nativePromptDiscovery?.sourceDir).toBe('.windsurf/workflows');
-    expect(targetAgents['windsurf'].nativePromptDiscovery?.pattern).toBe('*.md');
   });
 
   it('nativePromptDiscovery paths are correct for supporting agents', () => {
@@ -192,14 +174,10 @@ describe('target-agents registry', () => {
 
   it('returns undefined agent extension for unsupported agents', () => {
     expect(getAgentExtension('cursor')).toBeUndefined();
-    expect(getAgentExtension('windsurf')).toBeUndefined();
-    expect(getAgentExtension('cline')).toBeUndefined();
   });
 
   it('agents without agentsConfig have no agent support', () => {
     expect(targetAgents['cursor'].agentsConfig).toBeUndefined();
-    expect(targetAgents['windsurf'].agentsConfig).toBeUndefined();
-    expect(targetAgents['cline'].agentsConfig).toBeUndefined();
   });
 
   it('getOutputDir returns agents dir for agents that support agents', () => {
@@ -209,8 +187,6 @@ describe('target-agents registry', () => {
 
   it('getOutputDir returns undefined for agents that do not support agents', () => {
     expect(getOutputDir('cursor', 'agent')).toBeUndefined();
-    expect(getOutputDir('windsurf', 'agent')).toBeUndefined();
-    expect(getOutputDir('cline', 'agent')).toBeUndefined();
   });
 
   it('nativeAgentDiscovery paths are correct for supporting agents', () => {
@@ -420,26 +396,6 @@ describe('discover', () => {
       const nativeRules = filterByFormat(result.items, 'native:claude-code');
       expect(nativeRules).toHaveLength(1);
       expect(at(nativeRules, 0).name).toBe('style');
-    });
-
-    it('discovers .windsurf/rules/*.md', async () => {
-      await mkdir(join(testDir, '.windsurf', 'rules'), { recursive: true });
-      await writeFile(join(testDir, '.windsurf', 'rules', 'lint.md'), 'Windsurf rule');
-
-      const result = await discover(testDir);
-      const nativeRules = filterByFormat(result.items, 'native:windsurf');
-      expect(nativeRules).toHaveLength(1);
-      expect(at(nativeRules, 0).name).toBe('lint');
-    });
-
-    it('discovers .clinerules/*.md', async () => {
-      await mkdir(join(testDir, '.clinerules'), { recursive: true });
-      await writeFile(join(testDir, '.clinerules', 'safety.md'), 'Cline rule');
-
-      const result = await discover(testDir);
-      const nativeRules = filterByFormat(result.items, 'native:cline');
-      expect(nativeRules).toHaveLength(1);
-      expect(at(nativeRules, 0).name).toBe('safety');
     });
 
     it('ignores files that do not match pattern', async () => {
@@ -671,22 +627,6 @@ describe('discover', () => {
       expect(at(prompts, 0).type).toBe('prompt');
     });
 
-    it('discovers .windsurf/workflows/*.md', async () => {
-      await mkdir(join(testDir, '.windsurf', 'workflows'), { recursive: true });
-      await writeFile(
-        join(testDir, '.windsurf', 'workflows', 'deploy.md'),
-        'Windsurf workflow content'
-      );
-
-      const result = await discover(testDir);
-      const nativePrompts = filterByFormat(result.items, 'native:windsurf');
-      const prompts = nativePrompts.filter((i) => i.type === 'prompt');
-      expect(prompts).toHaveLength(1);
-      expect(at(prompts, 0).name).toBe('deploy');
-      expect(at(prompts, 0).type).toBe('prompt');
-      expect(at(prompts, 0).format).toBe('native:windsurf');
-    });
-
     it('ignores files that do not match prompt pattern', async () => {
       await mkdir(join(testDir, '.github', 'prompts'), { recursive: true });
       await writeFile(join(testDir, '.github', 'prompts', 'readme.txt'), 'Not a prompt');
@@ -700,7 +640,7 @@ describe('discover', () => {
     });
 
     it('does not discover native prompts from agents without nativePromptDiscovery', async () => {
-      // Cursor and Cline have no native prompt discovery
+      // Cursor has no native prompt discovery
       await mkdir(join(testDir, '.cursor', 'prompts'), { recursive: true });
       await writeFile(join(testDir, '.cursor', 'prompts', 'test.md'), 'Not discovered');
 
@@ -919,7 +859,7 @@ describe('discover', () => {
     });
 
     it('does not discover native agents from agents without nativeAgentDiscovery', async () => {
-      // Cursor, Windsurf, and Cline have no native agent discovery
+      // Cursor has no native agent discovery
       await mkdir(join(testDir, '.cursor', 'agents'), { recursive: true });
       await writeFile(join(testDir, '.cursor', 'agents', 'test.md'), 'Not discovered');
 

@@ -56,39 +56,6 @@ function copilotRule(opts?: { applyTo?: string; body?: string }): string {
   return lines.join('\n');
 }
 
-function windsurfRule(opts?: {
-  trigger?: string;
-  description?: string;
-  globs?: string[];
-  body?: string;
-}): string {
-  const lines: string[] = ['---'];
-  lines.push(`trigger: ${opts?.trigger ?? 'always_on'}`);
-  if (opts?.description !== undefined) lines.push(`description: "${opts.description}"`);
-  if (opts?.globs && opts.globs.length > 0) {
-    lines.push('globs:');
-    for (const g of opts.globs) lines.push(`  - "${g}"`);
-  }
-  lines.push('---');
-  lines.push('');
-  lines.push(opts?.body ?? 'Windsurf rule body.');
-  return lines.join('\n');
-}
-
-function clineRule(opts?: { name?: string; description?: string; body?: string }): string {
-  const lines: string[] = [];
-  if (opts?.name) {
-    lines.push(`# ${opts.name}`);
-    lines.push('');
-  }
-  if (opts?.description) {
-    lines.push(`> ${opts.description}`);
-    lines.push('');
-  }
-  lines.push(opts?.body ?? 'Cline rule body.');
-  return lines.join('\n');
-}
-
 // ---------------------------------------------------------------------------
 // Setup / Teardown
 // ---------------------------------------------------------------------------
@@ -138,31 +105,13 @@ describe('import pipeline — discovery + parsing', () => {
     expect(result.imported[0]!.name).toBe('api-patterns');
   });
 
-  it('discovers Windsurf rules from .windsurf/rules/*.md', () => {
-    createFile('.windsurf/rules/deploy.md', windsurfRule({ description: 'Deploy' }));
-
-    const result = executeImport({ projectRoot: tmpDir });
-
-    expect(result.imported).toHaveLength(1);
-    expect(result.imported[0]!.agent).toBe('windsurf');
-  });
-
-  it('discovers Cline rules from .clinerules/*.md', () => {
-    createFile(
-      '.clinerules/error-handling.md',
-      clineRule({ name: 'error-handling', description: 'Handle errors' })
-    );
-
-    const result = executeImport({ projectRoot: tmpDir });
-
-    expect(result.imported).toHaveLength(1);
-    expect(result.imported[0]!.agent).toBe('cline');
-  });
-
   it('discovers rules from multiple agents simultaneously', () => {
     createFile('.cursor/rules/style.mdc', cursorRule({ description: 'Style' }));
     createFile('.claude/rules/testing.md', claudeCodeRule({ description: 'Testing' }));
-    createFile('.windsurf/rules/deploy.md', windsurfRule({ description: 'Deploy' }));
+    createFile(
+      '.github/instructions/api-patterns.instructions.md',
+      copilotRule({ applyTo: '*.ts' })
+    );
 
     const result = executeImport({ projectRoot: tmpDir });
 
@@ -339,11 +288,11 @@ describe('import pipeline — --from filtering', () => {
 
   it('ignores rules from other agents', () => {
     createFile('.cursor/rules/test.mdc', cursorRule());
-    createFile('.windsurf/rules/test2.md', windsurfRule());
+    createFile('.claude/rules/test2.md', claudeCodeRule());
 
-    const result = executeImport({ projectRoot: tmpDir, from: ['windsurf'] });
+    const result = executeImport({ projectRoot: tmpDir, from: ['claude-code'] });
 
     expect(result.imported).toHaveLength(1);
-    expect(result.imported[0]!.agent).toBe('windsurf');
+    expect(result.imported[0]!.agent).toBe('claude-code');
   });
 });

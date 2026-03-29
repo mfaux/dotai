@@ -19,8 +19,8 @@ import { mergeOverrides } from './override-parser.ts';
 // agent file format. The `Transpiler<CanonicalAgent>` interface guarantees
 // consistent shape across all implementations.
 //
-// Only Copilot and Claude Code support agent transpilation. Cursor, Windsurf,
-// and Cline have no agent systems.
+// Only Copilot, Claude Code, and OpenCode support agent transpilation.
+// Cursor has no agent system.
 //
 // Reference: dotai-plan.md Phase 5 (Transpilation Engine)
 // ---------------------------------------------------------------------------
@@ -316,8 +316,6 @@ export const agentTranspilers: Partial<Record<TargetAgent, Transpiler<CanonicalA
   'claude-code': claudeCodeAgentTranspiler,
   opencode: opencodeAgentTranspiler,
   // cursor: not supported — no agent system
-  // windsurf: not supported — no agent system
-  // cline: not supported — no agent system
 };
 
 /**

@@ -429,13 +429,11 @@ export async function assertLockEntryCount(
 // All-agents helpers
 // ---------------------------------------------------------------------------
 
-/** All six target agents. */
+/** All four target agents. */
 export const ALL_AGENTS: readonly TargetAgent[] = [
   'github-copilot',
   'claude-code',
   'cursor',
-  'windsurf',
-  'cline',
   'opencode',
 ] as const;
 

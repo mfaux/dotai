@@ -35,17 +35,11 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 *.log
 package-lock.json
-.codebuddy/
-.agent/
 .agents/
 .claude/
 .cursor/
-.gemini/
 .github/skills/
 .opencode/
-.qoder/
-.qwen/
-.trae/
 .vscode/
 
 bin/_chunks/

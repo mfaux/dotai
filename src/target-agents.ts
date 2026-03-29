@@ -81,7 +81,7 @@ export interface TargetAgentConfig {
 }
 
 /**
- * The five target agents for dotai transpilation, with their
+ * The four target agents for dotai transpilation, with their
  * rules + skills path configurations.
  *
  * Reference: dotai-plan.md Phase 4 (Agent Registry)
@@ -158,38 +158,6 @@ export const targetAgents: Record<TargetAgent, TargetAgentConfig> = {
       pattern: '*.mdc',
     },
     // Cursor has no prompt/command system
-  },
-  windsurf: {
-    name: 'windsurf',
-    displayName: 'Windsurf',
-    skillsDir: '.windsurf/skills',
-    rulesConfig: {
-      outputDir: '.windsurf/rules',
-      extension: '.md',
-    },
-    nativeRuleDiscovery: {
-      sourceDir: '.windsurf/rules',
-      pattern: '*.md',
-    },
-    // Windsurf: native passthrough only, no canonical transpilation
-    nativePromptDiscovery: {
-      sourceDir: '.windsurf/workflows',
-      pattern: '*.md',
-    },
-  },
-  cline: {
-    name: 'cline',
-    displayName: 'Cline',
-    skillsDir: '.cline/skills',
-    rulesConfig: {
-      outputDir: '.clinerules',
-      extension: '.md',
-    },
-    nativeRuleDiscovery: {
-      sourceDir: '.clinerules',
-      pattern: '*.md',
-    },
-    // Cline has no prompt/command system
   },
   opencode: {
     name: 'opencode',

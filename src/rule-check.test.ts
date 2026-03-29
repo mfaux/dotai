@@ -73,7 +73,7 @@ function makeLockEntry(
   name: string,
   source: string,
   rawContent: string,
-  agents: TargetAgent[] = ['github-copilot', 'claude-code', 'cursor', 'windsurf', 'cline']
+  agents: TargetAgent[] = ['github-copilot', 'claude-code', 'cursor', 'opencode']
 ): LockEntry {
   return {
     type: 'rule',
@@ -534,14 +534,13 @@ describe('updateRules', () => {
 
     await updateRules(projectDir);
 
-    // Verify transpiled files exist for all 5 agents
+    // Verify transpiled files exist for all 4 agents
     expect(
       existsSync(join(projectDir, '.github', 'instructions', 'code-style.instructions.md'))
     ).toBe(true);
     expect(existsSync(join(projectDir, '.claude', 'rules', 'code-style.md'))).toBe(true);
     expect(existsSync(join(projectDir, '.cursor', 'rules', 'code-style.mdc'))).toBe(true);
-    expect(existsSync(join(projectDir, '.windsurf', 'rules', 'code-style.md'))).toBe(true);
-    expect(existsSync(join(projectDir, '.clinerules', 'code-style.md'))).toBe(true);
+    expect(existsSync(join(projectDir, '.opencode', 'rules', 'code-style.md'))).toBe(true);
 
     // Verify updated content is in transpiled output
     const cursorContent = readFileSync(

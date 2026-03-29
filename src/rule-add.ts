@@ -71,8 +71,6 @@ const AGENT_ALIASES: Record<string, TargetAgent> = {
   claude: 'claude-code',
   'claude-code': 'claude-code',
   cursor: 'cursor',
-  windsurf: 'windsurf',
-  cline: 'cline',
   opencode: 'opencode',
 };
 

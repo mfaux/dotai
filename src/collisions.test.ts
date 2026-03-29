@@ -523,7 +523,7 @@ describe('collisions', () => {
 
   describe('multiple collisions', () => {
     it('detects multiple collisions across different writes', () => {
-      const rulesDir = join(testDir, '.windsurf', 'rules');
+      const rulesDir = join(testDir, '.opencode', 'rules');
       mkdirSync(rulesDir, { recursive: true });
       writeFileSync(join(rulesDir, 'security.md'), 'existing');
 
@@ -533,7 +533,7 @@ describe('collisions', () => {
       });
       const pw2 = makePlannedWrite(testDir, {
         name: 'security',
-        output: { filename: 'security.md', outputDir: '.windsurf/rules' },
+        output: { filename: 'security.md', outputDir: '.opencode/rules' },
       });
 
       const lockEntry = makeLockEntry({
@@ -563,16 +563,13 @@ describe('collisions', () => {
           output: { filename: 'code-style.mdc', outputDir: '.cursor/rules' },
         }),
         makePlannedWrite(testDir, {
-          output: { filename: 'code-style.md', outputDir: '.windsurf/rules' },
-        }),
-        makePlannedWrite(testDir, {
-          output: { filename: 'code-style.md', outputDir: '.clinerules' },
-        }),
-        makePlannedWrite(testDir, {
           output: { filename: 'code-style.instructions.md', outputDir: '.github/instructions' },
         }),
         makePlannedWrite(testDir, {
           output: { filename: 'code-style.md', outputDir: '.claude/rules' },
+        }),
+        makePlannedWrite(testDir, {
+          output: { filename: 'code-style.md', outputDir: '.opencode/rules' },
         }),
       ];
 
@@ -681,7 +678,7 @@ describe('collisions', () => {
 
       const lockEntry = makeLockEntry({
         name: 'code-style',
-        outputs: [pw.absolutePath, resolve(join(testDir, '.windsurf/rules/code-style.md'))],
+        outputs: [pw.absolutePath, resolve(join(testDir, '.opencode/rules/code-style.md'))],
       });
 
       const collisions = checkCollisions([pw], {

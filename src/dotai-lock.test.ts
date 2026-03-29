@@ -30,10 +30,13 @@ function makeLockEntry(overrides: Partial<LockEntry> = {}): LockEntry {
     name: 'code-style',
     source: 'acme/repo',
     format: 'canonical',
-    agents: ['cursor', 'windsurf', 'cline', 'github-copilot', 'claude-code'],
+    agents: ['cursor', 'github-copilot', 'claude-code', 'opencode'],
     hash: 'abc123',
     installedAt: '2026-02-28T12:00:00.000Z',
-    outputs: ['/project/.cursor/rules/code-style.mdc', '/project/.windsurf/rules/code-style.md'],
+    outputs: [
+      '/project/.cursor/rules/code-style.mdc',
+      '/project/.github/instructions/code-style.instructions.md',
+    ],
     ...overrides,
   };
 }
@@ -687,13 +690,13 @@ describe('edge cases', () => {
 
   it('handles items with many agents', async () => {
     const entry = makeLockEntry({
-      agents: ['github-copilot', 'claude-code', 'cursor', 'windsurf', 'cline'],
+      agents: ['github-copilot', 'claude-code', 'cursor', 'opencode'],
     });
     const lock: DotaiLockFile = { version: 1, items: [entry] };
     await writeDotaiLock(lock, tmpDir);
 
     const result = await readDotaiLock(tmpDir);
-    expect(result.lock.items[0]!.agents).toHaveLength(5);
+    expect(result.lock.items[0]!.agents).toHaveLength(4);
   });
 
   it('handles concurrent reads and writes safely (write-then-read)', async () => {

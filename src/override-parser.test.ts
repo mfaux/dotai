@@ -111,13 +111,13 @@ describe('extractOverrides', () => {
     const data = {
       name: 'test',
       cursor: { value: 'a' },
-      windsurf: { value: 'b' },
+      'github-copilot': { value: 'b' },
     };
     const result = extractOverrides(data, baseFields, fieldExtractor);
 
     expect(result.overrides).toBeDefined();
     expect(result.overrides!['cursor']).toEqual({ value: 'a' });
-    expect(result.overrides!['windsurf']).toEqual({ value: 'b' });
+    expect(result.overrides!['github-copilot']).toEqual({ value: 'b' });
   });
 });
 

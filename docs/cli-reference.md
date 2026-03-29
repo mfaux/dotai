@@ -22,7 +22,7 @@ Full option tables, examples, and authoring format for `dotai`. For a quick over
 | `-y, --yes`                  | Skip confirmation prompts                                                    |
 | `--all`                      | Shorthand for `--skill '*' --targets '*' -y`                                 |
 
-> **`--targets`:** A single flag for both skill install targets and transpilation targets. For skills, any of the 41 supported targets (e.g., `--targets cursor,claude-code`). For rules, prompts, and agents, the 6 transpilation targets: copilot, claude, cursor, windsurf, cline, opencode. When omitted, all detected targets are used for skills and all 6 transpilation targets for rules/prompts/agents.
+> **`--targets`:** A single flag for both skill install targets and transpilation targets. For skills, any of the supported targets (e.g., `--targets cursor,claude-code`). For rules, prompts, and agents, the 4 transpilation targets: copilot, claude, cursor, opencode. When omitted, all detected targets are used for skills and all 4 transpilation targets for rules/prompts/agents.
 
 > **Zero-flag mode:** Running `dotai add owner/repo` with no type-specific flags discovers all content types (skills, rules, prompts, agents) and presents an interactive grouped selection. Use `dotai find owner/repo` for a non-interactive preview.
 
@@ -109,8 +109,6 @@ The following native directories are scanned (derived from the [target-agents re
 | Claude Code    | `.claude/rules/*.md`                     | `.claude/commands/*.md`       | `.claude/agents/*.md`       |
 | GitHub Copilot | `.github/instructions/*.instructions.md` | `.github/prompts/*.prompt.md` | `.github/agents/*.agent.md` |
 | OpenCode       | `.opencode/rules/*.md`                   | `.opencode/commands/*.md`     | `.opencode/agents/*.md`     |
-| Windsurf       | `.windsurf/rules/*.md`                   | `.windsurf/workflows/*.md`    | —                           |
-| Cline          | `.clinerules/*.md`                       | —                             | —                           |
 
 **Non-interactive mode** (with a query argument) prints matching results with install commands, suitable for use inside AI coding agents.
 
@@ -140,8 +138,6 @@ Convert native agent-specific rule files into canonical `RULES.md` format.
 | Cursor         | `.cursor/rules/*.mdc`                    | description, alwaysApply, globs   |
 | Claude Code    | `.claude/rules/*.md`                     | description, globs                |
 | GitHub Copilot | `.github/instructions/*.instructions.md` | applyTo                           |
-| Windsurf       | `.windsurf/rules/*.md`                   | trigger, description, globs       |
-| Cline          | `.clinerules/*.md`                       | heading, blockquote, "Applies to" |
 
 ## list command options
 
@@ -198,7 +194,7 @@ npx dotai add owner/repo --rule code-style --append
 npx dotai add owner/repo --rule code-style --gitignore
 
 # CI-friendly non-interactive install
-npx dotai add owner/repo --all --targets copilot,claude,cursor,windsurf,cline,opencode -y
+npx dotai add owner/repo --all --targets copilot,claude,cursor,opencode -y
 ```
 
 ## Team Sharing
@@ -226,7 +222,7 @@ When you write a canonical file (`RULES.md`, `PROMPT.md`, `AGENT.md`), dotai spl
 - **Frontmatter** (metadata like `activation`, `globs`, `model`, `tools`) is **mapped per-agent** into each target's native format.
 - **Body** (everything after the frontmatter) is **passed verbatim** to all targets. No content is filtered, adapted, or rewritten.
 
-This means canonical bodies should contain **agent-agnostic instructions** — describe _what_ to do, not _how_ to do it with a specific agent's tools. For example, "run the tests before committing" is portable; "use the Bash tool to run tests" is Claude Code-specific and will land unchanged in Cursor, Windsurf, Copilot, and Cline where it won't make sense.
+This means canonical bodies should contain **agent-agnostic instructions** — describe _what_ to do, not _how_ to do it with a specific agent's tools. For example, "run the tests before committing" is portable; "use the Bash tool to run tests" is Claude Code-specific and will land unchanged in Cursor, Copilot, and OpenCode where it won't make sense.
 
 ### Canonical vs native files
 
@@ -238,8 +234,6 @@ dotai also discovers **native agent-specific files** in source repos and passes 
 | GitHub Copilot | `.github/instructions/*.instructions.md` | `.github/prompts/*.prompt.md` | `.github/agents/*.agent.md` |
 | Claude Code    | `.claude/rules/*.md`                     | `.claude/commands/*.md`       | `.claude/agents/*.md`       |
 | OpenCode       | `.opencode/rules/*.md`                   | `.opencode/commands/*.md`     | `.opencode/agents/*.md`     |
-| Windsurf       | `.windsurf/rules/*.md`                   | `.windsurf/workflows/*.md`    | —                           |
-| Cline          | `.clinerules/*.md`                       | —                             | —                           |
 
 A single source repo can contain both canonical and native files. Canonical files fan out to all targets; native files go only to their matching agent.
 
@@ -274,7 +268,7 @@ claude-code:
 Use `const` over `let` when the variable is never reassigned.
 ```
 
-In this example, when transpiling for GitHub Copilot the effective `activation` is `always`. For Claude Code, `severity` is `error`. For Cursor, Windsurf, and Cline, the base fields are used unchanged.
+In this example, when transpiling for GitHub Copilot the effective `activation` is `always`. For Claude Code, `severity` is `error`. For Cursor and OpenCode, the base fields are used unchanged.
 
 Override blocks work on all three canonical types:
 
@@ -286,7 +280,7 @@ Override blocks work on all three canonical types:
 
 Identity fields (`name`, `schema-version`) and structural fields (`body`) cannot be overridden.
 
-Override keys must match a valid target agent (`github-copilot`, `claude-code`, `cursor`, `windsurf`, `cline`, `opencode`). Unrecognized keys produce a parser warning.
+Override keys must match a valid target agent (`github-copilot`, `claude-code`, `cursor`, `opencode`). Unrecognized keys produce a parser warning.
 
 Agent-exclusive fields like `disallowed-tools`, `max-turns`, and `background` can appear in any agent's override block. The transpiler for agents that do not support those fields ignores them, just as it does for base fields.
 
@@ -397,14 +391,14 @@ Supported fields: `name` (required), `description` (required), `globs`, `activat
 
 The `activation` field controls how each target agent decides when to apply the rule:
 
-| `activation` | Cursor              | Windsurf                  | Copilot            | Claude Code         | Cline                     | OpenCode       |
-| ------------ | ------------------- | ------------------------- | ------------------ | ------------------- | ------------------------- | -------------- |
-| `always`     | `alwaysApply: true` | `trigger: always_on`      | `applyTo: "**"`    | always applies      | always applies            | plain markdown |
-| `auto`       | agent decides       | `trigger: model_decision` | `applyTo: "**"`    | agent decides       | always applies            | plain markdown |
-| `manual`     | manual inclusion    | `trigger: manual`         | `applyTo: "**"`    | manual              | always applies            | plain markdown |
-| `glob`       | `globs: <patterns>` | `trigger: glob`           | `applyTo: <globs>` | `globs: <patterns>` | `**Applies to:** <globs>` | plain markdown |
+| `activation` | Cursor              | Copilot            | Claude Code         | OpenCode       |
+| ------------ | ------------------- | ------------------ | ------------------- | -------------- |
+| `always`     | `alwaysApply: true` | `applyTo: "**"`    | always applies      | plain markdown |
+| `auto`       | agent decides       | `applyTo: "**"`    | agent decides       | plain markdown |
+| `manual`     | manual inclusion    | `applyTo: "**"`    | manual              | plain markdown |
+| `glob`       | `globs: <patterns>` | `applyTo: <globs>` | `globs: <patterns>` | plain markdown |
 
-> **Note:** Cline uses plain markdown with no structured metadata, so all activation modes result in a rule that is always visible to the agent. Claude Code treats `globs` as independent file scoping — globs are emitted whenever present, regardless of activation mode. OpenCode rules are plain markdown with no frontmatter; users add the file path to the `instructions` array in `opencode.json` to activate them.
+> **Note:** Claude Code treats `globs` as independent file scoping — globs are emitted whenever present, regardless of activation mode. OpenCode rules are plain markdown with no frontmatter; users add the file path to the `instructions` array in `opencode.json` to activate them.
 
 ### Prompt (`PROMPT.md`)
 

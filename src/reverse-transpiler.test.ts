@@ -5,8 +5,6 @@ import {
   cursorRuleTranspiler,
   claudeCodeRuleTranspiler,
   copilotRuleTranspiler,
-  windsurfRuleTranspiler,
-  clineRuleTranspiler,
 } from './rule-transpilers.ts';
 import type { CanonicalRule } from './types.ts';
 
@@ -51,50 +49,6 @@ function copilotRule(opts?: { applyTo?: string; body?: string }): string {
   lines.push('---');
   lines.push('');
   lines.push(opts?.body ?? 'Copilot rule body.');
-  return lines.join('\n');
-}
-
-function windsurfRule(opts?: {
-  trigger?: string;
-  description?: string;
-  globs?: string[];
-  body?: string;
-}): string {
-  const lines: string[] = ['---'];
-  lines.push(`trigger: ${opts?.trigger ?? 'always_on'}`);
-  if (opts?.description !== undefined) lines.push(`description: "${opts.description}"`);
-  if (opts?.globs && opts.globs.length > 0) {
-    lines.push('globs:');
-    for (const g of opts.globs) {
-      lines.push(`  - "${g}"`);
-    }
-  }
-  lines.push('---');
-  lines.push('');
-  lines.push(opts?.body ?? 'Windsurf rule body.');
-  return lines.join('\n');
-}
-
-function clineRule(opts?: {
-  name?: string;
-  description?: string;
-  globs?: string[];
-  body?: string;
-}): string {
-  const lines: string[] = [];
-  if (opts?.name !== undefined) {
-    lines.push(`# ${opts.name}`);
-    lines.push('');
-  }
-  if (opts?.description !== undefined) {
-    lines.push(`> ${opts.description}`);
-    lines.push('');
-  }
-  if (opts?.globs && opts.globs.length > 0) {
-    lines.push(`**Applies to:** ${opts.globs.map((g) => `\`${g}\``).join(', ')}`);
-    lines.push('');
-  }
-  lines.push(opts?.body ?? 'Cline rule body.');
   return lines.join('\n');
 }
 
@@ -432,160 +386,6 @@ describe('Copilot reverse parser', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Windsurf reverse parser
-// ---------------------------------------------------------------------------
-
-describe('Windsurf reverse parser', () => {
-  const parser = reverseTranspilers['windsurf'];
-
-  it('trigger: always_on → always', () => {
-    const content = windsurfRule({ trigger: 'always_on' });
-    const result = parser.parse(content, 'test.md');
-
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.rule.activation).toBe('always');
-    }
-  });
-
-  it('trigger: model_decision → auto', () => {
-    const content = windsurfRule({ trigger: 'model_decision' });
-    const result = parser.parse(content, 'test.md');
-
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.rule.activation).toBe('auto');
-    }
-  });
-
-  it('trigger: manual → manual', () => {
-    const content = windsurfRule({ trigger: 'manual' });
-    const result = parser.parse(content, 'test.md');
-
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.rule.activation).toBe('manual');
-    }
-  });
-
-  it('trigger: glob → glob with globs array', () => {
-    const content = windsurfRule({ trigger: 'glob', globs: ['*.ts', '*.tsx'] });
-    const result = parser.parse(content, 'test.md');
-
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.rule.activation).toBe('glob');
-      expect(result.rule.globs).toEqual(['*.ts', '*.tsx']);
-    }
-  });
-
-  it('extracts description directly', () => {
-    const content = windsurfRule({ description: 'My rule description' });
-    const result = parser.parse(content, 'test.md');
-
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.rule.description).toBe('My rule description');
-    }
-  });
-
-  it('preserves markdown body', () => {
-    const content = windsurfRule({ body: '## Do this\n\nContent here.' });
-    const result = parser.parse(content, 'test.md');
-
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.rule.body).toBe('## Do this\n\nContent here.');
-    }
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Cline reverse parser
-// ---------------------------------------------------------------------------
-
-describe('Cline reverse parser', () => {
-  const parser = reverseTranspilers['cline'];
-
-  it('extracts name from # heading', () => {
-    const content = clineRule({ name: 'code-style', body: 'Body.' });
-    const result = parser.parse(content, 'test.md');
-
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.rule.name).toBe('code-style');
-    }
-  });
-
-  it('extracts description from > blockquote', () => {
-    const content = clineRule({ name: 'test', description: 'My description' });
-    const result = parser.parse(content, 'test.md');
-
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.rule.description).toBe('My description');
-    }
-  });
-
-  it('parses **Applies to:** inline code spans as globs', () => {
-    const content = clineRule({ name: 'test', globs: ['*.ts', '*.tsx'] });
-    const result = parser.parse(content, 'test.md');
-
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.rule.activation).toBe('glob');
-      expect(result.rule.globs).toEqual(['*.ts', '*.tsx']);
-    }
-  });
-
-  it('no globs line → activation: always', () => {
-    const content = clineRule({ name: 'test', description: 'Desc' });
-    const result = parser.parse(content, 'test.md');
-
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.rule.activation).toBe('always');
-    }
-  });
-
-  it('body excludes the parsed header lines', () => {
-    const content = clineRule({
-      name: 'test',
-      description: 'Desc',
-      body: 'Actual body content.',
-    });
-    const result = parser.parse(content, 'test.md');
-
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.rule.body).toBe('Actual body content.');
-      expect(result.rule.body).not.toContain('# test');
-      expect(result.rule.body).not.toContain('> Desc');
-    }
-  });
-
-  it('falls back to filename when no heading', () => {
-    const content = 'Just some body content.';
-    const result = parser.parse(content, 'my-rule.md');
-
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.rule.name).toBe('my-rule');
-    }
-  });
-
-  it('uses placeholder when no description', () => {
-    const content = '# test-rule\n\nBody.';
-    const result = parser.parse(content, 'test-rule.md');
-
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.rule.description).toBe('Imported from Cline');
-    }
-  });
-});
-
-// ---------------------------------------------------------------------------
 // Round-trip: forward → reverse
 // ---------------------------------------------------------------------------
 
@@ -656,36 +456,6 @@ describe('round-trip: forward → reverse', () => {
     expect(reversed.rule.activation).toBe('glob');
     expect(reversed.rule.globs).toEqual(['*.ts', '*.tsx']);
   });
-
-  it('Windsurf round-trip (lossless)', () => {
-    const original = makeRule({ activation: 'glob', globs: ['*.ts', '*.tsx'] });
-    const transpiled = windsurfRuleTranspiler.transform(original, 'windsurf');
-    const reversed = reverseTranspilers['windsurf'].parse(transpiled.content, 'test-rule.md');
-
-    expect(reversed.ok).toBe(true);
-    if (!reversed.ok) return;
-
-    expect(reversed.rule.name).toBe(original.name);
-    expect(reversed.rule.description).toBe(original.description);
-    expect(reversed.rule.activation).toBe(original.activation);
-    expect(reversed.rule.globs).toEqual(original.globs);
-    expect(reversed.rule.body).toBe(original.body);
-  });
-
-  it('Cline round-trip (near-lossless)', () => {
-    const original = makeRule({ activation: 'glob', globs: ['*.ts', '*.tsx'] });
-    const transpiled = clineRuleTranspiler.transform(original, 'cline');
-    const reversed = reverseTranspilers['cline'].parse(transpiled.content, 'test-rule.md');
-
-    expect(reversed.ok).toBe(true);
-    if (!reversed.ok) return;
-
-    expect(reversed.rule.name).toBe(original.name);
-    expect(reversed.rule.description).toBe(original.description);
-    expect(reversed.rule.activation).toBe('glob');
-    expect(reversed.rule.globs).toEqual(['*.ts', '*.tsx']);
-    expect(reversed.rule.body).toBe(original.body);
-  });
 });
 
 // ---------------------------------------------------------------------------
@@ -693,14 +463,12 @@ describe('round-trip: forward → reverse', () => {
 // ---------------------------------------------------------------------------
 
 describe('reverseTranspilers registry', () => {
-  it('has entries for all 6 target agents', () => {
+  it('has entries for all 4 target agents', () => {
     expect(Object.keys(reverseTranspilers).sort()).toEqual([
       'claude-code',
-      'cline',
       'cursor',
       'github-copilot',
       'opencode',
-      'windsurf',
     ]);
   });
 

@@ -342,6 +342,7 @@ async function promptContextSelection(
     rule: [] as string[],
     prompt: [] as string[],
     agent: [] as string[],
+    instruction: [] as string[],
   };
   for (const item of picked) {
     byType[item.type].push(item.name);

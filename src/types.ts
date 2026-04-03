@@ -68,7 +68,7 @@ export interface RemoteSkill {
 export type TargetAgent = 'github-copilot' | 'claude-code' | 'cursor' | 'opencode';
 
 /** Context item types supported by dotai. */
-export type ContextType = 'skill' | 'rule' | 'prompt' | 'agent';
+export type ContextType = 'skill' | 'rule' | 'prompt' | 'agent' | 'instruction';
 
 /** How a discovered item was authored. */
 export type ContextFormat = 'canonical' | `native:${TargetAgent}`;
@@ -180,6 +180,25 @@ export interface CanonicalAgent {
   raw: string;
   /** Per-agent override blocks from frontmatter. */
   overrides?: Partial<Record<TargetAgent, AgentOverrideFields>>;
+}
+
+/** Fields that can be overridden per target agent for instructions (description only). */
+export type InstructionOverrideFields = { description?: string };
+
+/**
+ * Canonical INSTRUCTIONS.md representation after parsing and validation.
+ */
+export interface CanonicalInstruction {
+  /** Kebab-case identifier, <= 128 chars. */
+  name: string;
+  /** Human-readable description, <= 512 chars. */
+  description: string;
+  /** Schema version (default 1). */
+  schemaVersion: number;
+  /** The markdown body (everything after frontmatter). */
+  body: string;
+  /** Per-agent override blocks from frontmatter. */
+  overrides?: Partial<Record<TargetAgent, InstructionOverrideFields>>;
 }
 
 /**

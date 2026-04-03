@@ -27,33 +27,36 @@ export interface RemoveOptions {
 }
 
 export async function removeCommand(skillNames: string[], options: RemoveOptions) {
-  // If --type is specified and includes only rule/prompt/agent (not skill), use dotai-lock removal
+  // If --type is specified and includes only rule/prompt/agent/instruction (not skill), use dotai-lock removal
   const typeFilter = options.type;
   const onlyDotaiTypes =
     typeFilter &&
     typeFilter.length > 0 &&
-    typeFilter.every((t) => t === 'rule' || t === 'prompt' || t === 'agent');
+    typeFilter.every((t) => t === 'rule' || t === 'prompt' || t === 'agent' || t === 'instruction');
 
   if (onlyDotaiTypes) {
     await removeDotaiManagedItems(
       skillNames,
       options,
-      typeFilter as Array<'rule' | 'prompt' | 'agent'>
+      typeFilter as Array<'rule' | 'prompt' | 'agent' | 'instruction'>
     );
     return;
   }
 
   // If --type includes skill (or no type filter), run the existing skill removal flow
-  // and also handle rule/prompt/agent removal if those types are included
-  const includesRulesOrPromptsOrAgents =
+  // and also handle rule/prompt/agent/instruction removal if those types are included
+  const includesDotaiTypes =
     typeFilter &&
-    (typeFilter.includes('rule') || typeFilter.includes('prompt') || typeFilter.includes('agent'));
+    (typeFilter.includes('rule') ||
+      typeFilter.includes('prompt') ||
+      typeFilter.includes('agent') ||
+      typeFilter.includes('instruction'));
 
-  if (includesRulesOrPromptsOrAgents) {
+  if (includesDotaiTypes) {
     // Remove dotai-managed items first
     const dotaiTypes = typeFilter.filter(
-      (t) => t === 'rule' || t === 'prompt' || t === 'agent'
-    ) as Array<'rule' | 'prompt' | 'agent'>;
+      (t) => t === 'rule' || t === 'prompt' || t === 'agent' || t === 'instruction'
+    ) as Array<'rule' | 'prompt' | 'agent' | 'instruction'>;
     await removeDotaiManagedItems(skillNames, options, dotaiTypes);
   }
 
@@ -365,17 +368,17 @@ export function parseRemoveOptions(args: string[]): { skills: string[]; options:
 }
 
 // ---------------------------------------------------------------------------
-// Dotai-managed item removal (rules + prompts + agents via .dotai-lock.json)
+// Dotai-managed item removal (rules + prompts + agents + instructions via .dotai-lock.json)
 // ---------------------------------------------------------------------------
 
 /**
- * Remove dotai-managed items (rules, prompts, and/or agents) tracked in `.dotai-lock.json`.
+ * Remove dotai-managed items (rules, prompts, agents, and/or instructions) tracked in `.dotai-lock.json`.
  * Deletes output files and removes entries from the lock file.
  */
 async function removeDotaiManagedItems(
   names: string[],
   options: RemoveOptions,
-  types: Array<'rule' | 'prompt' | 'agent'>
+  types: Array<'rule' | 'prompt' | 'agent' | 'instruction'>
 ): Promise<void> {
   const cwd = process.cwd();
   const spinner = p.spinner();
@@ -388,7 +391,7 @@ async function removeDotaiManagedItems(
     lock = result.lock;
   } catch {
     spinner.stop('No dotai lock file found');
-    p.outro(pc.yellow('No rules, prompts, or agents found to remove.'));
+    p.outro(pc.yellow('No rules, prompts, agents, or instructions found to remove.'));
     return;
   }
 

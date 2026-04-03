@@ -820,7 +820,8 @@ export async function addInstructions(
         installedAt: new Date().toISOString(),
         outputs: outputPaths,
         append: true,
-        ...(options.gitignore && { gitignored: true }),
+        // Instructions are never gitignored — target files (AGENTS.md, CLAUDE.md,
+        // .github/copilot-instructions.md) should always be committed.
       };
 
       updatedLock = upsertLockEntry(updatedLock, entry);
@@ -829,11 +830,9 @@ export async function addInstructions(
     await writeDotaiLock(updatedLock, options.projectRoot);
     messages.push(`Updated ${pc.dim('.dotai-lock.json')}`);
 
-    // Add output paths to .gitignore when --gitignore is used
-    if (options.gitignore) {
-      await addToGitignore(options.projectRoot, result.written);
-      messages.push(`Updated ${pc.dim('.gitignore')} with output paths`);
-    }
+    // Instructions are never added to .gitignore — their target files
+    // (AGENTS.md, CLAUDE.md, .github/copilot-instructions.md) must always
+    // be committed and visible to the team.
   }
 
   return {

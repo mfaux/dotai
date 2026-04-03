@@ -4,23 +4,23 @@ Full option tables, examples, and authoring format for `dotai`. For a quick over
 
 ## add command options
 
-| Option                       | Description                                                                  |
-| ---------------------------- | ---------------------------------------------------------------------------- |
-| `-g, --global`               | Install to user directory instead of project                                 |
-| `-t, --type <types...>`      | Filter by context type (`skill`, `rule`, `prompt`, `agent`; comma-separated) |
-| `-s, --skill <skills...>`    | Install specific skills by name (repeatable; supports `'*'`)                 |
-| `-r, --rule <rules...>`      | Install specific canonical rules by name (repeatable)                        |
-| `-p, --prompt <prompts...>`  | Install specific canonical prompts by name (repeatable)                      |
-| `--custom-agent <names...>`  | Install specific canonical custom agents by name (repeatable)                |
-| `-a, --targets <targets...>` | Targets (comma-separated; use `'*'` for all)                                 |
-| `--copy`                     | Copy files instead of symlinking skills                                      |
-| `--dry-run`                  | Preview writes without making changes                                        |
-| `--force`                    | Overwrite conflicting managed/unmanaged outputs                              |
-| `--append`                   | Append rules to `AGENTS.md`/`CLAUDE.md` instead of per-rule files            |
-| `--gitignore`                | Add transpiled output paths to `.gitignore` (managed section)                |
-| `--full-depth`               | Search all subdirectories even when a root `SKILL.md` exists                 |
-| `-y, --yes`                  | Skip confirmation prompts                                                    |
-| `--all`                      | Shorthand for `--skill '*' --targets '*' -y`                                 |
+| Option                       | Description                                                                                 |
+| ---------------------------- | ------------------------------------------------------------------------------------------- |
+| `-g, --global`               | Install to user directory instead of project                                                |
+| `-t, --type <types...>`      | Filter by context type (`skill`, `rule`, `prompt`, `agent`, `instruction`; comma-separated) |
+| `-s, --skill <skills...>`    | Install specific skills by name (repeatable; supports `'*'`)                                |
+| `-r, --rule <rules...>`      | Install specific canonical rules by name (repeatable)                                       |
+| `-p, --prompt <prompts...>`  | Install specific canonical prompts by name (repeatable)                                     |
+| `--custom-agent <names...>`  | Install specific canonical custom agents by name (repeatable)                               |
+| `-a, --targets <targets...>` | Targets (comma-separated; use `'*'` for all)                                                |
+| `--copy`                     | Copy files instead of symlinking skills                                                     |
+| `--dry-run`                  | Preview writes without making changes                                                       |
+| `--force`                    | Overwrite conflicting managed/unmanaged outputs                                             |
+| `--append`                   | Append rules to `AGENTS.md`/`CLAUDE.md` instead of per-rule files                           |
+| `--gitignore`                | Add transpiled output paths to `.gitignore` (managed section)                               |
+| `--full-depth`               | Search all subdirectories even when a root `SKILL.md` exists                                |
+| `-y, --yes`                  | Skip confirmation prompts                                                                   |
+| `--all`                      | Shorthand for `--skill '*' --targets '*' -y`                                                |
 
 > **`--targets`:** A single flag for both skill install targets and transpilation targets. For skills, any of the supported targets (e.g., `--targets cursor,claude-code`). For rules, prompts, and agents, the 4 transpilation targets: copilot, claude, cursor, opencode. When omitted, all detected targets are used for skills and all 4 transpilation targets for rules/prompts/agents.
 
@@ -38,13 +38,13 @@ Supported target aliases include values such as `claude-code` and `codex`. See [
 
 ## remove command options
 
-| Option                       | Description                                                                  |
-| ---------------------------- | ---------------------------------------------------------------------------- |
-| `-g, --global`               | Remove from global scope                                                     |
-| `-a, --targets <targets...>` | Remove from specific targets (use `'*'` for all targets)                     |
-| `-t, --type <types...>`      | Filter by context type (`skill`, `rule`, `prompt`, `agent`; comma-separated) |
-| `-y, --yes`                  | Skip confirmation prompts                                                    |
-| `--all`                      | Remove all installed items                                                   |
+| Option                       | Description                                                                                 |
+| ---------------------------- | ------------------------------------------------------------------------------------------- |
+| `-g, --global`               | Remove from global scope                                                                    |
+| `-a, --targets <targets...>` | Remove from specific targets (use `'*'` for all targets)                                    |
+| `-t, --type <types...>`      | Filter by context type (`skill`, `rule`, `prompt`, `agent`, `instruction`; comma-separated) |
+| `-y, --yes`                  | Skip confirmation prompts                                                                   |
+| `--all`                      | Remove all installed items                                                                  |
 
 ## find command
 
@@ -141,11 +141,11 @@ Convert native agent-specific rule files into canonical `RULES.md` format.
 
 ## list command options
 
-| Option                       | Description                                                                  |
-| ---------------------------- | ---------------------------------------------------------------------------- |
-| `-g, --global`               | List global context (default: project)                                       |
-| `-a, --targets <targets...>` | Filter by specific targets                                                   |
-| `-t, --type <types...>`      | Filter by context type (`skill`, `rule`, `prompt`, `agent`; comma-separated) |
+| Option                       | Description                                                                                 |
+| ---------------------------- | ------------------------------------------------------------------------------------------- |
+| `-g, --global`               | List global context (default: project)                                                      |
+| `-a, --targets <targets...>` | Filter by specific targets                                                                  |
+| `-t, --type <types...>`      | Filter by context type (`skill`, `rule`, `prompt`, `agent`, `instruction`; comma-separated) |
 
 ## Installation Scope
 

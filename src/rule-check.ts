@@ -16,10 +16,10 @@ import { TARGET_AGENTS } from './target-agents.ts';
 import type { ContextType, LockEntry, TargetAgent } from './types.ts';
 
 // ---------------------------------------------------------------------------
-// Rule, prompt & agent check/update — reads .dotai-lock.json and compares content hashes
+// Rule, prompt, agent & instruction check/update — reads .dotai-lock.json and compares content hashes
 //
-// For `dotai check`: reports which rules/prompts/agents have changed upstream.
-// For `dotai update`: re-discovers, re-transpiles, and re-installs changed rules/prompts/agents.
+// For `dotai check`: reports which rules/prompts/agents/instructions have changed upstream.
+// For `dotai update`: re-discovers, re-transpiles, and re-installs changed rules/prompts/agents/instructions.
 //
 // The flow per source repo:
 //   1. Read lock entries grouped by source (rules, prompts, and agents)
@@ -92,7 +92,8 @@ export async function checkRuleUpdates(projectRoot: string): Promise<RuleCheckRe
   const ruleEntries = getLockEntriesByType(lock, 'rule');
   const promptEntries = getLockEntriesByType(lock, 'prompt');
   const agentEntries = getLockEntriesByType(lock, 'agent');
-  const allEntries = [...ruleEntries, ...promptEntries, ...agentEntries];
+  const instructionEntries = getLockEntriesByType(lock, 'instruction');
+  const allEntries = [...ruleEntries, ...promptEntries, ...agentEntries, ...instructionEntries];
 
   if (allEntries.length === 0) {
     return { totalChecked: 0, updates: [], errors: [] };
@@ -128,7 +129,13 @@ export async function checkRuleUpdates(projectRoot: string): Promise<RuleCheckRe
 
         if (!freshItem) {
           const typeLabel =
-            entry.type === 'prompt' ? 'Prompt' : entry.type === 'agent' ? 'Agent' : 'Rule';
+            entry.type === 'instruction'
+              ? 'Instruction'
+              : entry.type === 'prompt'
+                ? 'Prompt'
+                : entry.type === 'agent'
+                  ? 'Agent'
+                  : 'Rule';
           errors.push({
             entry,
             error: `${typeLabel} '${entry.name}' no longer found in source`,
@@ -184,7 +191,8 @@ export async function updateRules(projectRoot: string): Promise<RuleUpdateResult
   const ruleEntries = getLockEntriesByType(lock, 'rule');
   const promptEntries = getLockEntriesByType(lock, 'prompt');
   const agentEntries = getLockEntriesByType(lock, 'agent');
-  const allEntries = [...ruleEntries, ...promptEntries, ...agentEntries];
+  const instructionEntries = getLockEntriesByType(lock, 'instruction');
+  const allEntries = [...ruleEntries, ...promptEntries, ...agentEntries, ...instructionEntries];
 
   if (allEntries.length === 0) {
     return { totalChecked: 0, successCount: 0, failCount: 0, messages };

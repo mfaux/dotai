@@ -6,6 +6,7 @@ export const VALID_CONTEXT_TYPES: readonly ContextType[] = [
   'rule',
   'prompt',
   'agent',
+  'instruction',
 ] as const;
 
 /**

@@ -88,8 +88,8 @@ describe('consumeMultiValues', () => {
 });
 
 describe('VALID_CONTEXT_TYPES', () => {
-  it('should contain all four context types', () => {
-    expect(VALID_CONTEXT_TYPES).toEqual(['skill', 'rule', 'prompt', 'agent']);
+  it('should contain all five context types', () => {
+    expect(VALID_CONTEXT_TYPES).toEqual(['skill', 'rule', 'prompt', 'agent', 'instruction']);
   });
 });
 

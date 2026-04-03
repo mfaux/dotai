@@ -2,9 +2,9 @@
 
 Share AI agent context across tools and teams.
 
-dotai takes canonical context files — skills, rules, prompts, and agent
-definitions — and installs them into the config directories of supported AI
-coding agents. Write once, distribute everywhere. Your team gets consistent AI
+dotai takes canonical context files — skills, rules, prompts, agent
+definitions, and instructions — and installs them into the config directories
+of supported AI coding agents. Write once, distribute everywhere. Your team gets consistent AI
 behavior across Copilot, Claude Code, Cursor, and more.
 
 Requires Node.js 18+ (or Bun/Deno).
@@ -29,8 +29,8 @@ Keeping rules, prompts, and skills in sync across agents is manual and
 error-prone.
 
 dotai solves this with **canonical authoring**: write a single `RULES.md`,
-`PROMPT.md`, or `AGENT.md` and dotai transpiles it into every target agent's
-native format automatically.
+`PROMPT.md`, `AGENT.md`, or `INSTRUCTIONS.md` and dotai transpiles it into every
+target agent's native format automatically.
 
 - **Write once** — one canonical file fans out to all targets
 - **5 targets** — Copilot, Claude Code, Cursor, Codex, OpenCode
@@ -103,17 +103,18 @@ npx dotai add ./my-local-context                        # local path
 <details>
 <summary>Transpilation support by agent</summary>
 
-| Agent          | Skills | Rules | Prompts                 | Agents                    |
-| -------------- | ------ | ----- | ----------------------- | ------------------------- |
-| GitHub Copilot | ✅     | ✅    | ✅                      | ✅                        |
-| Claude Code    | ✅     | ✅    | ✅                      | ✅                        |
-| OpenCode       | ✅     | ✅    | ✅                      | ✅                        |
-| Cursor         | ✅     | ✅    | ⚠️ (native/compat only) | ⚠️ (via `.github/agents`) |
-| Codex          | ✅     | —     | —                       | —                         |
+| Agent          | Skills | Rules | Prompts                 | Agents                    | Instructions |
+| -------------- | ------ | ----- | ----------------------- | ------------------------- | ------------ |
+| GitHub Copilot | ✅     | ✅    | ✅                      | ✅                        | ✅           |
+| Claude Code    | ✅     | ✅    | ✅                      | ✅                        | ✅           |
+| OpenCode       | ✅     | ✅    | ✅                      | ✅                        | ✅           |
+| Cursor         | ✅     | ✅    | ⚠️ (native/compat only) | ⚠️ (via `.github/agents`) | ✅           |
+| Codex          | ✅     | —     | —                       | —                         | —            |
 
 - **Cursor prompts:** Cursor reads Copilot's `.github/prompts/` path. Canonical `PROMPT.md` is not transpiled to a Cursor-specific format.
 - **Cursor agents:** Cursor reads `.github/agents/` from the Copilot path. Canonical `AGENT.md` transpiles to Copilot format, which Cursor picks up.
 - **OpenCode rules:** OpenCode rules are plain markdown (no frontmatter). After installing, add the output paths to the `instructions` array in `opencode.json`.
+- **Instructions:** `INSTRUCTIONS.md` content is appended as marker-delimited sections to project-wide files (`CLAUDE.md`, `AGENTS.md`, `.github/copilot-instructions.md`). Cursor and OpenCode share `AGENTS.md`.
 
 </details>
 
@@ -128,7 +129,7 @@ Skill installs target [5 targets](docs/supported-targets.md).
 
 dotai started as a fork of [vercel-labs/skills](https://github.com/vercel-labs/skills) / [skills.sh](https://skills.sh).
 The inherited skills install pipeline remains first-class. dotai extends it with
-transpilation of rules, prompts, and agent definitions to multiple targets.
+transpilation of rules, prompts, agent definitions, and instructions to multiple targets.
 
 ## Acknowledgements
 

@@ -293,7 +293,13 @@ export { LockVersionError } from './lock-version-error.ts';
 // Internal validation
 // ---------------------------------------------------------------------------
 
-const VALID_TYPES: ReadonlySet<string> = new Set(['skill', 'rule', 'prompt', 'agent']);
+const VALID_TYPES: ReadonlySet<string> = new Set([
+  'skill',
+  'rule',
+  'prompt',
+  'agent',
+  'instruction',
+]);
 const VALID_AGENTS: ReadonlySet<string> = new Set([
   'github-copilot',
   'claude-code',

@@ -10,6 +10,7 @@ export interface AddOptions {
   rule?: string[];
   prompt?: string[];
   customAgent?: string[];
+  instruction?: string[];
   all?: boolean;
   fullDepth?: boolean;
   copy?: boolean;
@@ -61,6 +62,11 @@ export function parseAddOptions(args: string[]): { source: string[]; options: Ad
       options.customAgent = options.customAgent || [];
       const { values, nextIndex } = consumeMultiValues(args, i + 1);
       options.customAgent.push(...values);
+      i = nextIndex - 1;
+    } else if (arg === '-i' || arg === '--instruction') {
+      options.instruction = options.instruction || [];
+      const { values, nextIndex } = consumeMultiValues(args, i + 1);
+      options.instruction.push(...values);
       i = nextIndex - 1;
     } else if (arg === '--append') {
       options.append = true;

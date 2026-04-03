@@ -170,6 +170,7 @@ export function writeCanonicalFile(
     prompt: `prompts/${name}/PROMPT.md`,
     agent: `agents/${name}/AGENT.md`,
     skill: `skills/${name}/SKILL.md`,
+    instruction: `INSTRUCTIONS.md`,
   };
   const relPath = fileMap[type]!;
   const absPath = join(sourceRoot, relPath);
@@ -510,6 +511,25 @@ ${body}
 }
 
 /**
+ * Create a canonical INSTRUCTIONS.md with simple frontmatter.
+ *
+ * Matches the factory pattern from cli-lock-integration tests.
+ */
+export function makeSimpleInstructionContent(
+  name: string,
+  description: string,
+  body: string
+): string {
+  return `---
+name: ${name}
+description: ${description}
+---
+
+${body}
+`;
+}
+
+/**
  * Create a canonical AGENT.md with simple frontmatter.
  *
  * Matches the factory pattern from cli-lock-integration tests.
@@ -558,27 +578,31 @@ ${body}
 export async function createTestSourceRepo(
   baseDir: string,
   items: Array<{ name: string; description: string; body: string }>,
-  type: 'rule' | 'agent' | 'prompt' = 'rule'
+  type: 'rule' | 'agent' | 'prompt' | 'instruction' = 'rule'
 ): Promise<string> {
   const dirNames: Record<string, string> = {
     rule: 'source-repo',
     agent: 'agent-source-repo',
     prompt: 'prompt-source-repo',
+    instruction: 'instruction-source-repo',
   };
   const fileNames: Record<string, string> = {
     rule: 'RULES.md',
     agent: 'AGENT.md',
     prompt: 'PROMPT.md',
+    instruction: 'INSTRUCTIONS.md',
   };
   const subdirNames: Record<string, string> = {
     rule: 'rules',
     agent: 'agents',
     prompt: 'prompts',
+    instruction: 'instructions',
   };
   const contentFns: Record<string, (n: string, d: string, b: string) => string> = {
     rule: makeSimpleRulesContent,
     agent: makeSimpleAgentContent,
     prompt: makeSimplePromptContent,
+    instruction: makeSimpleInstructionContent,
   };
 
   const repoDir = join(baseDir, dirNames[type]!);

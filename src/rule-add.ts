@@ -652,3 +652,194 @@ export async function addAgents(options: AgentAddOptions): Promise<AgentAddResul
     messages,
   };
 }
+
+/**
+ * Options for instruction installation.
+ */
+export interface InstructionAddOptions {
+  /** Source identifier (e.g., "owner/repo") for lock file tracking. */
+  source: string;
+  /** Absolute path to the cloned/local source repo. */
+  sourcePath: string;
+  /** Absolute path to the project root directory. */
+  projectRoot: string;
+  /** Instruction names to install. Empty or ['*'] means all instructions. */
+  instructionNames: string[];
+  /** Target agents to install for. Defaults to all five. */
+  targets?: TargetAgent[];
+  /** Preview planned writes without executing them. */
+  dryRun?: boolean;
+  /** Overwrite collisions instead of aborting. */
+  force?: boolean;
+  /** Add transpiled output paths to .gitignore (opt-in). */
+  gitignore?: boolean;
+}
+
+/**
+ * Result of instruction installation.
+ */
+export interface InstructionAddResult {
+  /** Whether the installation succeeded. */
+  success: boolean;
+  /** Number of instructions installed. */
+  instructionsInstalled: number;
+  /** Paths of files written. */
+  writtenPaths: string[];
+  /** Warning/info messages for CLI output. */
+  messages: string[];
+  /** Error message if installation failed. */
+  error?: string;
+}
+
+/**
+ * Execute the instruction install flow:
+ *
+ * 1. Discover instructions in source repo
+ * 2. Filter by --instruction names
+ * 3. Run install pipeline (transpile, collision check, write)
+ * 4. Update dotai lock file on success
+ */
+export async function addInstructions(
+  options: InstructionAddOptions
+): Promise<InstructionAddResult> {
+  const messages: string[] = [];
+
+  // 1. Discover instructions in source repo (skip other types for performance)
+  const { items, warnings } = await discover(options.sourcePath, { types: ['instruction'] });
+
+  // Surface discovery warnings
+  for (const warning of warnings) {
+    messages.push(
+      pc.yellow(`Warning: ${warning.message}${warning.path ? ` (${warning.path})` : ''}`)
+    );
+  }
+
+  // 2. Filter to instructions only (items are already filtered, but filterByType is a safety net)
+  const allInstructions = filterByType(items, 'instruction');
+
+  if (allInstructions.length === 0) {
+    return {
+      success: false,
+      instructionsInstalled: 0,
+      writtenPaths: [],
+      messages,
+      error: 'No instructions found in source repository.',
+    };
+  }
+
+  // 3. Filter by requested instruction names
+  const selectedInstructions = filterItemsByName(allInstructions, options.instructionNames);
+
+  if (selectedInstructions.length === 0) {
+    const availableNames = allInstructions.map((i) => i.name).join(', ');
+    return {
+      success: false,
+      instructionsInstalled: 0,
+      writtenPaths: [],
+      messages,
+      error: `No matching instructions found for: ${options.instructionNames.join(', ')}. Available: ${availableNames}`,
+    };
+  }
+
+  messages.push(`Found ${selectedInstructions.length} instruction(s) to install`);
+
+  // 4. Read existing lock file for collision detection
+  const { lock } = await readDotaiLock(options.projectRoot);
+
+  // 5. Run install pipeline
+  const targets = options.targets ?? [...TARGET_AGENTS];
+  const result = await executeInstallPipeline(selectedInstructions, {
+    projectRoot: options.projectRoot,
+    targets,
+    source: options.source,
+    lockEntries: lock.items,
+    force: options.force,
+    dryRun: options.dryRun,
+  });
+
+  // Report collisions
+  if (result.collisions.length > 0) {
+    for (const collision of result.collisions) {
+      messages.push(pc.red(`Conflict: ${collision.message}`));
+    }
+  }
+
+  // Report skipped items
+  for (const skip of result.skipped) {
+    messages.push(pc.yellow(`Skipped: ${skip.item.name} — ${skip.reason}`));
+  }
+
+  if (!result.success) {
+    return {
+      success: false,
+      instructionsInstalled: 0,
+      writtenPaths: result.written,
+      messages,
+      error: result.error,
+    };
+  }
+
+  // Dry-run: report plan without writing lock
+  if (options.dryRun) {
+    for (const write of result.writes) {
+      messages.push(pc.dim(`Would write: ${write.planned.absolutePath}`));
+    }
+    return {
+      success: true,
+      instructionsInstalled: selectedInstructions.length,
+      writtenPaths: [],
+      messages,
+    };
+  }
+
+  // 6. Update lock file on successful write
+  if (result.written.length > 0) {
+    let updatedLock = lock;
+    const installedNames = new Set<string>();
+
+    // Group written paths by instruction name
+    for (const write of result.writes) {
+      installedNames.add(write.planned.name);
+    }
+
+    for (const instrName of installedNames) {
+      const instrItem = selectedInstructions.find((i) => i.name === instrName);
+      if (!instrItem) continue;
+
+      const instrWrites = result.writes.filter((w) => w.planned.name === instrName);
+      const instrAgents = [...new Set(instrWrites.map((w) => w.agent))];
+      const outputPaths = instrWrites.map((w) => w.planned.absolutePath);
+
+      const entry: LockEntry = {
+        type: 'instruction',
+        name: instrName,
+        source: options.source,
+        format: instrItem.format,
+        agents: instrAgents,
+        hash: computeContentHash(instrItem.rawContent),
+        installedAt: new Date().toISOString(),
+        outputs: outputPaths,
+        append: true,
+        ...(options.gitignore && { gitignored: true }),
+      };
+
+      updatedLock = upsertLockEntry(updatedLock, entry);
+    }
+
+    await writeDotaiLock(updatedLock, options.projectRoot);
+    messages.push(`Updated ${pc.dim('.dotai-lock.json')}`);
+
+    // Add output paths to .gitignore when --gitignore is used
+    if (options.gitignore) {
+      await addToGitignore(options.projectRoot, result.written);
+      messages.push(`Updated ${pc.dim('.gitignore')} with output paths`);
+    }
+  }
+
+  return {
+    success: true,
+    instructionsInstalled: selectedInstructions.length,
+    writtenPaths: result.written,
+    messages,
+  };
+}

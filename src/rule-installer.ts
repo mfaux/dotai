@@ -13,6 +13,7 @@ import type { ModelOverrides } from './model-aliases.ts';
 import { transpileRuleForAllAgents } from './rule-transpilers.ts';
 import { transpilePromptForAllAgents } from './prompt-transpilers.ts';
 import { transpileAgentForAllAgents } from './agent-transpilers.ts';
+import { transpileInstructionForAllAgents } from './instruction-transpilers.ts';
 import { checkCollisions, createPlannedWrite, filterBlockingCollisions } from './collisions.ts';
 import { upsertSection } from './append-markers.ts';
 
@@ -111,17 +112,24 @@ export function planRuleWrites(
       continue;
     }
 
-    if (item.type !== 'rule' && item.type !== 'prompt' && item.type !== 'agent') {
+    if (
+      item.type !== 'rule' &&
+      item.type !== 'prompt' &&
+      item.type !== 'agent' &&
+      item.type !== 'instruction'
+    ) {
       skipped.push({ item, reason: `unsupported context type: ${item.type}` });
       continue;
     }
 
     const outputs =
-      item.type === 'agent'
-        ? transpileAgentForAllAgents(item, agents, options.modelOverrides)
-        : item.type === 'prompt'
-          ? transpilePromptForAllAgents(item, agents, options.modelOverrides)
-          : transpileRuleForAllAgents(item, agents, options.append);
+      item.type === 'instruction'
+        ? transpileInstructionForAllAgents(item, agents)
+        : item.type === 'agent'
+          ? transpileAgentForAllAgents(item, agents, options.modelOverrides)
+          : item.type === 'prompt'
+            ? transpilePromptForAllAgents(item, agents, options.modelOverrides)
+            : transpileRuleForAllAgents(item, agents, options.append);
 
     if (outputs.length === 0) {
       skipped.push({ item, reason: 'transpilation produced no outputs' });
@@ -356,9 +364,19 @@ const OUTPUT_DIR_TO_AGENT: ReadonlyArray<{ prefix: string; agent: TargetAgent }>
  * Append transpilers output to the project root (`outputDir: '.'`) with
  * well-known filenames like `AGENTS.md` and `CLAUDE.md`.
  */
-const APPEND_FILENAME_TO_AGENT: ReadonlyArray<{ filename: string; agent: TargetAgent }> = [
-  { filename: 'AGENTS.md', agent: 'github-copilot' },
-  { filename: 'CLAUDE.md', agent: 'claude-code' },
+const APPEND_FILENAME_TO_AGENT: ReadonlyArray<{
+  outputDir: string;
+  filename: string;
+  agent: TargetAgent;
+}> = [
+  // Rules (append mode): Copilot → AGENTS.md, Claude → CLAUDE.md
+  { outputDir: '.', filename: 'AGENTS.md', agent: 'github-copilot' },
+  { outputDir: '.', filename: 'CLAUDE.md', agent: 'claude-code' },
+  // Instructions: Copilot → .github/copilot-instructions.md
+  { outputDir: '.github', filename: 'copilot-instructions.md', agent: 'github-copilot' },
+  // Instructions: Claude → CLAUDE.md (already covered above)
+  // Instructions: Cursor + OpenCode → AGENTS.md (deduplicated by transpiler)
+  { outputDir: '.', filename: 'AGENTS.md', agent: 'cursor' },
 ];
 
 /**
@@ -370,10 +388,14 @@ function resolveAgentFromOutput(
   output: TranspiledOutput,
   agents: readonly TargetAgent[]
 ): TargetAgent | null {
-  // Check append-mode outputs first (outputDir === '.' with well-known filenames)
-  if (output.mode === 'append' && output.outputDir === '.') {
-    for (const { filename, agent } of APPEND_FILENAME_TO_AGENT) {
-      if (output.filename === filename && agents.includes(agent)) {
+  // Check append-mode outputs first (well-known dir+filename combinations)
+  if (output.mode === 'append') {
+    for (const { outputDir, filename, agent } of APPEND_FILENAME_TO_AGENT) {
+      if (
+        output.outputDir === outputDir &&
+        output.filename === filename &&
+        agents.includes(agent)
+      ) {
         return agent;
       }
     }

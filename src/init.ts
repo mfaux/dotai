@@ -84,6 +84,23 @@ Provide instructions for the agent here.
       `${DIM}Installing:${RESET}\n  ${DIM}From repo:${RESET}  ${TEXT}npx dotai add <owner>/<repo> --custom-agent ${name}${RESET}`,
   },
 
+  instruction: {
+    file: 'INSTRUCTIONS.md',
+    noun: 'instruction',
+    generateContent: (name: string) => `---
+name: ${name}
+description: Describe what this instruction does
+---
+
+Your instruction content here.
+`,
+    extraNextSteps: [
+      `  3. Keep body content agent-agnostic ${DIM}(it is passed verbatim to all target agents)${RESET}`,
+    ],
+    installSection: (name: string) =>
+      `${DIM}Installing:${RESET}\n  ${DIM}From repo:${RESET}  ${TEXT}npx dotai add <owner>/<repo> --instruction ${name}${RESET}`,
+  },
+
   skill: {
     file: 'SKILL.md',
     noun: 'skill',
@@ -206,6 +223,15 @@ export function runInit(args: string[]): void {
   // Agent template
   if (typeArg === 'agent' || typeArg === '--agent') {
     const config = TEMPLATE_CONFIGS['agent']!;
+    const name = args[1] || basename(cwd);
+    const hasName = args[1] !== undefined;
+    initTemplate(config, name, hasName, cwd);
+    return;
+  }
+
+  // Instruction template
+  if (typeArg === 'instruction' || typeArg === '--instruction') {
+    const config = TEMPLATE_CONFIGS['instruction']!;
     const name = args[1] || basename(cwd);
     const hasName = args[1] !== undefined;
     initTemplate(config, name, hasName, cwd);

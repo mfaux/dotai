@@ -199,6 +199,50 @@ describe('init command', () => {
     expect(existsSync(rulePath)).toBe(true);
   });
 
+  it('should initialize an instruction with init instruction <name>', () => {
+    const output = stripLogo(runCliOutput(['init', 'instruction', 'my-instructions'], testDir));
+    expect(output).toContain('Initialized instruction: my-instructions');
+    expect(output).toContain('my-instructions/INSTRUCTIONS.md');
+
+    const instructionPath = join(testDir, 'my-instructions', 'INSTRUCTIONS.md');
+    expect(existsSync(instructionPath)).toBe(true);
+
+    const content = readFileSync(instructionPath, 'utf-8');
+    expect(content).toContain('name: my-instructions');
+    expect(content).toContain('description: Describe what this instruction does');
+    expect(content).toContain('Your instruction content here.');
+  });
+
+  it('should init INSTRUCTIONS.md in cwd when no name provided for instruction', () => {
+    const output = stripLogo(runCliOutput(['init', 'instruction'], testDir));
+    expect(output).toContain('Initialized instruction:');
+    expect(output).toContain('Created:\n  INSTRUCTIONS.md');
+    expect(existsSync(join(testDir, 'INSTRUCTIONS.md'))).toBe(true);
+  });
+
+  it('should show error if instruction already exists', () => {
+    runCliOutput(['init', 'instruction', 'existing-instruction'], testDir);
+    const output = stripLogo(
+      runCliOutput(['init', 'instruction', 'existing-instruction'], testDir)
+    );
+    expect(output).toContain('Instruction already exists');
+  });
+
+  it('should support --instruction flag for init', () => {
+    const output = stripLogo(runCliOutput(['init', '--instruction', 'my-instruction'], testDir));
+    expect(output).toContain('Initialized instruction: my-instruction');
+
+    const instructionPath = join(testDir, 'my-instruction', 'INSTRUCTIONS.md');
+    expect(existsSync(instructionPath)).toBe(true);
+  });
+
+  it('should reject instruction names with path traversal', () => {
+    const escapeName = `escape-instruction-${Date.now()}`;
+    const output = stripLogo(runCliOutput(['init', 'instruction', `../${escapeName}`], testDir));
+    expect(output).toContain('Invalid name');
+    expect(existsSync(join(testDir, `../${escapeName}`, 'INSTRUCTIONS.md'))).toBe(false);
+  });
+
   describe('name validation', () => {
     // Use a unique escape name per test run to avoid collisions with
     // stale files from prior runs (e.g. /tmp/escape/ leftover from

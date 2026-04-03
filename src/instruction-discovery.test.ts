@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mkdir, rm, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { tmpdir } from 'os';
-import { discover, filterByType } from './rule-discovery.ts';
+import { discover, filterByType } from './context-discovery.ts';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -169,13 +169,13 @@ describe('instruction discovery', () => {
     );
     // Add other content types to verify they are excluded
     await writeFile(
-      join(testDir, 'RULES.md'),
-      '---\nname: test-rule\ndescription: A rule\nactivation: auto\n---\n\nRule body'
+      join(testDir, 'SKILL.md'),
+      '---\nname: test-skill\ndescription: A skill\n---\n\nSkill body'
     );
 
     const result = await discover(testDir, { types: ['instruction'] });
     expect(filterByType(result.items, 'instruction')).toHaveLength(1);
-    expect(filterByType(result.items, 'rule')).toHaveLength(0);
+    expect(filterByType(result.items, 'skill')).toHaveLength(0);
   });
 
   it('excludes instructions when type filter does not include instruction', async () => {
@@ -184,7 +184,7 @@ describe('instruction discovery', () => {
       instructionmd(VALID_INSTRUCTION, 'Instructions body')
     );
 
-    const result = await discover(testDir, { types: ['rule'] });
+    const result = await discover(testDir, { types: ['skill'] });
     expect(filterByType(result.items, 'instruction')).toHaveLength(0);
   });
 
@@ -198,17 +198,12 @@ describe('instruction discovery', () => {
       instructionmd(VALID_INSTRUCTION, 'Instructions body')
     );
     await writeFile(
-      join(testDir, 'RULES.md'),
-      '---\nname: test-rule\ndescription: A rule\nactivation: auto\n---\n\nRule body'
-    );
-    await writeFile(
       join(testDir, 'SKILL.md'),
       '---\nname: test-skill\ndescription: A skill\n---\n\nSkill body'
     );
 
     const result = await discover(testDir);
     expect(filterByType(result.items, 'instruction')).toHaveLength(1);
-    expect(filterByType(result.items, 'rule')).toHaveLength(1);
     expect(filterByType(result.items, 'skill')).toHaveLength(1);
   });
 });

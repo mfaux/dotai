@@ -56,7 +56,7 @@ describe('canTranspile', () => {
     format: 'native:github-copilot',
   });
   const skillItem = makeDiscoveredInstructionItem({ type: 'skill' });
-  const ruleItem = makeDiscoveredInstructionItem({ type: 'rule' });
+  const ruleItem = makeDiscoveredInstructionItem({ type: 'prompt' });
   const promptItem = makeDiscoveredInstructionItem({ type: 'prompt' });
 
   const transpilers = [

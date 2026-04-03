@@ -4,10 +4,10 @@ import { join } from 'path';
 import { tmpdir } from 'os';
 import type { DiscoveredItem } from './types.ts';
 import {
-  planRuleWrites,
+  planContextWrites,
   executeInstallPipeline,
   type InstallPipelineOptions,
-} from './rule-installer.ts';
+} from './context-installer.ts';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -75,15 +75,15 @@ describe('install-pipeline — instructions', () => {
   });
 
   // -------------------------------------------------------------------------
-  // planRuleWrites — instruction items
+  // planContextWrites — instruction items
   // -------------------------------------------------------------------------
 
-  describe('planRuleWrites — instructions', () => {
+  describe('planContextWrites — instructions', () => {
     it('transpiles a canonical instruction to 3 unique outputs (deduplicated)', () => {
       const items = [canonicalInstruction('code-style')];
       const opts = baseOptions(tmpDir);
 
-      const { writes, skipped } = planRuleWrites(items, opts);
+      const { writes, skipped } = planContextWrites(items, opts);
 
       expect(skipped).toHaveLength(0);
       // 4 agents, but cursor + opencode share AGENTS.md → 3 unique outputs
@@ -94,7 +94,7 @@ describe('install-pipeline — instructions', () => {
       const items = [canonicalInstruction('code-style')];
       const opts = baseOptions(tmpDir);
 
-      const { writes } = planRuleWrites(items, opts);
+      const { writes } = planContextWrites(items, opts);
 
       for (const write of writes) {
         expect(write.planned.output.mode).toBe('append');
@@ -105,7 +105,7 @@ describe('install-pipeline — instructions', () => {
       const items = [canonicalInstruction('code-style')];
       const opts = baseOptions(tmpDir, { source: 'acme/repo' });
 
-      const { writes } = planRuleWrites(items, opts);
+      const { writes } = planContextWrites(items, opts);
 
       for (const write of writes) {
         expect(write.planned.type).toBe('instruction');
@@ -119,7 +119,7 @@ describe('install-pipeline — instructions', () => {
       const items = [canonicalInstruction('code-style')];
       const opts = baseOptions(tmpDir, { targets: ['github-copilot'] });
 
-      const { writes } = planRuleWrites(items, opts);
+      const { writes } = planContextWrites(items, opts);
 
       expect(writes).toHaveLength(1);
       expect(writes[0]!.agent).toBe('github-copilot');
@@ -129,7 +129,7 @@ describe('install-pipeline — instructions', () => {
       const items = [canonicalInstruction('code-style')];
       const opts = baseOptions(tmpDir, { targets: ['github-copilot'] });
 
-      const { writes } = planRuleWrites(items, opts);
+      const { writes } = planContextWrites(items, opts);
 
       expect(writes[0]!.planned.absolutePath).toBe(
         join(tmpDir, '.github', 'copilot-instructions.md')
@@ -140,7 +140,7 @@ describe('install-pipeline — instructions', () => {
       const items = [canonicalInstruction('code-style')];
       const opts = baseOptions(tmpDir, { targets: ['claude-code'] });
 
-      const { writes } = planRuleWrites(items, opts);
+      const { writes } = planContextWrites(items, opts);
 
       expect(writes[0]!.planned.absolutePath).toBe(join(tmpDir, 'CLAUDE.md'));
     });
@@ -149,7 +149,7 @@ describe('install-pipeline — instructions', () => {
       const items = [canonicalInstruction('code-style')];
       const opts = baseOptions(tmpDir, { targets: ['cursor'] });
 
-      const { writes } = planRuleWrites(items, opts);
+      const { writes } = planContextWrites(items, opts);
 
       expect(writes[0]!.planned.absolutePath).toBe(join(tmpDir, 'AGENTS.md'));
     });
@@ -162,7 +162,7 @@ describe('install-pipeline — instructions', () => {
       ];
       const opts = baseOptions(tmpDir, { targets: ['github-copilot'] });
 
-      const { writes } = planRuleWrites(items, opts);
+      const { writes } = planContextWrites(items, opts);
 
       // 2 instructions × 1 agent = 2 writes
       expect(writes).toHaveLength(2);

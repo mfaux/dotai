@@ -270,8 +270,6 @@ async function promptContextSelection(
 
   if (summary.skills.length > 0)
     console.log(formatContextLine(summary.skills.length, 'skill', summary.skills));
-  if (summary.rules.length > 0)
-    console.log(formatContextLine(summary.rules.length, 'rule', summary.rules));
   if (summary.prompts.length > 0)
     console.log(formatContextLine(summary.prompts.length, 'prompt', summary.prompts));
   if (summary.agents.length > 0)
@@ -318,7 +316,6 @@ async function promptContextSelection(
   // "pick" — multi-select from all discovered items
   const allItems = [
     ...summary.skills.map((i) => ({ value: i, label: formatPickLabel(i, 'skill') })),
-    ...summary.rules.map((i) => ({ value: i, label: formatPickLabel(i, 'rule') })),
     ...summary.prompts.map((i) => ({ value: i, label: formatPickLabel(i, 'prompt') })),
     ...summary.agents.map((i) => ({ value: i, label: formatPickLabel(i, 'agent') })),
     ...summary.instructions.map((i) => ({
@@ -347,7 +344,6 @@ async function promptContextSelection(
   const addArgs: string[] = [pkg];
   const byType = {
     skill: [] as string[],
-    rule: [] as string[],
     prompt: [] as string[],
     agent: [] as string[],
     instruction: [] as string[],
@@ -358,9 +354,6 @@ async function promptContextSelection(
 
   if (byType.skill.length > 0) {
     addArgs.push('--skill', ...byType.skill);
-  }
-  if (byType.rule.length > 0) {
-    addArgs.push('--rule', ...byType.rule);
   }
   if (byType.prompt.length > 0) {
     addArgs.push('--prompt', ...byType.prompt);
@@ -404,7 +397,6 @@ ${DIM}  2) npx dotai add <owner/repo@skill>${RESET}`;
         const summary = discoverRemoteContext(tree, repoName);
         const allItems = [
           ...summary.skills,
-          ...summary.rules,
           ...summary.prompts,
           ...summary.agents,
           ...summary.instructions,
@@ -425,10 +417,9 @@ ${DIM}  2) npx dotai add <owner/repo@skill>${RESET}`;
             byType[key].push(item);
           }
 
-          const typeOrder = ['skill', 'rule', 'prompt', 'agent', 'instruction'] as const;
+          const typeOrder = ['skill', 'prompt', 'agent', 'instruction'] as const;
           const typeLabels: Record<string, string> = {
             skill: 'Skills',
-            rule: 'Rules',
             prompt: 'Prompts',
             agent: 'Agents',
             instruction: 'Instructions',
@@ -447,7 +438,7 @@ ${DIM}  2) npx dotai add <owner/repo@skill>${RESET}`;
           }
 
           console.log(`${DIM}Install with:${RESET} npx dotai add ${query}`);
-          console.log(`${DIM}Or specific items:${RESET} npx dotai add ${query} --rule <name>`);
+          console.log(`${DIM}Or specific items:${RESET} npx dotai add ${query} --prompt <name>`);
           console.log();
           return;
         }
@@ -515,7 +506,6 @@ ${DIM}  2) npx dotai add <owner/repo@skill>${RESET}`;
     const repoName = pkg.includes('/') ? pkg.split('/')[1]! : pkg;
     const summary = discoverRemoteContext(tree, repoName);
     const totalOther =
-      summary.rules.length +
       summary.prompts.length +
       summary.agents.length +
       summary.instructions.length +

@@ -68,13 +68,10 @@ export interface RemoteSkill {
 export type TargetAgent = 'github-copilot' | 'claude-code' | 'cursor' | 'opencode';
 
 /** Context item types supported by dotai. */
-export type ContextType = 'skill' | 'rule' | 'prompt' | 'agent' | 'instruction';
+export type ContextType = 'skill' | 'prompt' | 'agent' | 'instruction';
 
 /** How a discovered item was authored. */
 export type ContextFormat = 'canonical' | `native:${TargetAgent}`;
-
-/** Rule activation modes. */
-export type RuleActivation = 'always' | 'auto' | 'manual' | 'glob';
 
 /**
  * A discovered context item from a source repo, tagged with type and format.
@@ -93,33 +90,6 @@ export interface DiscoveredItem {
   sourcePath: string;
   /** Raw file content for hashing. */
   rawContent: string;
-}
-
-/** Fields that can be overridden per target agent (excludes identity and structural fields). */
-export type RuleOverrideFields = Partial<
-  Omit<CanonicalRule, 'name' | 'schemaVersion' | 'body' | 'overrides'>
->;
-
-/**
- * Canonical RULES.md representation after parsing and validation.
- */
-export interface CanonicalRule {
-  /** Kebab-case identifier, ≤ 128 chars. */
-  name: string;
-  /** Human-readable description, ≤ 512 chars. */
-  description: string;
-  /** File glob patterns for scoping, ≤ 50 entries. */
-  globs: string[];
-  /** When this rule activates. */
-  activation: RuleActivation;
-  /** Optional severity level. */
-  severity?: string;
-  /** Schema version (default 1). */
-  schemaVersion: number;
-  /** The markdown body (everything after frontmatter). */
-  body: string;
-  /** Per-agent override blocks from frontmatter. */
-  overrides?: Partial<Record<TargetAgent, RuleOverrideFields>>;
 }
 
 /** Fields that can be overridden per target agent for prompts. */

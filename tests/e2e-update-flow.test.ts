@@ -4,7 +4,6 @@ import { join } from 'path';
 import {
   createTempProject,
   cleanupProject,
-  makeRuleContent,
   makePromptContent,
   makeAgentContent,
   writeCanonicalFile,
@@ -12,12 +11,11 @@ import {
   getExpectedOutputPath,
   assertLockEntry,
   assertLockEntryCount,
-  ALL_AGENTS,
   PROMPT_AGENTS,
   AGENT_AGENTS,
 } from './e2e-utils.ts';
-import { addRules, addPrompts, addAgents } from '../src/rule-add.ts';
-import { checkRuleUpdates, updateRules } from '../src/rule-check.ts';
+import { addPrompts, addAgents } from '../src/context-add.ts';
+import { checkContextUpdates, updateContext } from '../src/context-check.ts';
 import { computeContentHash } from '../src/dotai-lock.ts';
 
 // ---------------------------------------------------------------------------
@@ -28,10 +26,10 @@ import { computeContentHash } from '../src/dotai-lock.ts';
 //
 // Each test:
 //   1. Creates a source repo with a canonical context file
-//   2. Installs it via addRules/addPrompts/addAgents
+//   2. Installs it via addPrompts/addAgents
 //   3. Modifies the source file content
-//   4. Runs checkRuleUpdates to verify detection
-//   5. Runs updateRules to apply the update
+//   4. Runs checkContextUpdates to verify detection
+//   5. Runs updateContext to apply the update
 //   6. Verifies output file content and lock hash are updated
 // ---------------------------------------------------------------------------
 
@@ -50,36 +48,36 @@ describe('E2E update flow', () => {
   });
 
   // -------------------------------------------------------------------------
-  // Rule update flow
+  // Prompt update flow
   // -------------------------------------------------------------------------
 
-  describe('rule update', () => {
+  describe('prompt update', () => {
     it('check detects changed content hash after source modification', async () => {
-      // 1. Install a canonical rule
-      const originalContent = makeRuleContent('code-style', {
+      // 1. Install a canonical prompt
+      const originalContent = makePromptContent('code-style', {
         body: 'Use const over let.',
       });
-      writeCanonicalFile(sourceRepo, 'rule', 'code-style', originalContent);
+      writeCanonicalFile(sourceRepo, 'prompt', 'code-style', originalContent);
 
-      await addRules({
+      await addPrompts({
         source: sourceRepo,
         sourcePath: sourceRepo,
         projectRoot,
-        ruleNames: ['*'],
+        promptNames: ['*'],
       });
 
       // Verify initial install
-      const initialEntry = await assertLockEntry(projectRoot, 'rule', 'code-style');
+      const initialEntry = await assertLockEntry(projectRoot, 'prompt', 'code-style');
       const initialHash = initialEntry.hash;
 
       // 2. Modify source content
-      const updatedContent = makeRuleContent('code-style', {
+      const updatedContent = makePromptContent('code-style', {
         body: 'Use const over let. Also prefer arrow functions.',
       });
-      writeCanonicalFile(sourceRepo, 'rule', 'code-style', updatedContent);
+      writeCanonicalFile(sourceRepo, 'prompt', 'code-style', updatedContent);
 
       // 3. Check detects the update
-      const checkResult = await checkRuleUpdates(projectRoot);
+      const checkResult = await checkContextUpdates(projectRoot);
 
       expect(checkResult.totalChecked).toBe(1);
       expect(checkResult.updates).toHaveLength(1);
@@ -91,18 +89,18 @@ describe('E2E update flow', () => {
     });
 
     it('check reports no updates when source is unchanged', async () => {
-      const content = makeRuleContent('code-style', { body: 'Same content.' });
-      writeCanonicalFile(sourceRepo, 'rule', 'code-style', content);
+      const content = makePromptContent('code-style', { body: 'Same content.' });
+      writeCanonicalFile(sourceRepo, 'prompt', 'code-style', content);
 
-      await addRules({
+      await addPrompts({
         source: sourceRepo,
         sourcePath: sourceRepo,
         projectRoot,
-        ruleNames: ['*'],
+        promptNames: ['*'],
       });
 
       // No modification — check should find nothing
-      const checkResult = await checkRuleUpdates(projectRoot);
+      const checkResult = await checkContextUpdates(projectRoot);
 
       expect(checkResult.totalChecked).toBe(1);
       expect(checkResult.updates).toHaveLength(0);
@@ -111,136 +109,130 @@ describe('E2E update flow', () => {
 
     it('update replaces output files with new content and updates lock hash', async () => {
       // 1. Install
-      const originalContent = makeRuleContent('code-style', {
-        body: 'Original rule body.',
+      const originalContent = makePromptContent('code-style', {
+        body: 'Original prompt body.',
       });
-      writeCanonicalFile(sourceRepo, 'rule', 'code-style', originalContent);
+      writeCanonicalFile(sourceRepo, 'prompt', 'code-style', originalContent);
 
-      await addRules({
+      await addPrompts({
         source: sourceRepo,
         sourcePath: sourceRepo,
         projectRoot,
-        ruleNames: ['*'],
+        promptNames: ['*'],
       });
 
-      const initialEntry = await assertLockEntry(projectRoot, 'rule', 'code-style');
+      const initialEntry = await assertLockEntry(projectRoot, 'prompt', 'code-style');
       const initialHash = initialEntry.hash;
 
       // 2. Modify source
-      const updatedContent = makeRuleContent('code-style', {
-        body: 'Updated rule body with new guidelines.',
+      const updatedContent = makePromptContent('code-style', {
+        body: 'Updated prompt body with new guidelines.',
       });
-      writeCanonicalFile(sourceRepo, 'rule', 'code-style', updatedContent);
+      writeCanonicalFile(sourceRepo, 'prompt', 'code-style', updatedContent);
 
       // 3. Run update
-      const updateResult = await updateRules(projectRoot);
+      const updateResult = await updateContext(projectRoot);
 
       expect(updateResult.totalChecked).toBe(1);
       expect(updateResult.successCount).toBe(1);
       expect(updateResult.failCount).toBe(0);
 
       // 4. Verify output files contain new content
-      for (const agent of ALL_AGENTS) {
-        const outputPath = getExpectedOutputPath(projectRoot, agent, 'rule', 'code-style');
-        assertFileExists(outputPath, 'Updated rule body with new guidelines.');
+      for (const agent of PROMPT_AGENTS) {
+        const outputPath = getExpectedOutputPath(projectRoot, agent, 'prompt', 'code-style');
+        assertFileExists(outputPath, 'Updated prompt body with new guidelines.');
       }
 
       // 5. Verify lock hash updated
-      const updatedEntry = await assertLockEntry(projectRoot, 'rule', 'code-style');
+      const updatedEntry = await assertLockEntry(projectRoot, 'prompt', 'code-style');
       expect(updatedEntry.hash).not.toBe(initialHash);
       expect(updatedEntry.hash).toBe(computeContentHash(updatedContent));
     });
 
     it('update preserves installedAt timestamp', async () => {
-      const originalContent = makeRuleContent('code-style', { body: 'Original.' });
-      writeCanonicalFile(sourceRepo, 'rule', 'code-style', originalContent);
+      const originalContent = makePromptContent('code-style', { body: 'Original.' });
+      writeCanonicalFile(sourceRepo, 'prompt', 'code-style', originalContent);
 
-      await addRules({
+      await addPrompts({
         source: sourceRepo,
         sourcePath: sourceRepo,
         projectRoot,
-        ruleNames: ['*'],
+        promptNames: ['*'],
       });
 
-      const initialEntry = await assertLockEntry(projectRoot, 'rule', 'code-style');
+      const initialEntry = await assertLockEntry(projectRoot, 'prompt', 'code-style');
       const originalInstalledAt = initialEntry.installedAt;
 
       // Modify and update
-      const updatedContent = makeRuleContent('code-style', { body: 'Updated.' });
-      writeCanonicalFile(sourceRepo, 'rule', 'code-style', updatedContent);
+      const updatedContent = makePromptContent('code-style', { body: 'Updated.' });
+      writeCanonicalFile(sourceRepo, 'prompt', 'code-style', updatedContent);
 
-      await updateRules(projectRoot);
+      await updateContext(projectRoot);
 
-      const updatedEntry = await assertLockEntry(projectRoot, 'rule', 'code-style');
+      const updatedEntry = await assertLockEntry(projectRoot, 'prompt', 'code-style');
       expect(updatedEntry.installedAt).toBe(originalInstalledAt);
     });
 
-    it('update with multiple rules only updates changed ones', async () => {
-      // Install two rules
+    it('update with multiple prompts only updates changed ones', async () => {
+      // Install two prompts
       writeCanonicalFile(
         sourceRepo,
-        'rule',
-        'rule-a',
-        makeRuleContent('rule-a', { body: 'Rule A body.' })
+        'prompt',
+        'prompt-a',
+        makePromptContent('prompt-a', { body: 'Prompt A body.' })
       );
       writeCanonicalFile(
         sourceRepo,
-        'rule',
-        'rule-b',
-        makeRuleContent('rule-b', { body: 'Rule B body.' })
+        'prompt',
+        'prompt-b',
+        makePromptContent('prompt-b', { body: 'Prompt B body.' })
       );
 
-      await addRules({
+      await addPrompts({
         source: sourceRepo,
         sourcePath: sourceRepo,
         projectRoot,
-        ruleNames: ['*'],
+        promptNames: ['*'],
       });
 
-      const initialEntryA = await assertLockEntry(projectRoot, 'rule', 'rule-a');
-      const initialEntryB = await assertLockEntry(projectRoot, 'rule', 'rule-b');
+      const initialEntryA = await assertLockEntry(projectRoot, 'prompt', 'prompt-a');
+      const initialEntryB = await assertLockEntry(projectRoot, 'prompt', 'prompt-b');
 
-      // Only modify rule-b
+      // Only modify prompt-b
       writeCanonicalFile(
         sourceRepo,
-        'rule',
-        'rule-b',
-        makeRuleContent('rule-b', { body: 'Rule B UPDATED body.' })
+        'prompt',
+        'prompt-b',
+        makePromptContent('prompt-b', { body: 'Prompt B UPDATED body.' })
       );
 
-      // Check should only report rule-b
-      const checkResult = await checkRuleUpdates(projectRoot);
+      // Check should only report prompt-b
+      const checkResult = await checkContextUpdates(projectRoot);
       expect(checkResult.totalChecked).toBe(2);
       expect(checkResult.updates).toHaveLength(1);
-      expect(checkResult.updates[0]!.entry.name).toBe('rule-b');
+      expect(checkResult.updates[0]!.entry.name).toBe('prompt-b');
 
       // Update
-      const updateResult = await updateRules(projectRoot);
+      const updateResult = await updateContext(projectRoot);
       expect(updateResult.successCount).toBe(1);
 
-      // rule-a hash should be unchanged
-      const updatedEntryA = await assertLockEntry(projectRoot, 'rule', 'rule-a');
+      // prompt-a hash should be unchanged
+      const updatedEntryA = await assertLockEntry(projectRoot, 'prompt', 'prompt-a');
       expect(updatedEntryA.hash).toBe(initialEntryA.hash);
 
-      // rule-b hash should be different
-      const updatedEntryB = await assertLockEntry(projectRoot, 'rule', 'rule-b');
+      // prompt-b hash should be different
+      const updatedEntryB = await assertLockEntry(projectRoot, 'prompt', 'prompt-b');
       expect(updatedEntryB.hash).not.toBe(initialEntryB.hash);
 
-      // rule-b output should have new content
-      for (const agent of ALL_AGENTS) {
+      // prompt-b output should have new content
+      for (const agent of PROMPT_AGENTS) {
         assertFileExists(
-          getExpectedOutputPath(projectRoot, agent, 'rule', 'rule-b'),
-          'Rule B UPDATED body.'
+          getExpectedOutputPath(projectRoot, agent, 'prompt', 'prompt-b'),
+          'Prompt B UPDATED body.'
         );
       }
     });
-  });
 
-  // -------------------------------------------------------------------------
-  // Prompt update flow
-  // -------------------------------------------------------------------------
-
-  describe('prompt update', () => {
     it('check detects changed prompt content', async () => {
       const originalContent = makePromptContent('review-code', {
         body: 'Review the code for bugs.',
@@ -264,7 +256,7 @@ describe('E2E update flow', () => {
       writeCanonicalFile(sourceRepo, 'prompt', 'review-code', updatedContent);
 
       // Check
-      const checkResult = await checkRuleUpdates(projectRoot);
+      const checkResult = await checkContextUpdates(projectRoot);
       expect(checkResult.totalChecked).toBe(1);
       expect(checkResult.updates).toHaveLength(1);
       expect(checkResult.updates[0]!.entry.name).toBe('review-code');
@@ -295,7 +287,7 @@ describe('E2E update flow', () => {
       writeCanonicalFile(sourceRepo, 'prompt', 'review-code', updatedContent);
 
       // Update
-      const updateResult = await updateRules(projectRoot);
+      const updateResult = await updateContext(projectRoot);
       expect(updateResult.totalChecked).toBe(1);
       expect(updateResult.successCount).toBe(1);
 
@@ -340,7 +332,7 @@ describe('E2E update flow', () => {
       writeCanonicalFile(sourceRepo, 'agent', 'architect', updatedContent);
 
       // Check
-      const checkResult = await checkRuleUpdates(projectRoot);
+      const checkResult = await checkContextUpdates(projectRoot);
       expect(checkResult.totalChecked).toBe(1);
       expect(checkResult.updates).toHaveLength(1);
       expect(checkResult.updates[0]!.entry.name).toBe('architect');
@@ -371,7 +363,7 @@ describe('E2E update flow', () => {
       writeCanonicalFile(sourceRepo, 'agent', 'architect', updatedContent);
 
       // Update
-      const updateResult = await updateRules(projectRoot);
+      const updateResult = await updateContext(projectRoot);
       expect(updateResult.totalChecked).toBe(1);
       expect(updateResult.successCount).toBe(1);
 
@@ -393,13 +385,13 @@ describe('E2E update flow', () => {
   // -------------------------------------------------------------------------
 
   describe('mixed type update', () => {
-    it('check and update work across rules, prompts, and agents from same source', async () => {
-      // Install all three types
+    it('check and update work across prompts and agents from same source', async () => {
+      // Install both types
       writeCanonicalFile(
         sourceRepo,
-        'rule',
+        'prompt',
         'code-style',
-        makeRuleContent('code-style', { body: 'Style v1.' })
+        makePromptContent('code-style', { body: 'Style v1.' })
       );
       writeCanonicalFile(
         sourceRepo,
@@ -414,12 +406,6 @@ describe('E2E update flow', () => {
         makeAgentContent('architect', { body: 'Architect v1.' })
       );
 
-      await addRules({
-        source: sourceRepo,
-        sourcePath: sourceRepo,
-        projectRoot,
-        ruleNames: ['*'],
-      });
       await addPrompts({
         source: sourceRepo,
         sourcePath: sourceRepo,
@@ -436,16 +422,16 @@ describe('E2E update flow', () => {
       await assertLockEntryCount(projectRoot, 3);
 
       // Save initial hashes
-      const initialRule = await assertLockEntry(projectRoot, 'rule', 'code-style');
+      const initialCodeStyle = await assertLockEntry(projectRoot, 'prompt', 'code-style');
       const initialPrompt = await assertLockEntry(projectRoot, 'prompt', 'review-code');
       const initialAgent = await assertLockEntry(projectRoot, 'agent', 'architect');
 
       // Modify all three
       writeCanonicalFile(
         sourceRepo,
-        'rule',
+        'prompt',
         'code-style',
-        makeRuleContent('code-style', { body: 'Style v2.' })
+        makePromptContent('code-style', { body: 'Style v2.' })
       );
       writeCanonicalFile(
         sourceRepo,
@@ -461,7 +447,7 @@ describe('E2E update flow', () => {
       );
 
       // Check detects all 3 updates
-      const checkResult = await checkRuleUpdates(projectRoot);
+      const checkResult = await checkContextUpdates(projectRoot);
       expect(checkResult.totalChecked).toBe(3);
       expect(checkResult.updates).toHaveLength(3);
       expect(checkResult.errors).toHaveLength(0);
@@ -470,24 +456,24 @@ describe('E2E update flow', () => {
       expect(updateNames).toEqual(['architect', 'code-style', 'review-code']);
 
       // Update all
-      const updateResult = await updateRules(projectRoot);
+      const updateResult = await updateContext(projectRoot);
       expect(updateResult.totalChecked).toBe(3);
       expect(updateResult.successCount).toBe(3);
       expect(updateResult.failCount).toBe(0);
 
       // Verify all hashes changed
-      const updatedRule = await assertLockEntry(projectRoot, 'rule', 'code-style');
+      const updatedCodeStyle = await assertLockEntry(projectRoot, 'prompt', 'code-style');
       const updatedPrompt = await assertLockEntry(projectRoot, 'prompt', 'review-code');
       const updatedAgent = await assertLockEntry(projectRoot, 'agent', 'architect');
 
-      expect(updatedRule.hash).not.toBe(initialRule.hash);
+      expect(updatedCodeStyle.hash).not.toBe(initialCodeStyle.hash);
       expect(updatedPrompt.hash).not.toBe(initialPrompt.hash);
       expect(updatedAgent.hash).not.toBe(initialAgent.hash);
 
       // Verify output content
-      for (const agent of ALL_AGENTS) {
+      for (const agent of PROMPT_AGENTS) {
         assertFileExists(
-          getExpectedOutputPath(projectRoot, agent, 'rule', 'code-style'),
+          getExpectedOutputPath(projectRoot, agent, 'prompt', 'code-style'),
           'Style v2.'
         );
       }
@@ -506,12 +492,12 @@ describe('E2E update flow', () => {
     });
 
     it('partial updates only affect changed items', async () => {
-      // Install rule and prompt
+      // Install two prompts
       writeCanonicalFile(
         sourceRepo,
-        'rule',
+        'prompt',
         'code-style',
-        makeRuleContent('code-style', { body: 'Style body.' })
+        makePromptContent('code-style', { body: 'Style body.' })
       );
       writeCanonicalFile(
         sourceRepo,
@@ -520,12 +506,6 @@ describe('E2E update flow', () => {
         makePromptContent('review-code', { body: 'Review body.' })
       );
 
-      await addRules({
-        source: sourceRepo,
-        sourcePath: sourceRepo,
-        projectRoot,
-        ruleNames: ['*'],
-      });
       await addPrompts({
         source: sourceRepo,
         sourcePath: sourceRepo,
@@ -533,10 +513,10 @@ describe('E2E update flow', () => {
         promptNames: ['*'],
       });
 
-      const initialRuleEntry = await assertLockEntry(projectRoot, 'rule', 'code-style');
+      const initialCodeStyleEntry = await assertLockEntry(projectRoot, 'prompt', 'code-style');
       const initialPromptEntry = await assertLockEntry(projectRoot, 'prompt', 'review-code');
 
-      // Only modify the prompt
+      // Only modify the review-code prompt
       writeCanonicalFile(
         sourceRepo,
         'prompt',
@@ -544,22 +524,22 @@ describe('E2E update flow', () => {
         makePromptContent('review-code', { body: 'Review body UPDATED.' })
       );
 
-      // Check — only prompt should have update
-      const checkResult = await checkRuleUpdates(projectRoot);
+      // Check — only review-code should have update
+      const checkResult = await checkContextUpdates(projectRoot);
       expect(checkResult.totalChecked).toBe(2);
       expect(checkResult.updates).toHaveLength(1);
       expect(checkResult.updates[0]!.entry.name).toBe('review-code');
       expect(checkResult.updates[0]!.entry.type).toBe('prompt');
 
       // Update
-      const updateResult = await updateRules(projectRoot);
+      const updateResult = await updateContext(projectRoot);
       expect(updateResult.successCount).toBe(1);
 
-      // Rule hash unchanged
-      const updatedRuleEntry = await assertLockEntry(projectRoot, 'rule', 'code-style');
-      expect(updatedRuleEntry.hash).toBe(initialRuleEntry.hash);
+      // code-style hash unchanged
+      const updatedCodeStyleEntry = await assertLockEntry(projectRoot, 'prompt', 'code-style');
+      expect(updatedCodeStyleEntry.hash).toBe(initialCodeStyleEntry.hash);
 
-      // Prompt hash changed
+      // review-code hash changed
       const updatedPromptEntry = await assertLockEntry(projectRoot, 'prompt', 'review-code');
       expect(updatedPromptEntry.hash).not.toBe(initialPromptEntry.hash);
     });
@@ -571,33 +551,33 @@ describe('E2E update flow', () => {
 
   describe('edge cases', () => {
     it('check reports error when source item is removed from repo', async () => {
-      // Install a rule
+      // Install a prompt
       writeCanonicalFile(
         sourceRepo,
-        'rule',
+        'prompt',
         'code-style',
-        makeRuleContent('code-style', { body: 'Style body.' })
+        makePromptContent('code-style', { body: 'Style body.' })
       );
 
-      await addRules({
+      await addPrompts({
         source: sourceRepo,
         sourcePath: sourceRepo,
         projectRoot,
-        ruleNames: ['*'],
+        promptNames: ['*'],
       });
 
-      // Replace with a different rule (remove code-style, add different-rule)
+      // Replace with a different prompt (remove code-style, add different-prompt)
       const { rmSync } = await import('fs');
-      rmSync(join(sourceRepo, 'rules', 'code-style'), { recursive: true, force: true });
+      rmSync(join(sourceRepo, 'prompts', 'code-style'), { recursive: true, force: true });
       writeCanonicalFile(
         sourceRepo,
-        'rule',
-        'different-rule',
-        makeRuleContent('different-rule', { body: 'Different body.' })
+        'prompt',
+        'different-prompt',
+        makePromptContent('different-prompt', { body: 'Different body.' })
       );
 
-      // Check should report error for missing rule
-      const checkResult = await checkRuleUpdates(projectRoot);
+      // Check should report error for missing prompt
+      const checkResult = await checkContextUpdates(projectRoot);
       expect(checkResult.totalChecked).toBe(1);
       expect(checkResult.updates).toHaveLength(0);
       expect(checkResult.errors).toHaveLength(1);
@@ -607,24 +587,24 @@ describe('E2E update flow', () => {
 
     it('second update after already-updated content reports no updates', async () => {
       // Install
-      const originalContent = makeRuleContent('code-style', { body: 'Original.' });
-      writeCanonicalFile(sourceRepo, 'rule', 'code-style', originalContent);
+      const originalContent = makePromptContent('code-style', { body: 'Original.' });
+      writeCanonicalFile(sourceRepo, 'prompt', 'code-style', originalContent);
 
-      await addRules({
+      await addPrompts({
         source: sourceRepo,
         sourcePath: sourceRepo,
         projectRoot,
-        ruleNames: ['*'],
+        promptNames: ['*'],
       });
 
       // Modify and update
-      const updatedContent = makeRuleContent('code-style', { body: 'Updated.' });
-      writeCanonicalFile(sourceRepo, 'rule', 'code-style', updatedContent);
+      const updatedContent = makePromptContent('code-style', { body: 'Updated.' });
+      writeCanonicalFile(sourceRepo, 'prompt', 'code-style', updatedContent);
 
-      await updateRules(projectRoot);
+      await updateContext(projectRoot);
 
       // Second check — should find no updates
-      const checkResult = await checkRuleUpdates(projectRoot);
+      const checkResult = await checkContextUpdates(projectRoot);
       expect(checkResult.totalChecked).toBe(1);
       expect(checkResult.updates).toHaveLength(0);
       expect(checkResult.errors).toHaveLength(0);
@@ -633,16 +613,16 @@ describe('E2E update flow', () => {
     it('update preserves lock entry count (no duplicates)', async () => {
       writeCanonicalFile(
         sourceRepo,
-        'rule',
+        'prompt',
         'code-style',
-        makeRuleContent('code-style', { body: 'v1.' })
+        makePromptContent('code-style', { body: 'v1.' })
       );
 
-      await addRules({
+      await addPrompts({
         source: sourceRepo,
         sourcePath: sourceRepo,
         projectRoot,
-        ruleNames: ['*'],
+        promptNames: ['*'],
       });
 
       await assertLockEntryCount(projectRoot, 1);
@@ -650,51 +630,51 @@ describe('E2E update flow', () => {
       // Modify and update
       writeCanonicalFile(
         sourceRepo,
-        'rule',
+        'prompt',
         'code-style',
-        makeRuleContent('code-style', { body: 'v2.' })
+        makePromptContent('code-style', { body: 'v2.' })
       );
 
-      await updateRules(projectRoot);
+      await updateContext(projectRoot);
 
       // Still 1 entry, not 2
       await assertLockEntryCount(projectRoot, 1);
     });
 
-    it('update outputs all 4 agent files for a rule (same as initial install)', async () => {
+    it('update outputs all agent files for a prompt (same as initial install)', async () => {
       writeCanonicalFile(
         sourceRepo,
-        'rule',
+        'prompt',
         'code-style',
-        makeRuleContent('code-style', { body: 'v1 body.' })
+        makePromptContent('code-style', { body: 'v1 body.' })
       );
 
-      await addRules({
+      await addPrompts({
         source: sourceRepo,
         sourcePath: sourceRepo,
         projectRoot,
-        ruleNames: ['*'],
+        promptNames: ['*'],
       });
 
       // Modify and update
       writeCanonicalFile(
         sourceRepo,
-        'rule',
+        'prompt',
         'code-style',
-        makeRuleContent('code-style', { body: 'v2 body.' })
+        makePromptContent('code-style', { body: 'v2 body.' })
       );
 
-      await updateRules(projectRoot);
+      await updateContext(projectRoot);
 
-      // All 4 agents should have output files with new content
-      const updatedEntry = await assertLockEntry(projectRoot, 'rule', 'code-style', {
-        outputCount: 4,
+      // All prompt agents should have output files with new content
+      const updatedEntry = await assertLockEntry(projectRoot, 'prompt', 'code-style', {
+        outputCount: PROMPT_AGENTS.length,
       });
-      expect(updatedEntry.agents).toHaveLength(4);
+      expect(updatedEntry.agents).toHaveLength(PROMPT_AGENTS.length);
 
-      for (const agent of ALL_AGENTS) {
+      for (const agent of PROMPT_AGENTS) {
         assertFileExists(
-          getExpectedOutputPath(projectRoot, agent, 'rule', 'code-style'),
+          getExpectedOutputPath(projectRoot, agent, 'prompt', 'code-style'),
           'v2 body.'
         );
       }

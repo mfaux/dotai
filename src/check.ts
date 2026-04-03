@@ -5,7 +5,7 @@ import {
   readSkillLock,
   type SkillLockEntry,
 } from './skill-lock.ts';
-import { checkRuleUpdates, updateRules } from './rule-check.ts';
+import { checkContextUpdates, updateContext } from './context-check.ts';
 import { track } from './telemetry.ts';
 import { RESET, DIM, TEXT } from './utils.ts';
 
@@ -162,7 +162,7 @@ export async function runCheck(_args: string[] = []): Promise<void> {
 
   // ── Check rules, prompts, agents, and instructions (project lock: .dotai-lock.json) ──
   const projectRoot = process.cwd();
-  const ruleCheck = await checkRuleUpdates(projectRoot);
+  const ruleCheck = await checkContextUpdates(projectRoot);
 
   if (ruleCheck.totalChecked > 0) {
     hasAnyItems = true;
@@ -283,7 +283,7 @@ export async function runUpdate(): Promise<void> {
 
   // ── Update rules, prompts, agents, and instructions (project lock: .dotai-lock.json) ──
   const projectRoot = process.cwd();
-  const ruleResult = await updateRules(projectRoot);
+  const ruleResult = await updateContext(projectRoot);
 
   if (ruleResult.totalChecked > 0) {
     hasAnyItems = true;

@@ -56,7 +56,7 @@ describe('canTranspile', () => {
   const canonicalAgent = makeDiscoveredAgentItem();
   const nativeAgent = makeDiscoveredAgentItem({ format: 'native:github-copilot' });
   const skillItem = makeDiscoveredAgentItem({ type: 'skill' });
-  const ruleItem = makeDiscoveredAgentItem({ type: 'rule' });
+  const ruleItem = makeDiscoveredAgentItem({ type: 'prompt' });
   const promptItem = makeDiscoveredAgentItem({ type: 'prompt' });
 
   it.each([

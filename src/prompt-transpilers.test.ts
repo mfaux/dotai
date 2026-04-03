@@ -59,7 +59,7 @@ describe('canTranspile', () => {
   const canonicalPrompt = makeDiscoveredPromptItem();
   const nativePrompt = makeDiscoveredPromptItem({ format: 'native:github-copilot' });
   const skillItem = makeDiscoveredPromptItem({ type: 'skill' });
-  const ruleItem = makeDiscoveredPromptItem({ type: 'rule' });
+  const agentItem = makeDiscoveredPromptItem({ type: 'agent' });
 
   it.each([
     ['copilot', copilotPromptTranspiler],
@@ -85,8 +85,8 @@ describe('canTranspile', () => {
   it.each([
     ['copilot', copilotPromptTranspiler],
     ['claude-code', claudeCodePromptTranspiler],
-  ] as const)('%s rejects rule items', (_name, transpiler) => {
-    expect(transpiler.canTranspile(ruleItem)).toBe(false);
+  ] as const)('%s rejects agent items', (_name, transpiler) => {
+    expect(transpiler.canTranspile(agentItem)).toBe(false);
   });
 });
 

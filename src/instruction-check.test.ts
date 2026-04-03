@@ -3,7 +3,7 @@ import { mkdtemp, rm, mkdir, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { existsSync, readFileSync } from 'fs';
-import { checkRuleUpdates, updateRules } from './rule-check.ts';
+import { checkContextUpdates, updateContext } from './context-check.ts';
 import {
   writeDotaiLock,
   createEmptyLock,
@@ -68,10 +68,10 @@ function makeInstructionLockEntry(
 }
 
 // ---------------------------------------------------------------------------
-// checkRuleUpdates — instruction entries
+// checkContextUpdates — instruction entries
 // ---------------------------------------------------------------------------
 
-describe('checkRuleUpdates — instructions', () => {
+describe('checkContextUpdates — instructions', () => {
   let tempDir: string;
   let projectDir: string;
 
@@ -101,7 +101,7 @@ describe('checkRuleUpdates — instructions', () => {
     lock = upsertLockEntry(lock, makeInstructionLockEntry('coding-standards', sourceRepo, content));
     await writeDotaiLock(lock, projectDir);
 
-    const result = await checkRuleUpdates(projectDir);
+    const result = await checkContextUpdates(projectDir);
 
     expect(result.totalChecked).toBe(1);
     expect(result.updates).toHaveLength(0);
@@ -129,7 +129,7 @@ describe('checkRuleUpdates — instructions', () => {
     );
     await writeDotaiLock(lock, projectDir);
 
-    const result = await checkRuleUpdates(projectDir);
+    const result = await checkContextUpdates(projectDir);
 
     expect(result.totalChecked).toBe(1);
     expect(result.updates).toHaveLength(1);
@@ -153,7 +153,7 @@ describe('checkRuleUpdates — instructions', () => {
     lock = upsertLockEntry(lock, makeInstructionLockEntry('old-instruction', sourceRepo, content));
     await writeDotaiLock(lock, projectDir);
 
-    const result = await checkRuleUpdates(projectDir);
+    const result = await checkContextUpdates(projectDir);
 
     expect(result.totalChecked).toBe(1);
     expect(result.updates).toHaveLength(0);
@@ -162,22 +162,19 @@ describe('checkRuleUpdates — instructions', () => {
     expect(result.errors[0]!.error).toContain('no longer found');
   });
 
-  it('checks instructions alongside rules', async () => {
-    // Create source repo with both a rule and an instruction
+  it('checks instructions alongside prompts', async () => {
+    // Create source repo with both a prompt and an instruction
     const sourceRepo = join(tempDir, 'source-repo');
     await mkdir(sourceRepo, { recursive: true });
 
-    const ruleContent = `---
+    const promptContent = `---
 name: code-style
 description: Enforce code style
-globs:
-  - "*.ts"
-activation: always
 ---
 
 Use const over let.
 `;
-    await writeFile(join(sourceRepo, 'RULES.md'), ruleContent);
+    await writeFile(join(sourceRepo, 'PROMPT.md'), promptContent);
 
     const instrContent = makeInstructionContent(
       'team-standards',
@@ -187,18 +184,18 @@ Use const over let.
     await writeFile(join(sourceRepo, 'INSTRUCTIONS.md'), instrContent);
 
     let lock = createEmptyLock();
-    // Add rule entry
-    const ruleEntry: LockEntry = {
-      type: 'rule',
+    // Add prompt entry
+    const promptEntry: LockEntry = {
+      type: 'prompt',
       name: 'code-style',
       source: sourceRepo,
       format: 'canonical',
       agents: ['github-copilot', 'claude-code', 'cursor', 'opencode'],
-      hash: computeContentHash(ruleContent),
+      hash: computeContentHash(promptContent),
       installedAt: '2026-02-28T00:00:00.000Z',
       outputs: [],
     };
-    lock = upsertLockEntry(lock, ruleEntry);
+    lock = upsertLockEntry(lock, promptEntry);
     // Add instruction entry
     lock = upsertLockEntry(
       lock,
@@ -206,7 +203,7 @@ Use const over let.
     );
     await writeDotaiLock(lock, projectDir);
 
-    const result = await checkRuleUpdates(projectDir);
+    const result = await checkContextUpdates(projectDir);
 
     expect(result.totalChecked).toBe(2);
     expect(result.updates).toHaveLength(0);
@@ -215,10 +212,10 @@ Use const over let.
 });
 
 // ---------------------------------------------------------------------------
-// updateRules — instruction entries
+// updateContext — instruction entries
 // ---------------------------------------------------------------------------
 
-describe('updateRules — instructions', () => {
+describe('updateContext — instructions', () => {
   let tempDir: string;
   let projectDir: string;
 
@@ -248,7 +245,7 @@ describe('updateRules — instructions', () => {
     lock = upsertLockEntry(lock, makeInstructionLockEntry('coding-standards', sourceRepo, content));
     await writeDotaiLock(lock, projectDir);
 
-    const result = await updateRules(projectDir);
+    const result = await updateContext(projectDir);
 
     expect(result.totalChecked).toBe(1);
     expect(result.successCount).toBe(0);
@@ -274,7 +271,7 @@ describe('updateRules — instructions', () => {
     );
     await writeDotaiLock(lock, projectDir);
 
-    const result = await updateRules(projectDir);
+    const result = await updateContext(projectDir);
 
     expect(result.totalChecked).toBe(1);
     expect(result.successCount).toBe(1);
@@ -301,7 +298,7 @@ describe('updateRules — instructions', () => {
     );
     await writeDotaiLock(lock, projectDir);
 
-    await updateRules(projectDir);
+    await updateContext(projectDir);
 
     // Instructions use append mode — verify marker sections exist in target files.
     // Copilot: .github/copilot-instructions.md
@@ -346,7 +343,7 @@ describe('updateRules — instructions', () => {
 
     const originalHash = computeContentHash(originalContent);
 
-    await updateRules(projectDir);
+    await updateContext(projectDir);
 
     const updatedLockContent = readFileSync(join(projectDir, '.dotai-lock.json'), 'utf-8');
     const updatedLock = JSON.parse(updatedLockContent) as DotaiLockFile;
@@ -377,7 +374,7 @@ describe('updateRules — instructions', () => {
     lock = upsertLockEntry(lock, entry);
     await writeDotaiLock(lock, projectDir);
 
-    await updateRules(projectDir);
+    await updateContext(projectDir);
 
     const updatedLockContent = readFileSync(join(projectDir, '.dotai-lock.json'), 'utf-8');
     const updatedLock = JSON.parse(updatedLockContent) as DotaiLockFile;

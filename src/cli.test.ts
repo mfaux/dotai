@@ -55,12 +55,10 @@ describe('dotai CLI', () => {
       const output = runCliOutput(['add', '--help-all']);
       expect(output).toContain('Usage: dotai add <package> [options]');
       expect(output).toContain('-s, --skill');
-      expect(output).toContain('-r, --rule');
       expect(output).toContain('-p, --prompt');
       expect(output).toContain('-a, --targets');
       expect(output).toContain('--dry-run');
       expect(output).toContain('--force');
-      expect(output).toContain('--append');
       expect(output).toContain('--gitignore');
       expect(output).toContain('-y, --yes');
       expect(output).toContain('--all');
@@ -80,19 +78,21 @@ describe('dotai CLI', () => {
   describe('remove --help', () => {
     it('should describe removing all context types', () => {
       const output = runCliOutput(['remove', '--help']);
-      expect(output).toContain('Remove installed context (skills, rules, prompts, or agents)');
+      expect(output).toContain(
+        'Remove installed context (skills, prompts, agents, or instructions)'
+      );
     });
 
     it('should document --type option', () => {
       const output = runCliOutput(['remove', '--help']);
       expect(output).toContain('-t, --type');
-      expect(output).toContain('skill, rule, prompt, agent');
+      expect(output).toContain('skill, prompt, agent, instruction');
     });
 
     it('should include --type examples', () => {
       const output = runCliOutput(['remove', '--help']);
-      expect(output).toContain('--type rule');
       expect(output).toContain('--type prompt');
+      expect(output).toContain('--type skill,prompt');
     });
   });
 

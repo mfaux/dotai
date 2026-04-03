@@ -473,13 +473,6 @@ describe('parseAddOptions', () => {
     expect(result.options.prompt).toEqual(['review-code', 'fix-bug']);
   });
 
-  it('should parse --prompt with --rule combination', () => {
-    const result = parseAddOptions(['source', '--rule', 'code-style', '--prompt', 'review-code']);
-    expect(result.source).toEqual(['source']);
-    expect(result.options.rule).toEqual(['code-style']);
-    expect(result.options.prompt).toEqual(['review-code']);
-  });
-
   it('should parse --prompt with --skill combination', () => {
     const result = parseAddOptions(['source', '--skill', 'my-skill', '-p', 'review-code']);
     expect(result.source).toEqual(['source']);
@@ -497,19 +490,6 @@ describe('parseAddOptions', () => {
     const result = parseAddOptions(['source', '--custom-agent', 'architect', 'reviewer']);
     expect(result.source).toEqual(['source']);
     expect(result.options.customAgent).toEqual(['architect', 'reviewer']);
-  });
-
-  it('should parse --custom-agent with --rule combination', () => {
-    const result = parseAddOptions([
-      'source',
-      '--rule',
-      'code-style',
-      '--custom-agent',
-      'architect',
-    ]);
-    expect(result.source).toEqual(['source']);
-    expect(result.options.rule).toEqual(['code-style']);
-    expect(result.options.customAgent).toEqual(['architect']);
   });
 
   it('should parse --custom-agent with --prompt combination', () => {
@@ -552,9 +532,9 @@ describe('parseAddOptions', () => {
   });
 
   it('should parse --type flag with single type', () => {
-    const result = parseAddOptions(['source', '--type', 'rule']);
+    const result = parseAddOptions(['source', '--type', 'prompt']);
     expect(result.source).toEqual(['source']);
-    expect(result.options.type).toEqual(['rule']);
+    expect(result.options.type).toEqual(['prompt']);
   });
 
   it('should parse -t short flag for type', () => {
@@ -564,55 +544,55 @@ describe('parseAddOptions', () => {
   });
 
   it('should parse --type with comma-separated values', () => {
-    const result = parseAddOptions(['source', '--type', 'rule,prompt']);
+    const result = parseAddOptions(['source', '--type', 'skill,prompt']);
     expect(result.source).toEqual(['source']);
-    expect(result.options.type).toEqual(['rule', 'prompt']);
+    expect(result.options.type).toEqual(['skill', 'prompt']);
   });
 
   it('should parse --type with multiple space-separated values', () => {
-    const result = parseAddOptions(['source', '--type', 'rule', 'prompt', 'agent']);
+    const result = parseAddOptions(['source', '--type', 'skill', 'prompt', 'agent']);
     expect(result.source).toEqual(['source']);
-    expect(result.options.type).toEqual(['rule', 'prompt', 'agent']);
+    expect(result.options.type).toEqual(['skill', 'prompt', 'agent']);
   });
 
   it('should parse --type with all four types', () => {
-    const result = parseAddOptions(['source', '--type', 'skill,rule,prompt,agent']);
+    const result = parseAddOptions(['source', '--type', 'skill,prompt,agent,instruction']);
     expect(result.source).toEqual(['source']);
-    expect(result.options.type).toEqual(['skill', 'rule', 'prompt', 'agent']);
+    expect(result.options.type).toEqual(['skill', 'prompt', 'agent', 'instruction']);
   });
 
   it('should deduplicate --type values', () => {
-    const result = parseAddOptions(['source', '--type', 'rule,rule,prompt']);
+    const result = parseAddOptions(['source', '--type', 'prompt,prompt,skill']);
     expect(result.source).toEqual(['source']);
-    expect(result.options.type).toEqual(['rule', 'prompt']);
+    expect(result.options.type).toEqual(['prompt', 'skill']);
   });
 
   it('should normalize --type values to lowercase', () => {
-    const result = parseAddOptions(['source', '--type', 'Rule,PROMPT']);
+    const result = parseAddOptions(['source', '--type', 'Skill,PROMPT']);
     expect(result.source).toEqual(['source']);
-    expect(result.options.type).toEqual(['rule', 'prompt']);
+    expect(result.options.type).toEqual(['skill', 'prompt']);
   });
 
   it('should parse --type with other flags', () => {
     const result = parseAddOptions([
       'source',
       '--type',
-      'rule',
+      'prompt',
       '--targets',
       'copilot,claude',
       '--force',
     ]);
     expect(result.source).toEqual(['source']);
-    expect(result.options.type).toEqual(['rule']);
+    expect(result.options.type).toEqual(['prompt']);
     expect(result.options.targets).toEqual(['copilot', 'claude']);
     expect(result.options.force).toBe(true);
   });
 
-  it('should parse --type with explicit --rule names (type sets flow, names filter)', () => {
-    const result = parseAddOptions(['source', '--type', 'rule', '--rule', 'code-style']);
+  it('should parse --type with explicit --prompt names (type sets flow, names filter)', () => {
+    const result = parseAddOptions(['source', '--type', 'prompt', '--prompt', 'review-code']);
     expect(result.source).toEqual(['source']);
-    expect(result.options.type).toEqual(['rule']);
-    expect(result.options.rule).toEqual(['code-style']);
+    expect(result.options.type).toEqual(['prompt']);
+    expect(result.options.prompt).toEqual(['review-code']);
   });
 
   it('should handle --type with no following value', () => {
@@ -634,9 +614,9 @@ describe('parseAddOptions', () => {
   });
 
   it('should filter empty segments between valid values', () => {
-    const result = parseAddOptions(['source', '--type', 'rule,,prompt']);
+    const result = parseAddOptions(['source', '--type', 'prompt,,skill']);
     expect(result.source).toEqual(['source']);
-    expect(result.options.type).toEqual(['rule', 'prompt']);
+    expect(result.options.type).toEqual(['prompt', 'skill']);
   });
 
   it('should parse --copy flag', () => {

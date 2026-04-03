@@ -7,7 +7,6 @@ export interface AddOptions {
   targets?: string[];
   yes?: boolean;
   skill?: string[];
-  rule?: string[];
   prompt?: string[];
   customAgent?: string[];
   instruction?: string[];
@@ -16,8 +15,6 @@ export interface AddOptions {
   copy?: boolean;
   dryRun?: boolean;
   force?: boolean;
-  /** Use append mode for rules — write to AGENTS.md/CLAUDE.md instead of per-rule files. */
-  append?: boolean;
   /** Add transpiled output paths to .gitignore (opt-in). */
   gitignore?: boolean;
   /** Filter discovery to specific context types (skill, rule, prompt, agent). */
@@ -48,11 +45,6 @@ export function parseAddOptions(args: string[]): { source: string[]; options: Ad
       const { values, nextIndex } = consumeMultiValues(args, i + 1);
       options.skill.push(...values);
       i = nextIndex - 1;
-    } else if (arg === '-r' || arg === '--rule') {
-      options.rule = options.rule || [];
-      const { values, nextIndex } = consumeMultiValues(args, i + 1);
-      options.rule.push(...values);
-      i = nextIndex - 1;
     } else if (arg === '-p' || arg === '--prompt') {
       options.prompt = options.prompt || [];
       const { values, nextIndex } = consumeMultiValues(args, i + 1);
@@ -68,8 +60,6 @@ export function parseAddOptions(args: string[]): { source: string[]; options: Ad
       const { values, nextIndex } = consumeMultiValues(args, i + 1);
       options.instruction.push(...values);
       i = nextIndex - 1;
-    } else if (arg === '--append') {
-      options.append = true;
     } else if (arg === '--gitignore') {
       options.gitignore = true;
     } else if (arg === '--dry-run') {

@@ -1,6 +1,6 @@
 import pc from 'picocolors';
-import { discover, filterByType } from './rule-discovery.ts';
-import { executeInstallPipeline } from './rule-installer.ts';
+import { discover, filterByType } from './context-discovery.ts';
+import { executeInstallPipeline } from './context-installer.ts';
 import {
   readDotaiLock,
   writeDotaiLock,
@@ -13,56 +13,16 @@ import { addToGitignore } from './gitignore.ts';
 import type { DiscoveredItem, LockEntry, TargetAgent } from './types.ts';
 
 // ---------------------------------------------------------------------------
-// Rule & prompt install — wires discovery → transpile → install pipeline
+// Context install — wires discovery → transpile → install pipeline
 //
-// This module handles the `dotai add owner/repo --rule <name>`,
-// `dotai add owner/repo --prompt <name>`, and
-// `dotai add owner/repo --agent <name>` flows.
+// This module handles the `dotai add owner/repo --prompt <name>`,
+// `dotai add owner/repo --agent <name>`, and
+// `dotai add owner/repo --instruction <name>` flows.
 // It uses the discovery engine and install pipeline,
 // updating the dotai lock file on success.
 //
 // Skills are not handled here — they use the existing upstream installer.ts.
 // ---------------------------------------------------------------------------
-
-/**
- * Options for rule installation.
- */
-export interface RuleAddOptions {
-  /** Source identifier (e.g., "owner/repo") for lock file tracking. */
-  source: string;
-  /** Absolute path to the cloned/local source repo. */
-  sourcePath: string;
-  /** Absolute path to the project root directory. */
-  projectRoot: string;
-  /** Rule names to install. Empty or ['*'] means all rules. */
-  ruleNames: string[];
-  /** Target agents to install for. Defaults to all five. */
-  targets?: TargetAgent[];
-  /** Preview planned writes without executing them. */
-  dryRun?: boolean;
-  /** Overwrite collisions instead of aborting. */
-  force?: boolean;
-  /** Use append mode for Copilot (AGENTS.md) and Claude Code (CLAUDE.md). */
-  append?: boolean;
-  /** Add transpiled output paths to .gitignore (opt-in). */
-  gitignore?: boolean;
-}
-
-/**
- * Result of rule installation.
- */
-export interface RuleAddResult {
-  /** Whether the installation succeeded. */
-  success: boolean;
-  /** Number of rules installed. */
-  rulesInstalled: number;
-  /** Paths of files written. */
-  writtenPaths: string[];
-  /** Warning/info messages for CLI output. */
-  messages: string[];
-  /** Error message if installation failed. */
-  error?: string;
-}
 
 /** Agent name aliases for --targets flag (short names to TargetAgent). */
 const AGENT_ALIASES: Record<string, TargetAgent> = {
@@ -155,160 +115,6 @@ function filterItemsByName(items: DiscoveredItem[], names: string[]): Discovered
 
   const lowerNames = new Set(names.map((n) => n.toLowerCase()));
   return items.filter((item) => lowerNames.has(item.name.toLowerCase()));
-}
-
-/**
- * Execute the rule install flow:
- *
- * 1. Discover rules in source repo
- * 2. Filter by --rule names
- * 3. Run install pipeline (transpile, collision check, write)
- * 4. Update dotai lock file on success
- */
-export async function addRules(options: RuleAddOptions): Promise<RuleAddResult> {
-  const messages: string[] = [];
-
-  // 1. Discover rules in source repo (skip other types for performance)
-  const { items, warnings } = await discover(options.sourcePath, { types: ['rule'] });
-
-  // Surface discovery warnings
-  for (const warning of warnings) {
-    messages.push(
-      pc.yellow(`Warning: ${warning.message}${warning.path ? ` (${warning.path})` : ''}`)
-    );
-  }
-
-  // 2. Filter to rules only (items are already filtered, but filterByType is a safety net)
-  const allRules = filterByType(items, 'rule');
-
-  if (allRules.length === 0) {
-    return {
-      success: false,
-      rulesInstalled: 0,
-      writtenPaths: [],
-      messages,
-      error: 'No rules found in source repository.',
-    };
-  }
-
-  // 3. Filter by requested rule names
-  const selectedRules = filterItemsByName(allRules, options.ruleNames);
-
-  if (selectedRules.length === 0) {
-    const availableNames = allRules.map((r) => r.name).join(', ');
-    return {
-      success: false,
-      rulesInstalled: 0,
-      writtenPaths: [],
-      messages,
-      error: `No matching rules found for: ${options.ruleNames.join(', ')}. Available: ${availableNames}`,
-    };
-  }
-
-  messages.push(`Found ${selectedRules.length} rule(s) to install`);
-
-  // 4. Read existing lock file for collision detection
-  const { lock } = await readDotaiLock(options.projectRoot);
-
-  // 5. Run install pipeline
-  const targets = options.targets ?? [...TARGET_AGENTS];
-  const modelOverrides = await loadModelOverrides(options.projectRoot);
-  const result = await executeInstallPipeline(selectedRules, {
-    projectRoot: options.projectRoot,
-    targets,
-    source: options.source,
-    lockEntries: lock.items,
-    force: options.force,
-    dryRun: options.dryRun,
-    append: options.append,
-    modelOverrides,
-  });
-
-  // Report collisions
-  if (result.collisions.length > 0) {
-    for (const collision of result.collisions) {
-      messages.push(pc.red(`Conflict: ${collision.message}`));
-    }
-  }
-
-  // Report skipped items
-  for (const skip of result.skipped) {
-    messages.push(pc.yellow(`Skipped: ${skip.item.name} — ${skip.reason}`));
-  }
-
-  if (!result.success) {
-    return {
-      success: false,
-      rulesInstalled: 0,
-      writtenPaths: result.written,
-      messages,
-      error: result.error,
-    };
-  }
-
-  // Dry-run: report plan without writing lock
-  if (options.dryRun) {
-    for (const write of result.writes) {
-      messages.push(pc.dim(`Would write: ${write.planned.absolutePath}`));
-    }
-    return {
-      success: true,
-      rulesInstalled: selectedRules.length,
-      writtenPaths: [],
-      messages,
-    };
-  }
-
-  // 6. Update lock file on successful write
-  if (result.written.length > 0) {
-    let updatedLock = lock;
-    const installedNames = new Set<string>();
-
-    // Group written paths by rule name
-    for (const write of result.writes) {
-      installedNames.add(write.planned.name);
-    }
-
-    for (const ruleName of installedNames) {
-      const ruleItem = selectedRules.find((r) => r.name === ruleName);
-      if (!ruleItem) continue;
-
-      const ruleWrites = result.writes.filter((w) => w.planned.name === ruleName);
-      const ruleAgents = [...new Set(ruleWrites.map((w) => w.agent))];
-      const outputPaths = ruleWrites.map((w) => w.planned.absolutePath);
-
-      const entry: LockEntry = {
-        type: 'rule',
-        name: ruleName,
-        source: options.source,
-        format: ruleItem.format,
-        agents: ruleAgents,
-        hash: computeContentHash(ruleItem.rawContent),
-        installedAt: new Date().toISOString(),
-        outputs: outputPaths,
-        ...(options.append && { append: true }),
-        ...(options.gitignore && { gitignored: true }),
-      };
-
-      updatedLock = upsertLockEntry(updatedLock, entry);
-    }
-
-    await writeDotaiLock(updatedLock, options.projectRoot);
-    messages.push(`Updated ${pc.dim('.dotai-lock.json')}`);
-
-    // Add output paths to .gitignore when --gitignore is used
-    if (options.gitignore) {
-      await addToGitignore(options.projectRoot, result.written);
-      messages.push(`Updated ${pc.dim('.gitignore')} with output paths`);
-    }
-  }
-
-  return {
-    success: true,
-    rulesInstalled: selectedRules.length,
-    writtenPaths: result.written,
-    messages,
-  };
 }
 
 /**

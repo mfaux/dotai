@@ -2,8 +2,8 @@ import pc from 'picocolors';
 import { resolve } from 'path';
 import { cloneRepo, cleanupTempDir } from './git.ts';
 import { parseSource } from './source-parser.ts';
-import { discover, filterByType } from './rule-discovery.ts';
-import { executeInstallPipeline } from './rule-installer.ts';
+import { discover, filterByType } from './context-discovery.ts';
+import { executeInstallPipeline } from './context-installer.ts';
 import {
   readDotaiLock,
   writeDotaiLock,
@@ -16,15 +16,15 @@ import { TARGET_AGENTS } from './target-agents.ts';
 import type { ContextType, LockEntry, TargetAgent } from './types.ts';
 
 // ---------------------------------------------------------------------------
-// Rule, prompt, agent & instruction check/update — reads .dotai-lock.json and compares content hashes
+// Context check/update — reads .dotai-lock.json and compares content hashes
 //
-// For `dotai check`: reports which rules/prompts/agents/instructions have changed upstream.
-// For `dotai update`: re-discovers, re-transpiles, and re-installs changed rules/prompts/agents/instructions.
+// For `dotai check`: reports which prompts/agents/instructions have changed upstream.
+// For `dotai update`: re-discovers, re-transpiles, and re-installs changed items.
 //
 // The flow per source repo:
-//   1. Read lock entries grouped by source (rules, prompts, and agents)
+//   1. Read lock entries grouped by source (prompts, agents, and instructions)
 //   2. Clone (or resolve local path to) the source repo
-//   3. Discover rules/prompts/agents in the freshly fetched source
+//   3. Discover prompts/agents/instructions in the freshly fetched source
 //   4. Compare content hashes for each locked entry
 //   5. (update only) Re-run install pipeline for changed entries
 // ---------------------------------------------------------------------------
@@ -54,7 +54,7 @@ export interface RuleCheckError {
 /**
  * Result of checking for rule updates.
  */
-export interface RuleCheckResult {
+export interface ContextCheckResult {
   /** Total number of rules checked. */
   totalChecked: number;
   /** Rules with available updates. */
@@ -66,7 +66,7 @@ export interface RuleCheckResult {
 /**
  * Result of updating rules.
  */
-export interface RuleUpdateResult {
+export interface ContextUpdateResult {
   /** Total number of rules checked. */
   totalChecked: number;
   /** Number of rules successfully updated. */
@@ -82,18 +82,17 @@ export interface RuleUpdateResult {
 // ---------------------------------------------------------------------------
 
 /**
- * Check installed rules, prompts, and agents for available updates.
+ * Check installed prompts, agents, and instructions for available updates.
  *
  * Reads `.dotai-lock.json`, fetches each source repo, and compares
- * content hashes for all installed rules, prompts, and agents.
+ * content hashes for all installed prompts, agents, and instructions.
  */
-export async function checkRuleUpdates(projectRoot: string): Promise<RuleCheckResult> {
+export async function checkContextUpdates(projectRoot: string): Promise<ContextCheckResult> {
   const { lock } = await readDotaiLock(projectRoot);
-  const ruleEntries = getLockEntriesByType(lock, 'rule');
   const promptEntries = getLockEntriesByType(lock, 'prompt');
   const agentEntries = getLockEntriesByType(lock, 'agent');
   const instructionEntries = getLockEntriesByType(lock, 'instruction');
-  const allEntries = [...ruleEntries, ...promptEntries, ...agentEntries, ...instructionEntries];
+  const allEntries = [...promptEntries, ...agentEntries, ...instructionEntries];
 
   if (allEntries.length === 0) {
     return { totalChecked: 0, updates: [], errors: [] };
@@ -114,7 +113,7 @@ export async function checkRuleUpdates(projectRoot: string): Promise<RuleCheckRe
       const fetched = await fetchSource(source);
       cloneDir = fetched.isClone ? fetched.path : undefined;
 
-      // Discover rules, prompts, and agents in the fresh source
+      // Discover prompts, agents, and instructions in the fresh source
       const { items } = await discover(fetched.path);
 
       // Compare each locked entry against fresh content
@@ -133,9 +132,7 @@ export async function checkRuleUpdates(projectRoot: string): Promise<RuleCheckRe
               ? 'Instruction'
               : entry.type === 'prompt'
                 ? 'Prompt'
-                : entry.type === 'agent'
-                  ? 'Agent'
-                  : 'Rule';
+                : 'Agent';
           errors.push({
             entry,
             error: `${typeLabel} '${entry.name}' no longer found in source`,
@@ -171,28 +168,27 @@ export async function checkRuleUpdates(projectRoot: string): Promise<RuleCheckRe
 }
 
 // ---------------------------------------------------------------------------
-// Update — re-install rules, prompts and agents with changed content
+// Update — re-install changed content
 // ---------------------------------------------------------------------------
 
 /**
- * Update installed rules, prompts, and agents to their latest versions.
+ * Update installed prompts, agents, and instructions to their latest versions.
  *
  * Performs a single-pass per source repo: clone → discover → compare hashes →
  * install changed entries → cleanup. This avoids the double-cloning that would
- * occur if we called `checkRuleUpdates` first (which clones + cleans up) and
+ * occur if we called `checkContextUpdates` first (which clones + cleans up) and
  * then cloned again for the update phase.
  */
-export async function updateRules(projectRoot: string): Promise<RuleUpdateResult> {
+export async function updateContext(projectRoot: string): Promise<ContextUpdateResult> {
   const messages: string[] = [];
   const resolvedRoot = resolve(projectRoot);
 
-  // Read lock file and gather all rule/prompt/agent entries
+  // Read lock file and gather all prompt/agent/instruction entries
   const { lock } = await readDotaiLock(resolvedRoot);
-  const ruleEntries = getLockEntriesByType(lock, 'rule');
   const promptEntries = getLockEntriesByType(lock, 'prompt');
   const agentEntries = getLockEntriesByType(lock, 'agent');
   const instructionEntries = getLockEntriesByType(lock, 'instruction');
-  const allEntries = [...ruleEntries, ...promptEntries, ...agentEntries, ...instructionEntries];
+  const allEntries = [...promptEntries, ...agentEntries, ...instructionEntries];
 
   if (allEntries.length === 0) {
     return { totalChecked: 0, successCount: 0, failCount: 0, messages };
@@ -217,7 +213,7 @@ export async function updateRules(projectRoot: string): Promise<RuleUpdateResult
       const fetched = await fetchSource(source);
       cloneDir = fetched.isClone ? fetched.path : undefined;
 
-      // Discover rules, prompts, and agents in the fresh source
+      // Discover prompts, agents, and instructions in the fresh source
       const { items } = await discover(fetched.path);
 
       for (const entry of entries) {

@@ -5,7 +5,7 @@ import { runAdd } from './add.ts';
 import { runSync, parseSyncOptions } from './sync.ts';
 import { getUniversalAgents } from './agents.ts';
 import { readDotaiLock, getLockEntriesByType } from './dotai-lock.ts';
-import { addRules, addPrompts, addAgents } from './rule-add.ts';
+import { addPrompts, addAgents } from './context-add.ts';
 import { parseSource } from './source-parser.ts';
 import { cloneRepo, cleanupTempDir } from './git.ts';
 import type { LockEntry, TargetAgent } from './types.ts';
@@ -13,11 +13,11 @@ import type { LockEntry, TargetAgent } from './types.ts';
 /**
  * Install all context from lock files:
  * - Skills from skills-lock.json
- * - Rules, prompts, and agents from .dotai-lock.json
+ * - Prompts and agents from .dotai-lock.json
  *
  * Groups items by source and calls the appropriate installer for each group.
  * Skills install to .agents/skills/ (universal agents).
- * Rules, prompts, and agents install to agent-specific directories.
+ * Prompts and agents install to agent-specific directories.
  *
  * node_modules skills are handled via experimental_sync.
  */
@@ -27,7 +27,7 @@ export async function runInstallFromLock(args: string[]): Promise<void> {
   // --- Phase 1: Restore skills from skills-lock.json ---
   const skillsFound = await restoreSkills(cwd, args);
 
-  // --- Phase 2: Restore rules, prompts, and agents from .dotai-lock.json ---
+  // --- Phase 2: Restore prompts and agents from .dotai-lock.json ---
   const contextFound = await restoreCanonicalEntries(cwd);
 
   // If nothing was found in either lock file, inform the user
@@ -116,30 +116,29 @@ async function restoreSkills(cwd: string, args: string[]): Promise<boolean> {
 }
 
 /**
- * Restore rules, prompts, and agents from .dotai-lock.json.
+ * Restore prompts and agents from .dotai-lock.json.
  *
  * Groups entries by source so each repo is cloned only once.
- * Calls addRules/addPrompts/addAgents for each source group, then cleans up temp dirs.
- * Returns true if any rules, prompts, or agents were found in the lock file.
+ * Calls addPrompts/addAgents for each source group, then cleans up temp dirs.
+ * Returns true if any prompts or agents were found in the lock file.
  */
 async function restoreCanonicalEntries(cwd: string): Promise<boolean> {
   const { lock } = await readDotaiLock(cwd);
 
-  const ruleEntries = getLockEntriesByType(lock, 'rule');
   const promptEntries = getLockEntriesByType(lock, 'prompt');
   const agentEntries = getLockEntriesByType(lock, 'agent');
 
-  if (ruleEntries.length === 0 && promptEntries.length === 0 && agentEntries.length === 0) {
+  if (promptEntries.length === 0 && agentEntries.length === 0) {
     return false;
   }
 
-  const totalCount = ruleEntries.length + promptEntries.length + agentEntries.length;
+  const totalCount = promptEntries.length + agentEntries.length;
   p.log.info(
-    `Restoring ${pc.cyan(String(totalCount))} ${describeTypes(ruleEntries.length, promptEntries.length, agentEntries.length)} from .dotai-lock.json`
+    `Restoring ${pc.cyan(String(totalCount))} ${describeTypes(promptEntries.length, agentEntries.length)} from .dotai-lock.json`
   );
 
   // Group all entries by source
-  const bySource = groupBySource([...ruleEntries, ...promptEntries, ...agentEntries]);
+  const bySource = groupBySource([...promptEntries, ...agentEntries]);
 
   for (const [source, entries] of bySource) {
     let tempDir: string | undefined;
@@ -181,7 +180,7 @@ async function restoreCanonicalEntries(cwd: string): Promise<boolean> {
 }
 
 /**
- * Install rules, prompts, and agents from a single source path.
+ * Install prompts and agents from a single source path.
  *
  * Respects the `gitignored` flag from lock entries: entries that were
  * originally installed with `--gitignore` are restored with the same flag
@@ -197,12 +196,8 @@ async function installFromSource(
   entries: LockEntry[]
 ): Promise<void> {
   // Partition entries by type and gitignored status
-  const ruleEntries = entries.filter((e) => e.type === 'rule');
   const promptEntries = entries.filter((e) => e.type === 'prompt');
   const agentEntries = entries.filter((e) => e.type === 'agent');
-
-  // Install rules — split by gitignored status if needed
-  await installGroup(ruleEntries, 'rule', source, sourcePath, projectRoot);
 
   // Install prompts — split by gitignored status if needed
   await installGroup(promptEntries, 'prompt', source, sourcePath, projectRoot);
@@ -222,7 +217,7 @@ async function installFromSource(
  */
 async function installGroup(
   entries: LockEntry[],
-  type: 'rule' | 'prompt' | 'agent',
+  type: 'prompt' | 'agent',
   source: string,
   sourcePath: string,
   projectRoot: string
@@ -260,7 +255,7 @@ async function installGroup(
  */
 async function installEntries(
   entries: LockEntry[],
-  type: 'rule' | 'prompt' | 'agent',
+  type: 'prompt' | 'agent',
   source: string,
   sourcePath: string,
   projectRoot: string,
@@ -272,30 +267,7 @@ async function installEntries(
   // Compute the union of agents from all entries in this batch
   const agents = [...new Set(entries.flatMap((e) => e.agents))] as TargetAgent[];
 
-  if (type === 'rule') {
-    const result = await addRules({
-      source,
-      sourcePath,
-      projectRoot,
-      ruleNames: names,
-      force: true, // Overwrite existing — we're restoring from lock
-      gitignore,
-      append,
-      targets: agents,
-    });
-
-    for (const msg of result.messages) {
-      p.log.message(msg);
-    }
-
-    if (result.success) {
-      p.log.success(
-        `Restored ${pc.cyan(String(result.rulesInstalled))} rule${result.rulesInstalled !== 1 ? 's' : ''} from ${pc.dim(source)}`
-      );
-    } else if (result.error) {
-      p.log.error(`Rules from ${pc.cyan(source)}: ${result.error}`);
-    }
-  } else if (type === 'prompt') {
+  if (type === 'prompt') {
     const result = await addPrompts({
       source,
       sourcePath,
@@ -361,9 +333,8 @@ function groupBySource(entries: LockEntry[]): Map<string, LockEntry[]> {
 /**
  * Describe the types being restored for human-readable output.
  */
-function describeTypes(ruleCount: number, promptCount: number, agentCount: number): string {
+function describeTypes(promptCount: number, agentCount: number): string {
   const parts: string[] = [];
-  if (ruleCount > 0) parts.push(`rule${ruleCount !== 1 ? 's' : ''}`);
   if (promptCount > 0) parts.push(`prompt${promptCount !== 1 ? 's' : ''}`);
   if (agentCount > 0) parts.push(`agent${agentCount !== 1 ? 's' : ''}`);
   return parts.join(', ').replace(/, ([^,]+)$/, ' and $1');

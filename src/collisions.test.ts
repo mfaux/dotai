@@ -63,7 +63,7 @@ function makePlannedWrite(
   return createPlannedWrite(
     output,
     projectRoot,
-    overrides.type ?? 'rule',
+    overrides.type ?? 'prompt',
     overrides.name ?? 'code-style',
     overrides.format ?? 'canonical',
     overrides.source ?? 'acme/repo-a'
@@ -72,7 +72,7 @@ function makePlannedWrite(
 
 function makeLockEntry(overrides: Partial<LockEntry> = {}): LockEntry {
   return {
-    type: 'rule',
+    type: 'prompt',
     name: 'code-style',
     source: 'acme/repo-a',
     format: 'canonical',
@@ -107,7 +107,7 @@ describe('collisions', () => {
       const pw = createPlannedWrite(
         output,
         '/project',
-        'rule',
+        'prompt',
         'code-style',
         'canonical',
         'acme/repo'
@@ -120,12 +120,12 @@ describe('collisions', () => {
       const pw = createPlannedWrite(
         output,
         '/project',
-        'rule',
+        'prompt',
         'code-style',
         'canonical',
         'acme/repo'
       );
-      expect(pw.type).toBe('rule');
+      expect(pw.type).toBe('prompt');
       expect(pw.name).toBe('code-style');
       expect(pw.format).toBe('canonical');
       expect(pw.source).toBe('acme/repo');
@@ -307,7 +307,7 @@ describe('collisions', () => {
       const pw = makePlannedWrite(testDir, { type: 'skill', name: 'code-style' });
 
       const lockEntry = makeLockEntry({
-        type: 'rule',
+        type: 'prompt',
         name: 'code-style',
         source: 'acme/repo-b',
       });
@@ -321,7 +321,7 @@ describe('collisions', () => {
       expect(collisions.filter((c) => c.kind === 'same-name')).toEqual([]);
     });
 
-    it('allows a prompt and a rule with the same name (no collision)', () => {
+    it('allows a prompt and an instruction with the same name (no collision)', () => {
       const pw = makePlannedWrite(testDir, {
         type: 'prompt',
         name: 'review-code',
@@ -330,7 +330,7 @@ describe('collisions', () => {
       });
 
       const lockEntry = makeLockEntry({
-        type: 'rule',
+        type: 'instruction',
         name: 'review-code',
         source: 'acme/repo-a',
       });
@@ -340,7 +340,7 @@ describe('collisions', () => {
         lockEntries: [lockEntry],
       });
 
-      // No same-name collision because types differ (prompt vs rule)
+      // No same-name collision because types differ (prompt vs instruction)
       expect(collisions.filter((c) => c.kind === 'same-name')).toEqual([]);
     });
 

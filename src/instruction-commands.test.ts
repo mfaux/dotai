@@ -84,14 +84,14 @@ describe('list command — instruction support', () => {
     expect(result.exitCode).toBe(0);
   });
 
-  it('should show instructions alongside rules by default', () => {
+  it('should show instructions alongside prompts by default', () => {
     writeLockWithInstructions(
       testDir,
       [{ name: 'my-instruction' }],
       [
         {
-          type: 'rule',
-          name: 'my-rule',
+          type: 'prompt',
+          name: 'my-prompt',
           source: 'owner/repo',
           format: 'canonical',
           agents: ['cursor'],
@@ -103,35 +103,10 @@ describe('list command — instruction support', () => {
     );
 
     const result = runCli(['list'], testDir);
-    expect(result.stdout).toContain('Rules');
-    expect(result.stdout).toContain('my-rule');
+    expect(result.stdout).toContain('Prompts');
+    expect(result.stdout).toContain('my-prompt');
     expect(result.stdout).toContain('Instructions');
     expect(result.stdout).toContain('my-instruction');
-    expect(result.exitCode).toBe(0);
-  });
-
-  it('should not show instructions when --type rule is specified', () => {
-    writeLockWithInstructions(
-      testDir,
-      [{ name: 'hidden-instruction' }],
-      [
-        {
-          type: 'rule',
-          name: 'visible-rule',
-          source: 'owner/repo',
-          format: 'canonical',
-          agents: ['cursor'],
-          hash: 'abc',
-          installedAt: '2025-01-01T00:00:00.000Z',
-          outputs: [],
-        },
-      ]
-    );
-
-    const result = runCli(['list', '--type', 'rule'], testDir);
-    expect(result.stdout).toContain('visible-rule');
-    expect(result.stdout).not.toContain('hidden-instruction');
-    expect(result.stdout).not.toContain('Instructions');
     expect(result.exitCode).toBe(0);
   });
 
@@ -169,13 +144,13 @@ describe('list command — instruction support', () => {
     });
 
     it('should parse comma-separated types including instruction', () => {
-      const options = parseListOptions(['-t', 'rule,instruction']);
-      expect(options.type).toEqual(['rule', 'instruction']);
+      const options = parseListOptions(['-t', 'skill,instruction']);
+      expect(options.type).toEqual(['skill', 'instruction']);
     });
 
-    it('should parse all five types comma-separated', () => {
-      const options = parseListOptions(['-t', 'skill,rule,prompt,agent,instruction']);
-      expect(options.type).toEqual(['skill', 'rule', 'prompt', 'agent', 'instruction']);
+    it('should parse all four types comma-separated', () => {
+      const options = parseListOptions(['-t', 'skill,prompt,agent,instruction']);
+      expect(options.type).toEqual(['skill', 'prompt', 'agent', 'instruction']);
     });
   });
 });
@@ -290,7 +265,7 @@ describe('gitignore — instruction target files', () => {
   });
 
   it('should not include instruction outputs in .gitignore even when other entries are gitignored', async () => {
-    // Simulate: add a rule with gitignore, then add an instruction
+    // Simulate: add a skill with gitignore, then add an instruction
     // The instruction outputs should not appear in .gitignore
     await addToGitignore(tmpDir, [join(tmpDir, '.cursor/rules/code-style.mdc')]);
 

@@ -3,24 +3,19 @@ import { existsSync, readFileSync } from 'fs';
 import {
   createTempProject,
   cleanupProject,
-  makeRuleContent,
   makePromptContent,
   makeAgentContent,
   writeCanonicalFile,
-  writeNativeFile,
   assertFileExists,
   assertFileNotExists,
   getExpectedOutputPath,
   assertLockEntry,
   assertLockEntryCount,
-  assertNoLockEntry,
   writeUserFile,
-  readOutputFile,
-  ALL_AGENTS,
   PROMPT_AGENTS,
   AGENT_AGENTS,
 } from './e2e-utils.ts';
-import { addRules, addPrompts, addAgents } from '../src/rule-add.ts';
+import { addPrompts, addAgents } from '../src/context-add.ts';
 
 // ---------------------------------------------------------------------------
 // E2E Collision and Force Tests
@@ -57,27 +52,31 @@ describe('E2E collision tests', () => {
   // -------------------------------------------------------------------------
 
   describe('user-owned file collision', () => {
-    it('detects collision when user file exists at rule target path', async () => {
+    it('detects collision when user file exists at prompt target path (copilot)', async () => {
       writeCanonicalFile(
         sourceRepo,
-        'rule',
+        'prompt',
         'code-style',
-        makeRuleContent('code-style', {
+        makePromptContent('code-style', {
           description: 'Code style guidelines',
-          activation: 'always',
           body: 'Use consistent formatting.',
         })
       );
 
-      // Pre-create a user-owned file at the Cursor output path
-      const cursorPath = getExpectedOutputPath(projectRoot, 'cursor', 'rule', 'code-style');
-      writeUserFile(cursorPath, 'my custom cursor rules');
+      // Pre-create a user-owned file at the Copilot output path
+      const copilotPath = getExpectedOutputPath(
+        projectRoot,
+        'github-copilot',
+        'prompt',
+        'code-style'
+      );
+      writeUserFile(copilotPath, 'my custom copilot prompts');
 
-      const result = await addRules({
+      const result = await addPrompts({
         source: 'test/collision-repo',
         sourcePath: sourceRepo,
         projectRoot,
-        ruleNames: ['*'],
+        promptNames: ['*'],
       });
 
       expect(result.success).toBe(false);
@@ -86,7 +85,7 @@ describe('E2E collision tests', () => {
       expect(result.writtenPaths).toHaveLength(0);
 
       // User file should still be intact
-      expect(readFileSync(cursorPath, 'utf-8')).toBe('my custom cursor rules');
+      expect(readFileSync(copilotPath, 'utf-8')).toBe('my custom copilot prompts');
 
       // No lock file created
       expect(existsSync(`${projectRoot}/.dotai-lock.json`)).toBe(false);
@@ -160,45 +159,43 @@ describe('E2E collision tests', () => {
   // -------------------------------------------------------------------------
 
   describe('same-name collision from different source', () => {
-    it('detects collision when rule with same name is installed from different source', async () => {
-      // Install a rule from source 1
+    it('detects collision when prompt with same name is installed from different source (via addPrompts)', async () => {
+      // Install a prompt from source 1
       writeCanonicalFile(
         sourceRepo,
-        'rule',
+        'prompt',
         'security',
-        makeRuleContent('security', {
-          description: 'Security rules v1',
-          activation: 'always',
-          body: 'Original security rules.',
+        makePromptContent('security', {
+          description: 'Security prompts v1',
+          body: 'Original security prompts.',
         })
       );
 
-      const firstResult = await addRules({
-        source: 'team-a/rules',
+      const firstResult = await addPrompts({
+        source: 'team-a/prompts',
         sourcePath: sourceRepo,
         projectRoot,
-        ruleNames: ['*'],
+        promptNames: ['*'],
       });
       expect(firstResult.success).toBe(true);
-      expect(firstResult.rulesInstalled).toBe(1);
+      expect(firstResult.promptsInstalled).toBe(1);
 
-      // Try to install same-named rule from source 2
+      // Try to install same-named prompt from source 2
       writeCanonicalFile(
         sourceRepo2,
-        'rule',
+        'prompt',
         'security',
-        makeRuleContent('security', {
-          description: 'Security rules v2',
-          activation: 'always',
-          body: 'Different security rules.',
+        makePromptContent('security', {
+          description: 'Security prompts v2',
+          body: 'Different security prompts.',
         })
       );
 
-      const secondResult = await addRules({
-        source: 'team-b/rules',
+      const secondResult = await addPrompts({
+        source: 'team-b/prompts',
         sourcePath: sourceRepo2,
         projectRoot,
-        ruleNames: ['*'],
+        promptNames: ['*'],
       });
 
       expect(secondResult.success).toBe(false);
@@ -207,14 +204,14 @@ describe('E2E collision tests', () => {
       expect(secondResult.writtenPaths).toHaveLength(0);
 
       // Original files still contain v1 content
-      for (const agent of ALL_AGENTS) {
-        const path = getExpectedOutputPath(projectRoot, agent, 'rule', 'security');
-        assertFileExists(path, 'Original security rules.');
+      for (const agent of PROMPT_AGENTS) {
+        const path = getExpectedOutputPath(projectRoot, agent, 'prompt', 'security');
+        assertFileExists(path, 'Original security prompts.');
       }
 
       // Lock still references first source
-      await assertLockEntry(projectRoot, 'rule', 'security', {
-        source: 'team-a/rules',
+      await assertLockEntry(projectRoot, 'prompt', 'security', {
+        source: 'team-a/prompts',
       });
       await assertLockEntryCount(projectRoot, 1);
     });
@@ -273,51 +270,49 @@ describe('E2E collision tests', () => {
   // -------------------------------------------------------------------------
 
   describe('re-install from same source', () => {
-    it('allows re-install of rule from same source (treated as update)', async () => {
+    it('allows re-install of prompt from same source (treated as update)', async () => {
       writeCanonicalFile(
         sourceRepo,
-        'rule',
+        'prompt',
         'code-style',
-        makeRuleContent('code-style', {
+        makePromptContent('code-style', {
           description: 'Code style v1',
-          activation: 'always',
           body: 'Version 1.',
         })
       );
 
-      const firstResult = await addRules({
+      const firstResult = await addPrompts({
         source: 'test/same-source',
         sourcePath: sourceRepo,
         projectRoot,
-        ruleNames: ['*'],
+        promptNames: ['*'],
       });
       expect(firstResult.success).toBe(true);
 
       // Modify content and re-install from the same source
       writeCanonicalFile(
         sourceRepo,
-        'rule',
+        'prompt',
         'code-style',
-        makeRuleContent('code-style', {
+        makePromptContent('code-style', {
           description: 'Code style v2',
-          activation: 'always',
           body: 'Version 2.',
         })
       );
 
-      const secondResult = await addRules({
+      const secondResult = await addPrompts({
         source: 'test/same-source',
         sourcePath: sourceRepo,
         projectRoot,
-        ruleNames: ['*'],
+        promptNames: ['*'],
       });
 
       expect(secondResult.success).toBe(true);
-      expect(secondResult.rulesInstalled).toBe(1);
+      expect(secondResult.promptsInstalled).toBe(1);
 
       // Files now contain v2 content
-      for (const agent of ALL_AGENTS) {
-        const path = getExpectedOutputPath(projectRoot, agent, 'rule', 'code-style');
+      for (const agent of PROMPT_AGENTS) {
+        const path = getExpectedOutputPath(projectRoot, agent, 'prompt', 'code-style');
         assertFileExists(path, 'Version 2.');
       }
 
@@ -330,103 +325,98 @@ describe('E2E collision tests', () => {
   // -------------------------------------------------------------------------
 
   describe('--force overrides collisions', () => {
-    it('force overwrites user-owned file at rule target path', async () => {
+    it('force overwrites user-owned file at prompt target path (all agents)', async () => {
       writeCanonicalFile(
         sourceRepo,
-        'rule',
+        'prompt',
         'code-style',
-        makeRuleContent('code-style', {
+        makePromptContent('code-style', {
           description: 'Code style guidelines',
-          activation: 'always',
-          body: 'Dotai-managed style rules.',
+          body: 'Dotai-managed style prompts.',
         })
       );
 
-      // Pre-create user-owned files at ALL agent paths
-      for (const agent of ALL_AGENTS) {
-        const path = getExpectedOutputPath(projectRoot, agent, 'rule', 'code-style');
+      // Pre-create user-owned files at ALL prompt agent paths
+      for (const agent of PROMPT_AGENTS) {
+        const path = getExpectedOutputPath(projectRoot, agent, 'prompt', 'code-style');
         writeUserFile(path, 'user-owned content');
       }
 
-      const result = await addRules({
+      const result = await addPrompts({
         source: 'test/force-repo',
         sourcePath: sourceRepo,
         projectRoot,
-        ruleNames: ['*'],
+        promptNames: ['*'],
         force: true,
       });
 
       expect(result.success).toBe(true);
-      expect(result.rulesInstalled).toBe(1);
-      expect(result.writtenPaths).toHaveLength(4);
+      expect(result.promptsInstalled).toBe(1);
 
       // All files now contain dotai-managed content
-      for (const agent of ALL_AGENTS) {
-        const path = getExpectedOutputPath(projectRoot, agent, 'rule', 'code-style');
-        assertFileExists(path, 'Dotai-managed style rules.');
+      for (const agent of PROMPT_AGENTS) {
+        const path = getExpectedOutputPath(projectRoot, agent, 'prompt', 'code-style');
+        assertFileExists(path, 'Dotai-managed style prompts.');
       }
 
       // Lock file created
-      await assertLockEntry(projectRoot, 'rule', 'code-style', {
+      await assertLockEntry(projectRoot, 'prompt', 'code-style', {
         source: 'test/force-repo',
         format: 'canonical',
-        outputCount: 4,
       });
     });
 
-    it('force overwrites same-name rule from different source', async () => {
+    it('force overwrites same-name prompt from different source', async () => {
       // Install from source 1
       writeCanonicalFile(
         sourceRepo,
-        'rule',
+        'prompt',
         'security',
-        makeRuleContent('security', {
+        makePromptContent('security', {
           description: 'Security v1',
-          activation: 'always',
-          body: 'Original rules.',
+          body: 'Original prompts.',
         })
       );
 
-      const firstResult = await addRules({
-        source: 'team-a/rules',
+      const firstResult = await addPrompts({
+        source: 'team-a/prompts',
         sourcePath: sourceRepo,
         projectRoot,
-        ruleNames: ['*'],
+        promptNames: ['*'],
       });
       expect(firstResult.success).toBe(true);
 
-      // Force install same-named rule from source 2
+      // Force install same-named prompt from source 2
       writeCanonicalFile(
         sourceRepo2,
-        'rule',
+        'prompt',
         'security',
-        makeRuleContent('security', {
+        makePromptContent('security', {
           description: 'Security v2',
-          activation: 'always',
-          body: 'Replacement rules.',
+          body: 'Replacement prompts.',
         })
       );
 
-      const secondResult = await addRules({
-        source: 'team-b/rules',
+      const secondResult = await addPrompts({
+        source: 'team-b/prompts',
         sourcePath: sourceRepo2,
         projectRoot,
-        ruleNames: ['*'],
+        promptNames: ['*'],
         force: true,
       });
 
       expect(secondResult.success).toBe(true);
-      expect(secondResult.rulesInstalled).toBe(1);
+      expect(secondResult.promptsInstalled).toBe(1);
 
       // Files now contain v2 content
-      for (const agent of ALL_AGENTS) {
-        const path = getExpectedOutputPath(projectRoot, agent, 'rule', 'security');
-        assertFileExists(path, 'Replacement rules.');
+      for (const agent of PROMPT_AGENTS) {
+        const path = getExpectedOutputPath(projectRoot, agent, 'prompt', 'security');
+        assertFileExists(path, 'Replacement prompts.');
       }
 
       // Lock updated to new source
-      await assertLockEntry(projectRoot, 'rule', 'security', {
-        source: 'team-b/rules',
+      await assertLockEntry(projectRoot, 'prompt', 'security', {
+        source: 'team-b/prompts',
       });
     });
 
@@ -517,24 +507,28 @@ describe('E2E collision tests', () => {
     it('dry-run reports collision without writing files', async () => {
       writeCanonicalFile(
         sourceRepo,
-        'rule',
+        'prompt',
         'code-style',
-        makeRuleContent('code-style', {
+        makePromptContent('code-style', {
           description: 'Code style guidelines',
-          activation: 'always',
-          body: 'Style rules.',
+          body: 'Style prompts.',
         })
       );
 
-      // Pre-create user-owned file
-      const cursorPath = getExpectedOutputPath(projectRoot, 'cursor', 'rule', 'code-style');
-      writeUserFile(cursorPath, 'user content');
+      // Pre-create user-owned file at the Copilot output path
+      const copilotPath = getExpectedOutputPath(
+        projectRoot,
+        'github-copilot',
+        'prompt',
+        'code-style'
+      );
+      writeUserFile(copilotPath, 'user content');
 
-      const result = await addRules({
+      const result = await addPrompts({
         source: 'test/dryrun-repo',
         sourcePath: sourceRepo,
         projectRoot,
-        ruleNames: ['*'],
+        promptNames: ['*'],
         dryRun: true,
       });
 
@@ -544,7 +538,7 @@ describe('E2E collision tests', () => {
       expect(result.writtenPaths).toHaveLength(0);
 
       // User file still intact
-      expect(readFileSync(cursorPath, 'utf-8')).toBe('user content');
+      expect(readFileSync(copilotPath, 'utf-8')).toBe('user content');
 
       // No lock file created
       expect(existsSync(`${projectRoot}/.dotai-lock.json`)).toBe(false);
@@ -553,40 +547,44 @@ describe('E2E collision tests', () => {
     it('dry-run with --force reports planned writes without executing', async () => {
       writeCanonicalFile(
         sourceRepo,
-        'rule',
+        'prompt',
         'code-style',
-        makeRuleContent('code-style', {
+        makePromptContent('code-style', {
           description: 'Code style guidelines',
-          activation: 'always',
-          body: 'Style rules.',
+          body: 'Style prompts.',
         })
       );
 
-      // Pre-create user-owned file
-      const cursorPath = getExpectedOutputPath(projectRoot, 'cursor', 'rule', 'code-style');
-      writeUserFile(cursorPath, 'user content');
+      // Pre-create user-owned file at the Copilot output path
+      const copilotPath = getExpectedOutputPath(
+        projectRoot,
+        'github-copilot',
+        'prompt',
+        'code-style'
+      );
+      writeUserFile(copilotPath, 'user content');
 
-      const result = await addRules({
+      const result = await addPrompts({
         source: 'test/dryrun-force-repo',
         sourcePath: sourceRepo,
         projectRoot,
-        ruleNames: ['*'],
+        promptNames: ['*'],
         dryRun: true,
         force: true,
       });
 
       // Force suppresses collision blocking, dry-run prevents writes
       expect(result.success).toBe(true);
-      expect(result.rulesInstalled).toBe(1);
+      expect(result.promptsInstalled).toBe(1);
       expect(result.writtenPaths).toHaveLength(0); // dry-run = no files written
 
       // User file still intact (dry-run didn't overwrite)
-      expect(readFileSync(cursorPath, 'utf-8')).toBe('user content');
+      expect(readFileSync(copilotPath, 'utf-8')).toBe('user content');
 
       // No other agent files created
-      for (const agent of ALL_AGENTS) {
-        if (agent === 'cursor') continue; // user file exists
-        const path = getExpectedOutputPath(projectRoot, agent, 'rule', 'code-style');
+      for (const agent of PROMPT_AGENTS) {
+        if (agent === 'github-copilot') continue; // user file exists
+        const path = getExpectedOutputPath(projectRoot, agent, 'prompt', 'code-style');
         assertFileNotExists(path);
       }
 
@@ -600,30 +598,10 @@ describe('E2E collision tests', () => {
   // -------------------------------------------------------------------------
 
   describe('no collision for different types with same name', () => {
-    it('allows rule and prompt with same name from different sources', async () => {
-      // Install a rule named "review"
+    it('allows prompt and agent with same name from different sources', async () => {
+      // Install a prompt named "review"
       writeCanonicalFile(
         sourceRepo,
-        'rule',
-        'review',
-        makeRuleContent('review', {
-          description: 'Review rule',
-          activation: 'always',
-          body: 'Review rule body.',
-        })
-      );
-
-      const ruleResult = await addRules({
-        source: 'team-a/rules',
-        sourcePath: sourceRepo,
-        projectRoot,
-        ruleNames: ['*'],
-      });
-      expect(ruleResult.success).toBe(true);
-
-      // Install a prompt named "review" from different source
-      writeCanonicalFile(
-        sourceRepo2,
         'prompt',
         'review',
         makePromptContent('review', {
@@ -633,21 +611,40 @@ describe('E2E collision tests', () => {
       );
 
       const promptResult = await addPrompts({
-        source: 'team-b/prompts',
-        sourcePath: sourceRepo2,
+        source: 'team-a/prompts',
+        sourcePath: sourceRepo,
         projectRoot,
         promptNames: ['*'],
       });
+      expect(promptResult.success).toBe(true);
+
+      // Install an agent named "review" from different source
+      writeCanonicalFile(
+        sourceRepo2,
+        'agent',
+        'review',
+        makeAgentContent('review', {
+          description: 'Review agent',
+          body: 'Review agent body.',
+        })
+      );
+
+      const agentResult = await addAgents({
+        source: 'team-b/agents',
+        sourcePath: sourceRepo2,
+        projectRoot,
+        agentNames: ['*'],
+      });
 
       // No collision — different types have different output paths
-      expect(promptResult.success).toBe(true);
-      expect(promptResult.promptsInstalled).toBe(1);
+      expect(agentResult.success).toBe(true);
+      expect(agentResult.agentsInstalled).toBe(1);
 
-      await assertLockEntry(projectRoot, 'rule', 'review', {
-        source: 'team-a/rules',
-      });
       await assertLockEntry(projectRoot, 'prompt', 'review', {
-        source: 'team-b/prompts',
+        source: 'team-a/prompts',
+      });
+      await assertLockEntry(projectRoot, 'agent', 'review', {
+        source: 'team-b/agents',
       });
       await assertLockEntryCount(projectRoot, 2);
     });

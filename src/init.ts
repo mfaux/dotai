@@ -24,27 +24,6 @@ interface TemplateConfig {
 }
 
 const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
-  rule: {
-    file: 'RULES.md',
-    noun: 'rule',
-    generateContent: (name: string) => `---
-name: ${name}
-description: Describe what this rule enforces
-globs:
-  - '*.ts'
-  - '*.tsx'
-activation: always
----
-
-Your rule instructions here.
-`,
-    extraNextSteps: [
-      `  3. Keep body content agent-agnostic ${DIM}(it is passed verbatim to all target agents)${RESET}`,
-    ],
-    installSection: (name: string) =>
-      `${DIM}Installing:${RESET}\n  ${DIM}From repo:${RESET}  ${TEXT}npx dotai add <owner>/<repo> --rule ${name}${RESET}`,
-  },
-
   prompt: {
     file: 'PROMPT.md',
     noun: 'prompt',
@@ -201,15 +180,6 @@ export function runInit(args: string[]): void {
 
   // Determine which template type to create
   const typeArg = args[0];
-
-  // Rule template
-  if (typeArg === 'rule' || typeArg === '--rule') {
-    const config = TEMPLATE_CONFIGS['rule']!;
-    const name = args[1] || basename(cwd);
-    const hasName = args[1] !== undefined;
-    initTemplate(config, name, hasName, cwd);
-    return;
-  }
 
   // Prompt template
   if (typeArg === 'prompt' || typeArg === '--prompt') {

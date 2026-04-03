@@ -49,34 +49,6 @@ export function cleanupProject(projectRoot: string): void {
 // ---------------------------------------------------------------------------
 
 /**
- * Create a minimal RULES.md content string for testing.
- */
-export function makeRuleContent(
-  name: string,
-  opts: { description?: string; activation?: string; globs?: string[]; body?: string } = {}
-): string {
-  const desc = opts.description ?? `Description for ${name}`;
-  const activation = opts.activation ?? 'always';
-  const globLines =
-    opts.globs && opts.globs.length > 0
-      ? `globs:\n${opts.globs.map((g) => `  - "${g}"`).join('\n')}\n`
-      : '';
-
-  return [
-    '---',
-    `name: ${name}`,
-    `description: ${desc}`,
-    `activation: ${activation}`,
-    globLines ? globLines.trimEnd() : null,
-    '---',
-    '',
-    opts.body ?? `Body content for ${name}.`,
-  ]
-    .filter((line) => line !== null)
-    .join('\n');
-}
-
-/**
  * Create a minimal PROMPT.md content string for testing.
  */
 export function makePromptContent(
@@ -166,7 +138,6 @@ export function writeCanonicalFile(
   content: string
 ): string {
   const fileMap: Record<string, string> = {
-    rule: `rules/${name}/RULES.md`,
     prompt: `prompts/${name}/PROMPT.md`,
     agent: `agents/${name}/AGENT.md`,
     skill: `skills/${name}/SKILL.md`,
@@ -194,9 +165,7 @@ export function writeNativeFile(
 ): string {
   const config = targetAgents[agent];
   let outputDir: string;
-  if (type === 'rule') {
-    outputDir = config.nativeRuleDiscovery.sourceDir;
-  } else if (type === 'prompt' && config.nativePromptDiscovery) {
+  if (type === 'prompt' && config.nativePromptDiscovery) {
     outputDir = config.nativePromptDiscovery.sourceDir;
   } else if (type === 'agent' && config.nativeAgentDiscovery) {
     outputDir = config.nativeAgentDiscovery.sourceDir;
@@ -285,10 +254,7 @@ export function getExpectedOutputPath(
   let outputDir: string;
   let extension: string;
 
-  if (type === 'rule') {
-    outputDir = config.rulesConfig.outputDir;
-    extension = config.rulesConfig.extension;
-  } else if (type === 'prompt') {
+  if (type === 'prompt') {
     if (!config.promptsConfig) {
       throw new Error(`Agent ${agent} does not support prompts`);
     }
@@ -492,25 +458,6 @@ export async function createTempProjectDir(
 // ---------------------------------------------------------------------------
 
 /**
- * Create a canonical RULES.md with standard frontmatter.
- *
- * Uses a fixed `globs: ["*.ts"]` and `activation: always` — matches the
- * factory pattern from cli-lock-integration tests.
- */
-export function makeSimpleRulesContent(name: string, description: string, body: string): string {
-  return `---
-name: ${name}
-description: ${description}
-globs:
-  - "*.ts"
-activation: always
----
-
-${body}
-`;
-}
-
-/**
  * Create a canonical INSTRUCTIONS.md with simple frontmatter.
  *
  * Matches the factory pattern from cli-lock-integration tests.
@@ -568,38 +515,34 @@ ${body}
  *
  * When a single item is provided, the file is placed at the repo root.
  * When multiple items are provided, each is placed in its own subdirectory
- * under a type-specific parent directory (e.g., `rules/<name>/RULES.md`).
+ * under a type-specific parent directory (e.g., `prompts/<name>/PROMPT.md`).
  *
  * @param baseDir - Parent directory for the source repo
  * @param items - Array of `{ name, description, body }` for each item
- * @param type - Context type: `'rule'` (default), `'agent'`, or `'prompt'`
+ * @param type - Context type: `'instruction'` (default), `'agent'`, or `'prompt'`
  * @returns Absolute path to the created source repo directory
  */
 export async function createTestSourceRepo(
   baseDir: string,
   items: Array<{ name: string; description: string; body: string }>,
-  type: 'rule' | 'agent' | 'prompt' | 'instruction' = 'rule'
+  type: 'agent' | 'prompt' | 'instruction' = 'instruction'
 ): Promise<string> {
   const dirNames: Record<string, string> = {
-    rule: 'source-repo',
     agent: 'agent-source-repo',
     prompt: 'prompt-source-repo',
     instruction: 'instruction-source-repo',
   };
   const fileNames: Record<string, string> = {
-    rule: 'RULES.md',
     agent: 'AGENT.md',
     prompt: 'PROMPT.md',
     instruction: 'INSTRUCTIONS.md',
   };
   const subdirNames: Record<string, string> = {
-    rule: 'rules',
     agent: 'agents',
     prompt: 'prompts',
     instruction: 'instructions',
   };
   const contentFns: Record<string, (n: string, d: string, b: string) => string> = {
-    rule: makeSimpleRulesContent,
     agent: makeSimpleAgentContent,
     prompt: makeSimplePromptContent,
     instruction: makeSimpleInstructionContent,

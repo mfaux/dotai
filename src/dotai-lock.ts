@@ -21,7 +21,7 @@ const CURRENT_VERSION = 1;
  *
  * This file is project-scoped and always committed to version control.
  * Items are keyed by composite `(type, name)` to support multiple context
- * types sharing the same name (e.g., a skill and a rule both named "auth").
+ * types sharing the same name (e.g., a skill and a prompt both named "auth").
  */
 export interface DotaiLockFile {
   /** Schema version — reject future versions, migrate older ones. */
@@ -107,7 +107,12 @@ function validateAndMigrate(parsed: unknown): ReadLockResult {
   // Validate each item has required fields
   const validItems = (obj.items as unknown[]).filter(isValidLockEntry);
 
-  let lock: DotaiLockFile = { version, items: validItems };
+  // Filter out legacy 'rule' entries — they are accepted by VALID_TYPES for
+  // backward compatibility (so old lock files parse without errors) but are
+  // silently dropped so the rest of the pipeline never sees them.
+  const activeItems = validItems.filter((item) => (item.type as string) !== 'rule');
+
+  let lock: DotaiLockFile = { version, items: activeItems };
 
   // Run sequential migrations if needed
   if (version < CURRENT_VERSION) {

@@ -3,7 +3,6 @@ import { readFileSync } from 'fs';
 import {
   createTempProject,
   cleanupProject,
-  makeRuleContent,
   makePromptContent,
   makeAgentContent,
   writeCanonicalFile,
@@ -13,12 +12,10 @@ import {
   getExpectedOutputPath,
   assertLockEntry,
   assertLockEntryCount,
-  ALL_AGENTS,
   PROMPT_AGENTS,
   AGENT_AGENTS,
 } from './e2e-utils.ts';
-import { addRules, addPrompts, addAgents } from '../src/rule-add.ts';
-import type { TargetAgent } from '../src/types.ts';
+import { addPrompts, addAgents } from '../src/context-add.ts';
 
 // ---------------------------------------------------------------------------
 // E2E Native Passthrough Tests
@@ -27,8 +24,8 @@ import type { TargetAgent } from '../src/types.ts';
 // passed through without transpilation, and installed only to their matching
 // agent's output directory.
 //
-// Native passthrough means: a `.cursor/rules/foo.mdc` file in the source repo
-// should be installed as-is to `.cursor/rules/foo.mdc` in the project, and
+// Native passthrough means: a `.github/copilot-instructions/deploy.prompt.md`
+// file in the source repo should be installed as-is to the project, and
 // NOT to any other agent's directory.
 // ---------------------------------------------------------------------------
 
@@ -44,149 +41,6 @@ describe('E2E native passthrough', () => {
   afterEach(() => {
     cleanupProject(projectRoot);
     cleanupProject(sourceRepo);
-  });
-
-  // -------------------------------------------------------------------------
-  // Native rule passthrough
-  // -------------------------------------------------------------------------
-
-  describe('native rule passthrough', () => {
-    it('installs a native Cursor rule only to Cursor', async () => {
-      const content = '---\nalwaysApply: true\n---\nNative Cursor rule content.';
-      writeNativeFile(sourceRepo, 'rule', 'cursor', 'code-style.mdc', content);
-
-      const result = await addRules({
-        source: 'test/native-repo',
-        sourcePath: sourceRepo,
-        projectRoot,
-        ruleNames: ['*'],
-      });
-
-      expect(result.success).toBe(true);
-      expect(result.rulesInstalled).toBe(1);
-      expect(result.writtenPaths).toHaveLength(1);
-
-      // Cursor should have the file
-      const cursorOutput = getExpectedOutputPath(projectRoot, 'cursor', 'rule', 'code-style');
-      assertFileExists(cursorOutput);
-      const writtenContent = readFileSync(cursorOutput, 'utf-8');
-      expect(writtenContent).toBe(content);
-
-      // Other agents should NOT have the file
-      for (const agent of ALL_AGENTS.filter((a) => a !== 'cursor')) {
-        assertFileNotExists(getExpectedOutputPath(projectRoot, agent, 'rule', 'code-style'));
-      }
-
-      // Lock should reflect native format with only cursor
-      const entry = await assertLockEntry(projectRoot, 'rule', 'code-style', {
-        source: 'test/native-repo',
-        format: 'native:cursor',
-        agents: ['cursor'],
-        outputCount: 1,
-      });
-      expect(entry.hash).toMatch(/^[a-f0-9]{64}$/);
-    });
-
-    it('installs a native Copilot rule only to Copilot', async () => {
-      const content = '---\napplyTo: "**/*.ts"\n---\nNative Copilot rule.';
-      writeNativeFile(sourceRepo, 'rule', 'github-copilot', 'ts-rules.instructions.md', content);
-
-      const result = await addRules({
-        source: 'test/native-repo',
-        sourcePath: sourceRepo,
-        projectRoot,
-        ruleNames: ['*'],
-      });
-
-      expect(result.success).toBe(true);
-      expect(result.writtenPaths).toHaveLength(1);
-
-      // Copilot should have the file
-      const copilotOutput = getExpectedOutputPath(
-        projectRoot,
-        'github-copilot',
-        'rule',
-        'ts-rules'
-      );
-      assertFileExists(copilotOutput);
-      const writtenContent = readFileSync(copilotOutput, 'utf-8');
-      expect(writtenContent).toBe(content);
-
-      // Other agents should NOT have the file
-      for (const agent of ALL_AGENTS.filter((a) => a !== 'github-copilot')) {
-        assertFileNotExists(getExpectedOutputPath(projectRoot, agent, 'rule', 'ts-rules'));
-      }
-
-      await assertLockEntry(projectRoot, 'rule', 'ts-rules', {
-        format: 'native:github-copilot',
-        agents: ['github-copilot'],
-        outputCount: 1,
-      });
-    });
-
-    it('installs a native Claude Code rule only to Claude Code', async () => {
-      const content = 'Native Claude Code rule content.';
-      writeNativeFile(sourceRepo, 'rule', 'claude-code', 'security.md', content);
-
-      const result = await addRules({
-        source: 'test/native-repo',
-        sourcePath: sourceRepo,
-        projectRoot,
-        ruleNames: ['*'],
-      });
-
-      expect(result.success).toBe(true);
-      expect(result.writtenPaths).toHaveLength(1);
-
-      const claudeOutput = getExpectedOutputPath(projectRoot, 'claude-code', 'rule', 'security');
-      assertFileExists(claudeOutput);
-      expect(readFileSync(claudeOutput, 'utf-8')).toBe(content);
-
-      // Other agents should NOT have it
-      for (const agent of ALL_AGENTS.filter((a) => a !== 'claude-code')) {
-        assertFileNotExists(getExpectedOutputPath(projectRoot, agent, 'rule', 'security'));
-      }
-
-      await assertLockEntry(projectRoot, 'rule', 'security', {
-        format: 'native:claude-code',
-        agents: ['claude-code'],
-        outputCount: 1,
-      });
-    });
-
-    it('installs native rules from multiple agents independently', async () => {
-      writeNativeFile(sourceRepo, 'rule', 'cursor', 'cursor-rule.mdc', 'Cursor native rule.');
-      writeNativeFile(sourceRepo, 'rule', 'claude-code', 'claude-rule.md', 'Claude native rule.');
-
-      const result = await addRules({
-        source: 'test/native-repo',
-        sourcePath: sourceRepo,
-        projectRoot,
-        ruleNames: ['*'],
-      });
-
-      expect(result.success).toBe(true);
-      expect(result.rulesInstalled).toBe(2);
-      expect(result.writtenPaths).toHaveLength(2);
-
-      // Cursor rule only in cursor dir
-      assertFileExists(getExpectedOutputPath(projectRoot, 'cursor', 'rule', 'cursor-rule'));
-      assertFileNotExists(getExpectedOutputPath(projectRoot, 'claude-code', 'rule', 'cursor-rule'));
-
-      // Claude rule only in claude dir
-      assertFileExists(getExpectedOutputPath(projectRoot, 'claude-code', 'rule', 'claude-rule'));
-      assertFileNotExists(getExpectedOutputPath(projectRoot, 'cursor', 'rule', 'claude-rule'));
-
-      await assertLockEntryCount(projectRoot, 2);
-      await assertLockEntry(projectRoot, 'rule', 'cursor-rule', {
-        format: 'native:cursor',
-        agents: ['cursor'],
-      });
-      await assertLockEntry(projectRoot, 'rule', 'claude-rule', {
-        format: 'native:claude-code',
-        agents: ['claude-code'],
-      });
-    });
   });
 
   // -------------------------------------------------------------------------
@@ -337,59 +191,6 @@ describe('E2E native passthrough', () => {
   // -------------------------------------------------------------------------
 
   describe('mixed canonical and native', () => {
-    it('installs both canonical and native rules from the same repo', async () => {
-      // Canonical rule → goes to all 5 agents
-      writeCanonicalFile(
-        sourceRepo,
-        'rule',
-        'formatting',
-        makeRuleContent('formatting', { body: 'Canonical formatting rule.' })
-      );
-
-      // Native Cursor rule → goes to cursor only
-      writeNativeFile(
-        sourceRepo,
-        'rule',
-        'cursor',
-        'cursor-only.mdc',
-        '---\nalwaysApply: true\n---\nCursor-only content.'
-      );
-
-      const result = await addRules({
-        source: 'test/mixed-repo',
-        sourcePath: sourceRepo,
-        projectRoot,
-        ruleNames: ['*'],
-      });
-
-      expect(result.success).toBe(true);
-      expect(result.rulesInstalled).toBe(2);
-      // canonical: 4 files + native: 1 file = 5 total
-      expect(result.writtenPaths).toHaveLength(5);
-
-      // Canonical rule should be in all agents
-      for (const agent of ALL_AGENTS) {
-        assertFileExists(getExpectedOutputPath(projectRoot, agent, 'rule', 'formatting'));
-      }
-
-      // Native cursor rule should be in cursor only
-      assertFileExists(getExpectedOutputPath(projectRoot, 'cursor', 'rule', 'cursor-only'));
-      for (const agent of ALL_AGENTS.filter((a) => a !== 'cursor')) {
-        assertFileNotExists(getExpectedOutputPath(projectRoot, agent, 'rule', 'cursor-only'));
-      }
-
-      // Lock: 2 entries with different formats
-      await assertLockEntryCount(projectRoot, 2);
-      await assertLockEntry(projectRoot, 'rule', 'formatting', {
-        format: 'canonical',
-        outputCount: 4,
-      });
-      await assertLockEntry(projectRoot, 'rule', 'cursor-only', {
-        format: 'native:cursor',
-        outputCount: 1,
-      });
-    });
-
     it('installs canonical prompts and native prompts from the same repo', async () => {
       // Canonical prompt → goes to copilot + claude
       writeCanonicalFile(
@@ -490,37 +291,6 @@ describe('E2E native passthrough', () => {
   // -------------------------------------------------------------------------
 
   describe('content passthrough fidelity', () => {
-    it('native rule content is byte-identical to source', async () => {
-      const content = [
-        '---',
-        'alwaysApply: false',
-        'globs:',
-        '  - "**/*.rs"',
-        '---',
-        '',
-        '# Rust Guidelines',
-        '',
-        'Use `cargo fmt` before committing.',
-        'Prefer `thiserror` over manual Error impls.',
-        '',
-      ].join('\n');
-
-      writeNativeFile(sourceRepo, 'rule', 'cursor', 'rust-style.mdc', content);
-
-      await addRules({
-        source: 'test/native-repo',
-        sourcePath: sourceRepo,
-        projectRoot,
-        ruleNames: ['*'],
-      });
-
-      const output = readFileSync(
-        getExpectedOutputPath(projectRoot, 'cursor', 'rule', 'rust-style'),
-        'utf-8'
-      );
-      expect(output).toBe(content);
-    });
-
     it('native prompt content is byte-identical to source', async () => {
       const content = [
         '---',

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
-import { addInstructions } from '../src/rule-add.ts';
+import { addInstructions } from '../src/context-add.ts';
 import type { TargetAgent } from '../src/types.ts';
 import {
   createTempProjectDir,
@@ -424,7 +424,7 @@ describe('addInstructions — e2e', () => {
       const sourceRepo = await createTestSourceRepo(
         tempDir,
         [{ name: 'code-style', description: 'Style', body: 'Use const.' }],
-        'rule' // Create rules, not instructions
+        'prompt' // Create prompts, not instructions
       );
 
       const result = await addInstructions({

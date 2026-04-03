@@ -4,7 +4,6 @@ import { existsSync, readFileSync } from 'fs';
 import {
   createTempProject,
   cleanupProject,
-  makeRuleContent,
   makePromptContent,
   makeAgentContent,
   writeCanonicalFile,
@@ -13,12 +12,10 @@ import {
   getExpectedOutputPath,
   assertLockEntry,
   assertLockEntryCount,
-  ALL_AGENTS,
   PROMPT_AGENTS,
   AGENT_AGENTS,
 } from './e2e-utils.ts';
-import { addRules, addPrompts, addAgents } from '../src/rule-add.ts';
-import type { TargetAgent } from '../src/types.ts';
+import { addPrompts, addAgents } from '../src/context-add.ts';
 
 // ---------------------------------------------------------------------------
 // E2E Canonical Install Tests
@@ -29,7 +26,7 @@ import type { TargetAgent } from '../src/types.ts';
 //
 // Unlike unit tests that test individual functions, these tests create a
 // real source repo with canonical files and a real project directory, then
-// run the complete addRules/addPrompts/addAgents flow.
+// run the complete addPrompts/addAgents flow.
 // ---------------------------------------------------------------------------
 
 describe('E2E canonical install', () => {
@@ -44,220 +41,6 @@ describe('E2E canonical install', () => {
   afterEach(() => {
     cleanupProject(projectRoot);
     cleanupProject(sourceRepo);
-  });
-
-  // -------------------------------------------------------------------------
-  // Canonical rule → all 4 agents → lock updated
-  // -------------------------------------------------------------------------
-
-  describe('canonical rule install', () => {
-    it('installs a canonical rule to all 4 agents and updates lock', async () => {
-      // Create a canonical rule in the source repo
-      const ruleContent = makeRuleContent('code-style', {
-        description: 'Code style guidelines',
-        activation: 'always',
-        body: 'Use consistent formatting.',
-      });
-      writeCanonicalFile(sourceRepo, 'rule', 'code-style', ruleContent);
-
-      // Run the full install flow
-      const result = await addRules({
-        source: 'test/e2e-repo',
-        sourcePath: sourceRepo,
-        projectRoot,
-        ruleNames: ['*'],
-      });
-
-      // Verify success
-      expect(result.success).toBe(true);
-      expect(result.rulesInstalled).toBe(1);
-      expect(result.writtenPaths).toHaveLength(4);
-
-      // Verify output files exist for all 4 agents
-      for (const agent of ALL_AGENTS) {
-        const outputPath = getExpectedOutputPath(projectRoot, agent, 'rule', 'code-style');
-        assertFileExists(outputPath);
-      }
-
-      // Verify agent-specific content format
-      // Cursor: .mdc with alwaysApply frontmatter
-      const cursorContent = readFileSync(
-        getExpectedOutputPath(projectRoot, 'cursor', 'rule', 'code-style'),
-        'utf-8'
-      );
-      expect(cursorContent).toContain('alwaysApply: true');
-      expect(cursorContent).toContain('Use consistent formatting.');
-
-      // Copilot: .instructions.md with applyTo frontmatter
-      const copilotContent = readFileSync(
-        getExpectedOutputPath(projectRoot, 'github-copilot', 'rule', 'code-style'),
-        'utf-8'
-      );
-      expect(copilotContent).toContain('applyTo:');
-      expect(copilotContent).toContain('Use consistent formatting.');
-
-      // Claude Code: plain .md
-      const claudeContent = readFileSync(
-        getExpectedOutputPath(projectRoot, 'claude-code', 'rule', 'code-style'),
-        'utf-8'
-      );
-      expect(claudeContent).toContain('Use consistent formatting.');
-
-      // Verify lock file
-      const lockEntry = await assertLockEntry(projectRoot, 'rule', 'code-style', {
-        source: 'test/e2e-repo',
-        format: 'canonical',
-        outputCount: 4,
-      });
-      expect(lockEntry.agents).toHaveLength(4);
-      expect(lockEntry.hash).toBeTruthy();
-      await assertLockEntryCount(projectRoot, 1);
-    });
-
-    it('installs multiple canonical rules in one pass', async () => {
-      writeCanonicalFile(
-        sourceRepo,
-        'rule',
-        'code-style',
-        makeRuleContent('code-style', { body: 'Style rule body.' })
-      );
-      writeCanonicalFile(
-        sourceRepo,
-        'rule',
-        'security',
-        makeRuleContent('security', { body: 'Security rule body.' })
-      );
-
-      const result = await addRules({
-        source: 'test/e2e-repo',
-        sourcePath: sourceRepo,
-        projectRoot,
-        ruleNames: ['*'],
-      });
-
-      expect(result.success).toBe(true);
-      expect(result.rulesInstalled).toBe(2);
-      // 2 rules x 4 agents = 8 output files
-      expect(result.writtenPaths).toHaveLength(8);
-
-      // Both rules should have output files for all agents
-      for (const agent of ALL_AGENTS) {
-        assertFileExists(getExpectedOutputPath(projectRoot, agent, 'rule', 'code-style'));
-        assertFileExists(getExpectedOutputPath(projectRoot, agent, 'rule', 'security'));
-      }
-
-      // Lock file should have 2 entries
-      await assertLockEntryCount(projectRoot, 2);
-      await assertLockEntry(projectRoot, 'rule', 'code-style');
-      await assertLockEntry(projectRoot, 'rule', 'security');
-    });
-
-    it('installs a rule with glob activation', async () => {
-      writeCanonicalFile(
-        sourceRepo,
-        'rule',
-        'ts-style',
-        makeRuleContent('ts-style', {
-          activation: 'glob',
-          globs: ['**/*.ts', '**/*.tsx'],
-          body: 'TypeScript style guidelines.',
-        })
-      );
-
-      const result = await addRules({
-        source: 'test/e2e-repo',
-        sourcePath: sourceRepo,
-        projectRoot,
-        ruleNames: ['*'],
-      });
-
-      expect(result.success).toBe(true);
-
-      // Cursor output should have glob-specific frontmatter
-      const cursorContent = readFileSync(
-        getExpectedOutputPath(projectRoot, 'cursor', 'rule', 'ts-style'),
-        'utf-8'
-      );
-      expect(cursorContent).toContain('alwaysApply: false');
-      expect(cursorContent).toContain('**/*.ts');
-
-      // Copilot output should have glob in applyTo
-      const copilotContent = readFileSync(
-        getExpectedOutputPath(projectRoot, 'github-copilot', 'rule', 'ts-style'),
-        'utf-8'
-      );
-      expect(copilotContent).toContain('**/*.ts');
-    });
-
-    it('installs a rule to a subset of agents', async () => {
-      writeCanonicalFile(
-        sourceRepo,
-        'rule',
-        'code-style',
-        makeRuleContent('code-style', { body: 'Style body.' })
-      );
-
-      const result = await addRules({
-        source: 'test/e2e-repo',
-        sourcePath: sourceRepo,
-        projectRoot,
-        ruleNames: ['*'],
-        targets: ['cursor', 'opencode'],
-      });
-
-      expect(result.success).toBe(true);
-      expect(result.writtenPaths).toHaveLength(2);
-
-      // Only cursor and opencode should have output files
-      assertFileExists(getExpectedOutputPath(projectRoot, 'cursor', 'rule', 'code-style'));
-      assertFileExists(getExpectedOutputPath(projectRoot, 'opencode', 'rule', 'code-style'));
-
-      // Others should NOT exist
-      assertFileNotExists(
-        getExpectedOutputPath(projectRoot, 'github-copilot', 'rule', 'code-style')
-      );
-      assertFileNotExists(getExpectedOutputPath(projectRoot, 'claude-code', 'rule', 'code-style'));
-
-      // Lock entry should reflect only the 2 agents
-      const lockEntry = await assertLockEntry(projectRoot, 'rule', 'code-style', {
-        outputCount: 2,
-      });
-      expect(lockEntry.agents.sort()).toEqual(['cursor', 'opencode']);
-    });
-
-    it('filters rules by name', async () => {
-      writeCanonicalFile(
-        sourceRepo,
-        'rule',
-        'code-style',
-        makeRuleContent('code-style', { body: 'Style body.' })
-      );
-      writeCanonicalFile(
-        sourceRepo,
-        'rule',
-        'security',
-        makeRuleContent('security', { body: 'Security body.' })
-      );
-
-      const result = await addRules({
-        source: 'test/e2e-repo',
-        sourcePath: sourceRepo,
-        projectRoot,
-        ruleNames: ['security'],
-      });
-
-      expect(result.success).toBe(true);
-      expect(result.rulesInstalled).toBe(1);
-
-      // Only security should be installed
-      for (const agent of ALL_AGENTS) {
-        assertFileExists(getExpectedOutputPath(projectRoot, agent, 'rule', 'security'));
-        assertFileNotExists(getExpectedOutputPath(projectRoot, agent, 'rule', 'code-style'));
-      }
-
-      await assertLockEntryCount(projectRoot, 1);
-      await assertLockEntry(projectRoot, 'rule', 'security');
-    });
   });
 
   // -------------------------------------------------------------------------
@@ -506,14 +289,8 @@ describe('E2E canonical install', () => {
   // -------------------------------------------------------------------------
 
   describe('mixed canonical types', () => {
-    it('installs rules, prompts, and agents from the same source repo', async () => {
-      // Populate source repo with all three context types
-      writeCanonicalFile(
-        sourceRepo,
-        'rule',
-        'code-style',
-        makeRuleContent('code-style', { body: 'Style guidelines.' })
-      );
+    it('installs prompts and agents from the same source repo', async () => {
+      // Populate source repo with both context types
       writeCanonicalFile(
         sourceRepo,
         'prompt',
@@ -527,15 +304,7 @@ describe('E2E canonical install', () => {
         makeAgentContent('architect', { body: 'Architecture planning.' })
       );
 
-      // Install all three types sequentially
-      const ruleResult = await addRules({
-        source: 'test/e2e-repo',
-        sourcePath: sourceRepo,
-        projectRoot,
-        ruleNames: ['*'],
-      });
-      expect(ruleResult.success).toBe(true);
-
+      // Install both types sequentially
       const promptResult = await addPrompts({
         source: 'test/e2e-repo',
         sourcePath: sourceRepo,
@@ -553,10 +322,6 @@ describe('E2E canonical install', () => {
       expect(agentResult.success).toBe(true);
 
       // Verify all output files exist
-      // Rule: 4 agents
-      for (const agent of ALL_AGENTS) {
-        assertFileExists(getExpectedOutputPath(projectRoot, agent, 'rule', 'code-style'));
-      }
       // Prompt: 3 agents
       for (const agent of PROMPT_AGENTS) {
         assertFileExists(getExpectedOutputPath(projectRoot, agent, 'prompt', 'review-code'));
@@ -566,9 +331,8 @@ describe('E2E canonical install', () => {
         assertFileExists(getExpectedOutputPath(projectRoot, agent, 'agent', 'architect'));
       }
 
-      // Lock file should have 3 entries (one per context item)
-      await assertLockEntryCount(projectRoot, 3);
-      await assertLockEntry(projectRoot, 'rule', 'code-style', { source: 'test/e2e-repo' });
+      // Lock file should have 2 entries (one per context item)
+      await assertLockEntryCount(projectRoot, 2);
       await assertLockEntry(projectRoot, 'prompt', 'review-code', { source: 'test/e2e-repo' });
       await assertLockEntry(projectRoot, 'agent', 'architect', { source: 'test/e2e-repo' });
     });
@@ -582,47 +346,46 @@ describe('E2E canonical install', () => {
     it('stores a non-empty hash for each installed item', async () => {
       writeCanonicalFile(
         sourceRepo,
-        'rule',
-        'code-style',
-        makeRuleContent('code-style', { body: 'Style body.' })
+        'prompt',
+        'review-code',
+        makePromptContent('review-code', { body: 'Review body.' })
       );
 
-      await addRules({
+      await addPrompts({
         source: 'test/e2e-repo',
         sourcePath: sourceRepo,
         projectRoot,
-        ruleNames: ['*'],
+        promptNames: ['*'],
       });
 
-      const entry = await assertLockEntry(projectRoot, 'rule', 'code-style');
+      const entry = await assertLockEntry(projectRoot, 'prompt', 'review-code');
       // Hash should be a SHA-256 hex string (64 chars)
       expect(entry.hash).toMatch(/^[a-f0-9]{64}$/);
     });
 
     it('different content produces different hashes', async () => {
-      // Install first rule
       writeCanonicalFile(
         sourceRepo,
-        'rule',
-        'rule-a',
-        makeRuleContent('rule-a', { body: 'Content A.' })
+        'prompt',
+        'prompt-a',
+        makePromptContent('prompt-a', { body: 'Content A.' })
       );
       writeCanonicalFile(
         sourceRepo,
-        'rule',
-        'rule-b',
-        makeRuleContent('rule-b', { body: 'Content B.' })
+        'prompt',
+        'prompt-b',
+        makePromptContent('prompt-b', { body: 'Content B.' })
       );
 
-      await addRules({
+      await addPrompts({
         source: 'test/e2e-repo',
         sourcePath: sourceRepo,
         projectRoot,
-        ruleNames: ['*'],
+        promptNames: ['*'],
       });
 
-      const entryA = await assertLockEntry(projectRoot, 'rule', 'rule-a');
-      const entryB = await assertLockEntry(projectRoot, 'rule', 'rule-b');
+      const entryA = await assertLockEntry(projectRoot, 'prompt', 'prompt-a');
+      const entryB = await assertLockEntry(projectRoot, 'prompt', 'prompt-b');
       expect(entryA.hash).not.toBe(entryB.hash);
     });
   });
@@ -635,27 +398,27 @@ describe('E2E canonical install', () => {
     it('reports planned writes without creating files or updating lock', async () => {
       writeCanonicalFile(
         sourceRepo,
-        'rule',
-        'code-style',
-        makeRuleContent('code-style', { body: 'Style body.' })
+        'prompt',
+        'review-code',
+        makePromptContent('review-code', { body: 'Review body.' })
       );
 
-      const result = await addRules({
+      const result = await addPrompts({
         source: 'test/e2e-repo',
         sourcePath: sourceRepo,
         projectRoot,
-        ruleNames: ['*'],
+        promptNames: ['*'],
         dryRun: true,
       });
 
       expect(result.success).toBe(true);
-      expect(result.rulesInstalled).toBe(1);
+      expect(result.promptsInstalled).toBe(1);
       // No files written in dry-run
       expect(result.writtenPaths).toHaveLength(0);
 
       // No output files should exist
-      for (const agent of ALL_AGENTS) {
-        assertFileNotExists(getExpectedOutputPath(projectRoot, agent, 'rule', 'code-style'));
+      for (const agent of PROMPT_AGENTS) {
+        assertFileNotExists(getExpectedOutputPath(projectRoot, agent, 'prompt', 'review-code'));
       }
 
       // No lock file should be created
@@ -671,19 +434,19 @@ describe('E2E canonical install', () => {
     it('every lock output path corresponds to a file on disk', async () => {
       writeCanonicalFile(
         sourceRepo,
-        'rule',
-        'code-style',
-        makeRuleContent('code-style', { body: 'Style body.' })
+        'prompt',
+        'review-code',
+        makePromptContent('review-code', { body: 'Review body.' })
       );
 
-      await addRules({
+      await addPrompts({
         source: 'test/e2e-repo',
         sourcePath: sourceRepo,
         projectRoot,
-        ruleNames: ['*'],
+        promptNames: ['*'],
       });
 
-      const entry = await assertLockEntry(projectRoot, 'rule', 'code-style');
+      const entry = await assertLockEntry(projectRoot, 'prompt', 'review-code');
       for (const outputPath of entry.outputs) {
         expect(existsSync(outputPath)).toBe(true);
       }

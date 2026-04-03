@@ -1,7 +1,7 @@
 import type { TargetAgent, ContextType } from './types.ts';
 
 // ---------------------------------------------------------------------------
-// Target agent registry for dotai transpilation (rules, skills, prompts, agents)
+// Target agent registry for dotai transpilation (rules, skills, prompts, agents, instructions)
 //
 // This is separate from the upstream `agents.ts` (skills-only registry with
 // 40+ agents) to avoid merge conflicts and keep concerns separated. The
@@ -17,6 +17,19 @@ export interface ContextTypeConfig {
   outputDir: string;
   /** File extension for transpiled output files (including dot). */
   extension: string;
+}
+
+/**
+ * Configuration for instruction output within a target agent.
+ *
+ * Instructions use append mode: all instructions are written as marker-based
+ * sections in a single project-wide file (e.g., `AGENTS.md`, `CLAUDE.md`).
+ */
+export interface InstructionsConfig {
+  /** Directory containing the output file (relative to project root). */
+  outputDir: string;
+  /** Target filename (e.g., `AGENTS.md`, `CLAUDE.md`). */
+  filename: string;
 }
 
 /**
@@ -78,6 +91,8 @@ export interface TargetAgentConfig {
   agentsConfig?: ContextTypeConfig;
   /** Native agent file discovery locations in source repos. */
   nativeAgentDiscovery?: NativeAgentDiscovery;
+  /** Instructions output configuration (append-mode, project-wide file). */
+  instructionsConfig: InstructionsConfig;
 }
 
 /**
@@ -115,6 +130,10 @@ export const targetAgents: Record<TargetAgent, TargetAgentConfig> = {
       sourceDir: '.github/agents',
       pattern: '*.agent.md',
     },
+    instructionsConfig: {
+      outputDir: '.github',
+      filename: 'copilot-instructions.md',
+    },
   },
   'claude-code': {
     name: 'claude-code',
@@ -144,6 +163,10 @@ export const targetAgents: Record<TargetAgent, TargetAgentConfig> = {
       sourceDir: '.claude/agents',
       pattern: '*.md',
     },
+    instructionsConfig: {
+      outputDir: '.',
+      filename: 'CLAUDE.md',
+    },
   },
   cursor: {
     name: 'cursor',
@@ -156,6 +179,10 @@ export const targetAgents: Record<TargetAgent, TargetAgentConfig> = {
     nativeRuleDiscovery: {
       sourceDir: '.cursor/rules',
       pattern: '*.mdc',
+    },
+    instructionsConfig: {
+      outputDir: '.',
+      filename: 'AGENTS.md',
     },
     // Cursor has no prompt/command system
   },
@@ -187,6 +214,10 @@ export const targetAgents: Record<TargetAgent, TargetAgentConfig> = {
       sourceDir: '.opencode/agents',
       pattern: '*.md',
     },
+    instructionsConfig: {
+      outputDir: '.',
+      filename: 'AGENTS.md',
+    },
   },
 };
 
@@ -215,6 +246,9 @@ export function getOutputDir(agent: TargetAgent, contextType: ContextType): stri
   }
   if (contextType === 'agent') {
     return config.agentsConfig?.outputDir;
+  }
+  if (contextType === 'instruction') {
+    return config.instructionsConfig.outputDir;
   }
   return config.rulesConfig.outputDir;
 }

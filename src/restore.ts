@@ -209,7 +209,7 @@ async function installFromSource(
 /**
  * Install a group of same-type entries, splitting by gitignored and append status.
  *
- * Append-mode and per-file mode rules must be installed in separate calls because
+ * Append-mode and per-file mode entries must be installed in separate calls because
  * the `append` flag changes how transpilers emit output. Similarly, gitignored and
  * non-gitignored entries need separate calls to preserve the --gitignore flag.
  *

@@ -4,29 +4,26 @@ Full option tables, examples, and authoring format for `dotai`. For a quick over
 
 ## add command options
 
-| Option                       | Description                                                                                 |
-| ---------------------------- | ------------------------------------------------------------------------------------------- |
-| `-g, --global`               | Install to user directory instead of project                                                |
-| `-t, --type <types...>`      | Filter by context type (`skill`, `rule`, `prompt`, `agent`, `instruction`; comma-separated) |
-| `-s, --skill <skills...>`    | Install specific skills by name (repeatable; supports `'*'`)                                |
-| `-r, --rule <rules...>`      | Install specific canonical rules by name (repeatable)                                       |
-| `-p, --prompt <prompts...>`  | Install specific canonical prompts by name (repeatable)                                     |
-| `--custom-agent <names...>`  | Install specific canonical custom agents by name (repeatable)                               |
-| `-a, --targets <targets...>` | Targets (comma-separated; use `'*'` for all)                                                |
-| `--copy`                     | Copy files instead of symlinking skills                                                     |
-| `--dry-run`                  | Preview writes without making changes                                                       |
-| `--force`                    | Overwrite conflicting managed/unmanaged outputs                                             |
-| `--append`                   | Append rules to `AGENTS.md`/`CLAUDE.md` instead of per-rule files                           |
-| `--gitignore`                | Add transpiled output paths to `.gitignore` (managed section)                               |
-| `--full-depth`               | Search all subdirectories even when a root `SKILL.md` exists                                |
-| `-y, --yes`                  | Skip confirmation prompts                                                                   |
-| `--all`                      | Shorthand for `--skill '*' --targets '*' -y`                                                |
+| Option                       | Description                                                                         |
+| ---------------------------- | ----------------------------------------------------------------------------------- |
+| `-g, --global`               | Install to user directory instead of project                                        |
+| `-t, --type <types...>`      | Filter by context type (`skill`, `prompt`, `agent`, `instruction`; comma-separated) |
+| `-s, --skill <skills...>`    | Install specific skills by name (repeatable; supports `'*'`)                        |
+| `-p, --prompt <prompts...>`  | Install specific canonical prompts by name (repeatable)                             |
+| `--custom-agent <names...>`  | Install specific canonical custom agents by name (repeatable)                       |
+| `-i, --instruction <names>`  | Install specific canonical instructions by name (repeatable)                        |
+| `-a, --targets <targets...>` | Targets (comma-separated; use `'*'` for all)                                        |
+| `--copy`                     | Copy files instead of symlinking skills                                             |
+| `--dry-run`                  | Preview writes without making changes                                               |
+| `--force`                    | Overwrite conflicting managed/unmanaged outputs                                     |
+| `--gitignore`                | Add transpiled output paths to `.gitignore` (managed section)                       |
+| `--full-depth`               | Search all subdirectories even when a root `SKILL.md` exists                        |
+| `-y, --yes`                  | Skip confirmation prompts                                                           |
+| `--all`                      | Shorthand for `--skill '*' --targets '*' -y`                                        |
 
-> **`--targets`:** A single flag for both skill install targets and transpilation targets. For skills, any of the supported targets (e.g., `--targets cursor,claude-code`). For rules, prompts, and agents, the 4 transpilation targets: copilot, claude, cursor, opencode. When omitted, all detected targets are used for skills and all 4 transpilation targets for rules/prompts/agents.
+> **`--targets`:** A single flag for both skill install targets and transpilation targets. For skills, any of the supported targets (e.g., `--targets cursor,claude-code`). For prompts, agents, and instructions, the transpilation targets: copilot, claude, cursor, opencode. When omitted, all detected targets are used for skills and all transpilation targets for prompts/agents/instructions.
 
-> **Zero-flag mode:** Running `dotai add owner/repo` with no type-specific flags discovers all content types (skills, rules, prompts, agents, instructions) and presents an interactive grouped selection. Use `dotai find owner/repo` for a non-interactive preview.
-
-> **`--append`:** Instead of writing individual rule files (e.g., `.github/instructions/code-style.instructions.md`), rules are appended as marker-delimited sections into `AGENTS.md` (Copilot) and `CLAUDE.md` (Claude Code). Useful for projects that prefer a single monolithic instruction file. Only applies to Copilot and Claude Code targets; other targets always get individual files.
+> **Zero-flag mode:** Running `dotai add owner/repo` with no type-specific flags discovers all content types (skills, prompts, agents, instructions) and presents an interactive grouped selection. Use `dotai find owner/repo` for a non-interactive preview.
 
 > **`--gitignore`:** Adds transpiled output file paths to a managed `# dotai:start` / `# dotai:end` section in `.gitignore`. Use when transpiled outputs should not be committed — only the canonical source files and `.dotai-lock.json` are checked in, and teammates run `dotai add` to regenerate outputs locally.
 
@@ -38,13 +35,13 @@ Supported target aliases include values such as `claude-code` and `codex`. See [
 
 ## remove command options
 
-| Option                       | Description                                                                                 |
-| ---------------------------- | ------------------------------------------------------------------------------------------- |
-| `-g, --global`               | Remove from global scope                                                                    |
-| `-a, --targets <targets...>` | Remove from specific targets (use `'*'` for all targets)                                    |
-| `-t, --type <types...>`      | Filter by context type (`skill`, `rule`, `prompt`, `agent`, `instruction`; comma-separated) |
-| `-y, --yes`                  | Skip confirmation prompts                                                                   |
-| `--all`                      | Remove all installed items                                                                  |
+| Option                       | Description                                                                         |
+| ---------------------------- | ----------------------------------------------------------------------------------- |
+| `-g, --global`               | Remove from global scope                                                            |
+| `-a, --targets <targets...>` | Remove from specific targets (use `'*'` for all targets)                            |
+| `-t, --type <types...>`      | Filter by context type (`skill`, `prompt`, `agent`, `instruction`; comma-separated) |
+| `-y, --yes`                  | Skip confirmation prompts                                                           |
+| `--all`                      | Remove all installed items                                                          |
 
 ## find command
 
@@ -60,8 +57,8 @@ npx dotai find react        # search non-interactively and list results
 ```
 Found in vercel-labs/agent-skills:
   2 skills    react-best-practices, nextjs-patterns
-  3 rules     code-style, testing, imports
   1 prompt    review-code
+  1 instruction  project-setup
 
 ? What would you like to install?
 > Install selected skill only (react-best-practices)
@@ -71,7 +68,7 @@ Found in vercel-labs/agent-skills:
 ```
 
 - **Install selected skill only** installs the single skill you picked from the search results.
-- **Install all context from this repo** installs every skill, rule, prompt, agent, and instruction in the repo.
+- **Install all context from this repo** installs every skill, prompt, agent, and instruction in the repo.
 - **Pick individual items** opens a multi-select where you choose exactly which items to install.
 
 If the GitHub Trees API is unreachable (rate limit, private repo, network error), the preview step is skipped and the selected skill is installed directly.
@@ -85,16 +82,14 @@ Skills (2)
   react-best-practices
   nextjs-patterns
 
-Rules (3)
-  code-style
-  testing
-  imports [cursor]
-
 Prompts (1)
   review-code
 
+Instructions (1)
+  project-setup
+
 Install with: npx dotai add owner/repo
-Or specific items: npx dotai add owner/repo --rule <name>
+Or specific items: npx dotai add owner/repo --instruction <name>
 ```
 
 ### Native context discovery
@@ -112,40 +107,13 @@ The following native directories are scanned (derived from the [target-agents re
 
 **Non-interactive mode** (with a query argument) prints matching results with install commands, suitable for use inside AI coding agents.
 
-## `import`
-
-Convert native agent-specific rule files into canonical `RULES.md` format.
-
-    npx dotai import
-    npx dotai import --from cursor,claude-code
-    npx dotai import --output rules/ --dry-run
-
-| Flag              | Description                                                           |
-| ----------------- | --------------------------------------------------------------------- |
-| `--from <agents>` | Comma-separated list of agents to import from (default: all detected) |
-| `--output <dir>`  | Output directory for canonical rules (default: `rules/`)              |
-| `--force`         | Overwrite existing canonical rules with the same name                 |
-| `--dry-run`       | Preview imports without writing files                                 |
-
-> **Note:** Some agent formats lose information during import. For example, Cursor's
-> `alwaysApply: false` maps to `activation: auto` (could also mean `manual`), and
-> Copilot rules have no description field. Review imported rules and adjust as needed.
-
-### Supported native formats
-
-| Agent          | Source directory                         | Parsed fields                   |
-| -------------- | ---------------------------------------- | ------------------------------- |
-| Cursor         | `.cursor/rules/*.mdc`                    | description, alwaysApply, globs |
-| Claude Code    | `.claude/rules/*.md`                     | description, globs              |
-| GitHub Copilot | `.github/instructions/*.instructions.md` | applyTo                         |
-
 ## list command options
 
-| Option                       | Description                                                                                 |
-| ---------------------------- | ------------------------------------------------------------------------------------------- |
-| `-g, --global`               | List global context (default: project)                                                      |
-| `-a, --targets <targets...>` | Filter by specific targets                                                                  |
-| `-t, --type <types...>`      | Filter by context type (`skill`, `rule`, `prompt`, `agent`, `instruction`; comma-separated) |
+| Option                       | Description                                                                         |
+| ---------------------------- | ----------------------------------------------------------------------------------- |
+| `-g, --global`               | List global context (default: project)                                              |
+| `-a, --targets <targets...>` | Filter by specific targets                                                          |
+| `-t, --type <types...>`      | Filter by context type (`skill`, `prompt`, `agent`, `instruction`; comma-separated) |
 
 ## Installation Scope
 
@@ -163,20 +131,17 @@ npx dotai find owner/repo
 # Interactive install — discovers all content types
 npx dotai add owner/repo
 
-# Install one rule and one skill in a single run
-npx dotai add owner/repo --rule code-style --skill db-migrate
+# Install an instruction and a skill in a single run
+npx dotai add owner/repo --instruction project-setup --skill db-migrate
 
 # Install only prompts
 npx dotai add owner/repo --prompt review-code
 
-# Discover and install all rules from a source
-npx dotai add owner/repo --type rule
+# Discover and install all instructions from a source
+npx dotai add owner/repo --type instruction
 
-# Install all rules and prompts from a source
-npx dotai add owner/repo --type rule,prompt
-
-# Install prompts and rules together
-npx dotai add owner/repo --prompt review-code --rule code-style
+# Install all instructions and prompts from a source
+npx dotai add owner/repo --type instruction,prompt
 
 # Install a custom agent
 npx dotai add owner/repo --custom-agent architect
@@ -185,13 +150,10 @@ npx dotai add owner/repo --custom-agent architect
 npx dotai add owner/repo --custom-agent architect --targets copilot,claude
 
 # Force replace an existing unmanaged target file
-npx dotai add owner/repo --rule code-style --force
-
-# Append rules to AGENTS.md and CLAUDE.md instead of per-rule files
-npx dotai add owner/repo --rule code-style --append
+npx dotai add owner/repo --prompt review-code --force
 
 # Keep transpiled outputs out of version control
-npx dotai add owner/repo --rule code-style --gitignore
+npx dotai add owner/repo --instruction project-setup --gitignore
 
 # CI-friendly non-interactive install
 npx dotai add owner/repo --all --targets copilot,claude,cursor,opencode -y
@@ -202,14 +164,14 @@ npx dotai add owner/repo --all --targets copilot,claude,cursor,opencode -y
 Share a single command with teammates to install the same context:
 
 ```bash
-# Share a rule for your team
-npx dotai add owner/repo --rule code-style -y
+# Share an instruction for your team
+npx dotai add owner/repo --instruction project-setup -y
 
 # Share a prompt
 npx dotai add owner/repo --prompt review-code -y
 
-# Share all rules and prompts from a repo
-npx dotai add owner/repo --type rule,prompt -y
+# Share all instructions and prompts from a repo
+npx dotai add owner/repo --type instruction,prompt -y
 
 # CI-friendly: install everything, skip prompts, limit to specific targets
 npx dotai add owner/repo --all --targets copilot,claude,cursor -y
@@ -217,9 +179,9 @@ npx dotai add owner/repo --all --targets copilot,claude,cursor -y
 
 ## How transpilation works
 
-When you write a canonical file (`RULES.md`, `PROMPT.md`, `AGENT.md`), dotai splits it into two parts:
+When you write a canonical file (`PROMPT.md`, `AGENT.md`, `INSTRUCTIONS.md`), dotai splits it into two parts:
 
-- **Frontmatter** (metadata like `activation`, `globs`, `model`, `tools`) is **mapped per-agent** into each target's native format.
+- **Frontmatter** (metadata like `model`, `tools`, `description`) is **mapped per-agent** into each target's native format.
 - **Body** (everything after the frontmatter) is **passed verbatim** to all targets. No content is filtered, adapted, or rewritten.
 
 This means canonical bodies should contain **agent-agnostic instructions** — describe _what_ to do, not _how_ to do it with a specific agent's tools. For example, "run the tests before committing" is portable; "use the Bash tool to run tests" is Claude Code-specific and will land unchanged in Cursor, Copilot, and OpenCode where it won't make sense.
@@ -237,11 +199,11 @@ dotai also discovers **native agent-specific files** in source repos and passes 
 
 A single source repo can contain both canonical and native files. Canonical files fan out to all targets; native files go only to their matching agent.
 
-| Use case                                        | Approach              |
-| ----------------------------------------------- | --------------------- |
-| Agent-agnostic coding standards                 | Canonical `RULES.md`  |
-| Agent-specific tool references or workflows     | Native file           |
-| Mix of portable and agent-specific instructions | Both in the same repo |
+| Use case                                        | Approach                    |
+| ----------------------------------------------- | --------------------------- |
+| Agent-agnostic project-wide instructions        | Canonical `INSTRUCTIONS.md` |
+| Agent-specific tool references or workflows     | Native file                 |
+| Mix of portable and agent-specific instructions | Both in the same repo       |
 
 ### Per-agent overrides
 
@@ -251,32 +213,34 @@ This lets you keep a single canonical file while tuning specific fields per agen
 
 ```markdown
 ---
-name: code-style
-description: Enforce TypeScript style conventions
-globs:
-  - '*.ts'
-  - '*.tsx'
-activation: auto
+name: review-code
+description: Review code for bugs and style issues
+model: claude-sonnet-4
+tools:
+  - codebase_search
+  - read_file
 
 github-copilot:
-  activation: always
+  model: gpt-4o
 
 claude-code:
-  severity: error
+  tools:
+    - Read
+    - Grep
 ---
 
-Use `const` over `let` when the variable is never reassigned.
+Review the following code for correctness, performance, and style.
 ```
 
-In this example, when transpiling for GitHub Copilot the effective `activation` is `always`. For Claude Code, `severity` is `error`. For Cursor and OpenCode, the base fields are used unchanged.
+In this example, when transpiling for GitHub Copilot the effective `model` is `gpt-4o`. For Claude Code, the `tools` list uses Claude-specific tool names. For other agents, the base fields are used unchanged.
 
-Override blocks work on all three canonical types:
+Override blocks work on the canonical types that support transpilation:
 
-| Type        | Overridable fields                                                             |
-| ----------- | ------------------------------------------------------------------------------ |
-| `RULES.md`  | `description`, `globs`, `activation`, `severity`                               |
-| `PROMPT.md` | `description`, `argument-hint`, `agent`, `model`, `tools`                      |
-| `AGENT.md`  | `description`, `model`, `tools`, `disallowed-tools`, `max-turns`, `background` |
+| Type              | Overridable fields                                                             |
+| ----------------- | ------------------------------------------------------------------------------ |
+| `PROMPT.md`       | `description`, `argument-hint`, `agent`, `model`, `tools`                      |
+| `AGENT.md`        | `description`, `model`, `tools`, `disallowed-tools`, `max-turns`, `background` |
+| `INSTRUCTIONS.md` | `description`                                                                  |
 
 Identity fields (`name`, `schema-version`) and structural fields (`body`) cannot be overridden.
 
@@ -284,19 +248,18 @@ Override keys must match a valid target agent (`github-copilot`, `claude-code`, 
 
 Agent-exclusive fields like `disallowed-tools`, `max-turns`, and `background` can appear in any agent's override block. The transpiler for agents that do not support those fields ignores them, just as it does for base fields.
 
-See [`examples/rule-with-overrides/RULES.md`](../examples/rule-with-overrides/RULES.md) for a complete working example.
+See [`examples/`](../examples) for complete working examples.
 
 ## Source repo layout
 
 dotai discovers context files by convention. It scans the source path (the repo or directory you pass to `dotai add`) for files in specific locations.
 
-### Rules, prompts, and agents
+### Prompts and agents
 
 Each type is discovered in two places:
 
 | Type    | Root file   | Subdirectory pattern  |
 | ------- | ----------- | --------------------- |
-| Rules   | `RULES.md`  | `rules/*/RULES.md`    |
 | Prompts | `PROMPT.md` | `prompts/*/PROMPT.md` |
 | Agents  | `AGENT.md`  | `agents/*/AGENT.md`   |
 
@@ -328,12 +291,6 @@ A source repo with multiple context types might look like this:
 ```
 my-context-repo/
   INSTRUCTIONS.md               # root-level instructions
-  RULES.md                    # single root-level rule
-  rules/
-    code-style/
-      RULES.md                # additional rule
-    error-handling/
-      RULES.md                # additional rule
   prompts/
     review-code/
       PROMPT.md
@@ -351,12 +308,12 @@ my-context-repo/
     deploy.md
 ```
 
-Every canonical file (`RULES.md`, `PROMPT.md`, `AGENT.md`, `SKILL.md`, `INSTRUCTIONS.md`) must contain YAML frontmatter with at least `name` and `description`:
+Every canonical file (`PROMPT.md`, `AGENT.md`, `SKILL.md`, `INSTRUCTIONS.md`) must contain YAML frontmatter with at least `name` and `description`:
 
 ```markdown
 ---
-name: code-style
-description: Enforce TypeScript style conventions
+name: project-setup
+description: Project setup instructions for new contributors
 ---
 
 Instructions go here.
@@ -381,35 +338,20 @@ description: Run safe database migration workflows
 Instructions for the AI agent go here.
 ```
 
-### Rule (`RULES.md`)
+### Instruction (`INSTRUCTIONS.md`)
 
 ```markdown
 ---
-name: code-style
-description: Enforce TypeScript style conventions
-globs:
-  - '*.ts'
-  - '*.tsx'
-activation: auto
+name: project-setup
+description: Project setup instructions for new contributors
 ---
 
-Always use `const` over `let` when the variable is never reassigned.
+Follow these conventions when working in this repository.
 ```
 
-Supported fields: `name` (required), `description` (required), `globs`, `activation` (`always` | `auto` | `manual` | `glob`), `severity`.
+Supported fields: `name` (required), `description` (required).
 
-#### Activation mapping
-
-The `activation` field controls how each target agent decides when to apply the rule:
-
-| `activation` | Cursor              | Copilot            | Claude Code         | OpenCode       |
-| ------------ | ------------------- | ------------------ | ------------------- | -------------- |
-| `always`     | `alwaysApply: true` | `applyTo: "**"`    | always applies      | plain markdown |
-| `auto`       | agent decides       | `applyTo: "**"`    | agent decides       | plain markdown |
-| `manual`     | manual inclusion    | `applyTo: "**"`    | manual              | plain markdown |
-| `glob`       | `globs: <patterns>` | `applyTo: <globs>` | `globs: <patterns>` | plain markdown |
-
-> **Note:** Claude Code treats `globs` as independent file scoping — globs are emitted whenever present, regardless of activation mode. OpenCode rules are plain markdown with no frontmatter; users add the file path to the `instructions` array in `opencode.json` to activate them.
+Instructions are appended as marker-delimited sections to project-wide files (`CLAUDE.md`, `AGENTS.md`, `.github/copilot-instructions.md`).
 
 ### Prompt (`PROMPT.md`)
 

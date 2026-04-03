@@ -153,7 +153,7 @@ export function planContextWrites(
  * Execute the full MVP install pipeline.
  *
  * Flow:
- * 1. Plan: transpile discovered rules → PlannedWrites
+ * 1. Plan: transpile discovered context → PlannedWrites
  * 2. Check: detect collisions against lock entries and filesystem
  * 3. Execute: write files to disk (or report dry-run plan)
  *

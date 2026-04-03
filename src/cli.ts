@@ -12,7 +12,7 @@ import { runInstallFromLock } from './restore.ts';
 import { runList } from './list.ts';
 import { removeCommand, parseRemoveOptions } from './remove.ts';
 import { runSync, parseSyncOptions } from './sync.ts';
-import { RESET, BOLD, DIM, TEXT } from './utils.ts';
+import { RESET, BOLD, DIM, TEXT, YELLOW } from './utils.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -178,7 +178,6 @@ ${BOLD}Install Options:${RESET}
   --copy                 Copy files instead of symlinking
   --dry-run              Preview writes without making changes
   --force                Overwrite conflicting outputs
-  --append               Append instructions to AGENTS.md/CLAUDE.md instead of per-file output
   --gitignore            Add transpiled output paths to .gitignore
   --full-depth           Search all subdirectories even when a root SKILL.md exists
   --all                  Shorthand for --skill '*' --targets '*' -y
@@ -294,6 +293,18 @@ async function main(): Promise<void> {
         showAddHelp();
         break;
       }
+      if (restArgs.includes('--rule') || restArgs.includes('-r')) {
+        console.log(
+          `${YELLOW}The --rule flag has been removed.${RESET} Use ${BOLD}--instruction${RESET} instead.\nSee ${TEXT}https://github.com/mfaux/dotai/issues/17${RESET} for details.`
+        );
+        process.exit(1);
+      }
+      if (restArgs.includes('--append')) {
+        console.log(
+          `${YELLOW}The --append flag has been removed.${RESET} Instructions now always use append mode.\nSee ${TEXT}https://github.com/mfaux/dotai/issues/17${RESET} for details.`
+        );
+        process.exit(1);
+      }
       showLogo();
       const { source: addSource, options: addOpts } = parseAddOptions(restArgs);
       await runAdd(addSource, addOpts);
@@ -345,6 +356,12 @@ async function main(): Promise<void> {
     case '-v':
       console.log(VERSION);
       break;
+
+    case 'import':
+      console.log(
+        `${YELLOW}The import command has been removed.${RESET} Use ${BOLD}dotai add${RESET} with ${BOLD}--instruction${RESET} instead.\nSee ${TEXT}https://github.com/mfaux/dotai/issues/17${RESET} for details.`
+      );
+      process.exit(1);
 
     default:
       console.log(`Unknown command: ${command}`);

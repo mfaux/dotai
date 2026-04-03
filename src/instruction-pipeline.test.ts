@@ -154,7 +154,7 @@ describe('install-pipeline — instructions', () => {
       expect(writes[0]!.planned.absolutePath).toBe(join(tmpDir, 'AGENTS.md'));
     });
 
-    it('handles mixed instructions + rules + prompts together', () => {
+    it('handles mixed instructions + prompts together', () => {
       // Import helpers would make this complex — test with just instructions
       const items = [
         canonicalInstruction('code-style'),

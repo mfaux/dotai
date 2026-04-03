@@ -17,7 +17,7 @@ export interface AddOptions {
   force?: boolean;
   /** Add transpiled output paths to .gitignore (opt-in). */
   gitignore?: boolean;
-  /** Filter discovery to specific context types (skill, rule, prompt, agent). */
+  /** Filter discovery to specific context types (skill, prompt, agent, instruction). */
   type?: ContextType[];
 }
 

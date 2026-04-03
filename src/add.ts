@@ -73,7 +73,7 @@ function resolveAgentsOrDefault(options: AddOptions): TargetAgent[] {
 
 /** Config for each context type handled by handleContextInstall. */
 interface ContextInstallConfig {
-  /** Noun used in log/spinner messages (e.g., "rule", "prompt", "agent"). */
+  /** Noun used in log/spinner messages (e.g., "prompt", "agent", "instruction"). */
   noun: string;
   /** Extract item names from options. */
   getNames: (options: AddOptions) => string[];

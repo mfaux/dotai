@@ -4,7 +4,7 @@ import { TARGET_AGENTS } from './target-agents.ts';
 // ---------------------------------------------------------------------------
 // Shared override extraction for per-agent frontmatter overrides
 //
-// Canonical files (RULES.md, PROMPT.md, AGENT.md) can include agent-namespaced
+// Canonical files (PROMPT.md, AGENT.md, INSTRUCTIONS.md) can include agent-namespaced
 // blocks in YAML frontmatter. When transpiling for a target agent, its
 // overrides are merged on top of the base fields.
 // ---------------------------------------------------------------------------

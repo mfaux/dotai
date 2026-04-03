@@ -31,7 +31,7 @@ import { mergeOverrides } from './override-parser.ts';
 //   > <description>
 //   <body>
 //
-// This mirrors the append rule transpiler pattern.
+// This mirrors the standard append transpiler pattern.
 // ---------------------------------------------------------------------------
 
 function buildInstructionContent(instruction: CanonicalInstruction): string {

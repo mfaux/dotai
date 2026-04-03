@@ -1,6 +1,6 @@
 import { writeFileSync, existsSync, mkdirSync } from 'fs';
 import { basename, join } from 'path';
-import { RESET, DIM, TEXT } from './utils.ts';
+import { RESET, DIM, TEXT, BOLD, YELLOW } from './utils.ts';
 import { KEBAB_CASE_PATTERN } from './validation.ts';
 
 // ---------------------------------------------------------------------------
@@ -8,9 +8,9 @@ import { KEBAB_CASE_PATTERN } from './validation.ts';
 // ---------------------------------------------------------------------------
 
 interface TemplateConfig {
-  /** The markdown filename (e.g. "RULES.md") */
+  /** The markdown filename (e.g. "INSTRUCTIONS.md") */
   file: string;
-  /** Human-readable noun (e.g. "rule") */
+  /** Human-readable noun (e.g. "instruction") */
   noun: string;
   /** Generate the template content given the name */
   generateContent: (name: string) => string;
@@ -141,7 +141,7 @@ function initTemplate(config: TemplateConfig, name: string, hasName: boolean, cw
   const displayPath = hasName ? `${name}/${config.file}` : config.file;
 
   if (existsSync(filePath)) {
-    // Capitalize the noun for display: "rule" → "Rule"
+    // Capitalize the noun for display: "instruction" → "Instruction"
     const label = config.noun.charAt(0).toUpperCase() + config.noun.slice(1);
     console.log(`${TEXT}${label} already exists at ${DIM}${displayPath}${RESET}`);
     return;
@@ -180,6 +180,14 @@ export function runInit(args: string[]): void {
 
   // Determine which template type to create
   const typeArg = args[0];
+
+  // Rule template — removed, show deprecation error
+  if (typeArg === 'rule' || typeArg === '--rule') {
+    console.log(
+      `${YELLOW}The rule template has been removed.${RESET} Use ${BOLD}dotai init instruction${RESET} instead.\nSee ${TEXT}https://github.com/mfaux/dotai/issues/17${RESET} for details.`
+    );
+    process.exit(1);
+  }
 
   // Prompt template
   if (typeArg === 'prompt' || typeArg === '--prompt') {

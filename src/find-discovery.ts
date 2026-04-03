@@ -15,6 +15,7 @@ export interface RemoteContextSummary {
   rules: RemoteContextItem[];
   prompts: RemoteContextItem[];
   agents: RemoteContextItem[];
+  instructions: RemoteContextItem[];
 }
 
 /**
@@ -26,6 +27,7 @@ const PATTERNS: Array<{ regex: RegExp; type: ContextType }> = [
   { regex: /^(?:rules\/([^/]+)\/)?RULES\.md$/, type: 'rule' },
   { regex: /^(?:prompts\/([^/]+)\/)?PROMPT\.md$/, type: 'prompt' },
   { regex: /^(?:agents\/([^/]+)\/)?AGENT\.md$/, type: 'agent' },
+  { regex: /^INSTRUCTIONS\.md$/, type: 'instruction' },
 ];
 
 /**
@@ -106,7 +108,13 @@ export function discoverRemoteContext(
   tree: GitHubTreeEntry[],
   repoName?: string
 ): RemoteContextSummary {
-  const summary: RemoteContextSummary = { skills: [], rules: [], prompts: [], agents: [] };
+  const summary: RemoteContextSummary = {
+    skills: [],
+    rules: [],
+    prompts: [],
+    agents: [],
+    instructions: [],
+  };
   const fallbackName = repoName ?? 'root';
 
   for (const entry of tree) {

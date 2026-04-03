@@ -57,17 +57,18 @@ npx dotai add owner/repo --targets copilot,claude,cursor
 npx dotai add owner/repo --rule code-style --skill db-migrate
 ```
 
-dotai discovers skills, rules, prompts, and agent definitions in the source
+dotai discovers skills, rules, prompts, agent definitions, and instructions in the source
 repo and transpiles them for your selected targets.
 
 ## What dotai installs
 
-| Layer   | Canonical file | Install behavior               |
-| ------- | -------------- | ------------------------------ |
-| Skills  | `SKILL.md`     | Passthrough (symlink or copy)  |
-| Rules   | `RULES.md`     | Transpile per target           |
-| Prompts | `PROMPT.md`    | Transpile per supported target |
-| Agents  | `AGENT.md`     | Transpile per supported target |
+| Layer        | Canonical file    | Install behavior               |
+| ------------ | ----------------- | ------------------------------ |
+| Skills       | `SKILL.md`        | Passthrough (symlink or copy)  |
+| Rules        | `RULES.md`        | Transpile per target           |
+| Prompts      | `PROMPT.md`       | Transpile per supported target |
+| Agents       | `AGENT.md`        | Transpile per supported target |
+| Instructions | `INSTRUCTIONS.md` | Append per target              |
 
 See [Source repo layout](docs/cli-reference.md#source-repo-layout) for where to place these files in your repo so dotai discovers them.
 
@@ -108,7 +109,7 @@ npx dotai add ./my-local-context                        # local path
 | Claude Code    | ✅     | ✅    | ✅                      | ✅                        |
 | OpenCode       | ✅     | ✅    | ✅                      | ✅                        |
 | Cursor         | ✅     | ✅    | ⚠️ (native/compat only) | ⚠️ (via `.github/agents`) |
-| Codex          | ✅     | —    | —                       | —                         |
+| Codex          | ✅     | —     | —                       | —                         |
 
 - **Cursor prompts:** Cursor reads Copilot's `.github/prompts/` path. Canonical `PROMPT.md` is not transpiled to a Cursor-specific format.
 - **Cursor agents:** Cursor reads `.github/agents/` from the Copilot path. Canonical `AGENT.md` transpiles to Copilot format, which Cursor picks up.

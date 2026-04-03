@@ -276,6 +276,10 @@ async function promptContextSelection(
     console.log(formatContextLine(summary.prompts.length, 'prompt', summary.prompts));
   if (summary.agents.length > 0)
     console.log(formatContextLine(summary.agents.length, 'agent', summary.agents));
+  if (summary.instructions.length > 0)
+    console.log(
+      formatContextLine(summary.instructions.length, 'instruction', summary.instructions)
+    );
 
   console.log();
 
@@ -317,6 +321,10 @@ async function promptContextSelection(
     ...summary.rules.map((i) => ({ value: i, label: formatPickLabel(i, 'rule') })),
     ...summary.prompts.map((i) => ({ value: i, label: formatPickLabel(i, 'prompt') })),
     ...summary.agents.map((i) => ({ value: i, label: formatPickLabel(i, 'agent') })),
+    ...summary.instructions.map((i) => ({
+      value: i,
+      label: formatPickLabel(i, 'instruction'),
+    })),
   ];
 
   // Pre-select the skill the user originally chose
@@ -399,6 +407,7 @@ ${DIM}  2) npx dotai add <owner/repo@skill>${RESET}`;
           ...summary.rules,
           ...summary.prompts,
           ...summary.agents,
+          ...summary.instructions,
         ];
 
         if (allItems.length > 0) {
@@ -416,12 +425,13 @@ ${DIM}  2) npx dotai add <owner/repo@skill>${RESET}`;
             byType[key].push(item);
           }
 
-          const typeOrder = ['skill', 'rule', 'prompt', 'agent'] as const;
+          const typeOrder = ['skill', 'rule', 'prompt', 'agent', 'instruction'] as const;
           const typeLabels: Record<string, string> = {
             skill: 'Skills',
             rule: 'Rules',
             prompt: 'Prompts',
             agent: 'Agents',
+            instruction: 'Instructions',
           };
 
           for (const type of typeOrder) {
@@ -508,6 +518,7 @@ ${DIM}  2) npx dotai add <owner/repo@skill>${RESET}`;
       summary.rules.length +
       summary.prompts.length +
       summary.agents.length +
+      summary.instructions.length +
       summary.skills.filter((s) => s.name !== skillName).length;
 
     if (totalOther > 0) {

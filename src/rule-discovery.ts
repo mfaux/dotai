@@ -1,6 +1,7 @@
 import { readdir, readFile, stat } from 'fs/promises';
 import { join, resolve, sep } from 'path';
 import { parseAgentContent } from './agent-parser.ts';
+import { parseInstructionContent } from './instruction-parser.ts';
 import { parsePromptContent } from './prompt-parser.ts';
 import { parseRuleContent } from './rule-parser.ts';
 import { targetAgents } from './target-agents.ts';
@@ -11,7 +12,13 @@ import type { ContextFormat, ContextType, DiscoveredItem, TargetAgent } from './
 // ---------------------------------------------------------------------------
 
 /** All context types, used as default when no type filter is provided. */
-const ALL_TYPES: readonly ContextType[] = ['skill', 'rule', 'prompt', 'agent'] as const;
+const ALL_TYPES: readonly ContextType[] = [
+  'skill',
+  'rule',
+  'prompt',
+  'agent',
+  'instruction',
+] as const;
 
 /** Maximum number of discovered items per context type. */
 const MAX_ITEMS_PER_TYPE = 500;
@@ -438,6 +445,51 @@ async function discoverCanonicalSkills(
 }
 
 // ---------------------------------------------------------------------------
+// Canonical INSTRUCTIONS.md discovery (root-only)
+// ---------------------------------------------------------------------------
+
+async function discoverCanonicalInstructions(
+  basePath: string,
+  maxItems: number,
+  maxFileSize: number,
+  warnings: DiscoveryWarning[]
+): Promise<DiscoveredItem[]> {
+  const items: DiscoveredItem[] = [];
+
+  // Only root-level INSTRUCTIONS.md — no subdirectory scanning
+  const rootInstructionPath = join(basePath, 'INSTRUCTIONS.md');
+  if (!(await fileExists(rootInstructionPath))) {
+    return items;
+  }
+  if (!isWithinBase(rootInstructionPath, basePath)) {
+    return items;
+  }
+
+  const result = await safeReadFile(rootInstructionPath, maxFileSize);
+  if ('error' in result) {
+    warnings.push({ type: 'file-too-large', message: result.error, path: rootInstructionPath });
+    return items;
+  }
+
+  const parsed = parseInstructionContent(result.content);
+  if (!parsed.ok) {
+    warnings.push({ type: 'parse-error', message: parsed.error, path: rootInstructionPath });
+    return items;
+  }
+
+  items.push({
+    type: 'instruction',
+    format: 'canonical',
+    name: parsed.instruction.name,
+    description: parsed.instruction.description,
+    sourcePath: rootInstructionPath,
+    rawContent: result.content,
+  });
+
+  return items;
+}
+
+// ---------------------------------------------------------------------------
 // Native passthrough rules discovery
 // ---------------------------------------------------------------------------
 
@@ -666,8 +718,9 @@ async function discoverNativeAgents(
  * Discover all canonical and native context items in a source repo.
  *
  * Discovers `SKILL.md` (canonical), `RULES.md` (canonical + native passthrough),
- * `PROMPT.md` (canonical + native passthrough), and `AGENT.md` (canonical +
- * native passthrough) files. Each item is tagged with `type` and `format`.
+ * `PROMPT.md` (canonical + native passthrough), `AGENT.md` (canonical +
+ * native passthrough), and `INSTRUCTIONS.md` (canonical, root-only) files.
+ * Each item is tagged with `type` and `format`.
  *
  * Security:
  * - Caps discovery at `maxItemsPerType` per context type (default 500).
@@ -692,21 +745,25 @@ export async function discover(
   // Helper that returns an empty array for skipped types
   const empty = (): Promise<DiscoveredItem[]> => Promise.resolve([]);
 
-  // Discover in parallel — skills, rules, prompts, and agents are independent
-  const [skills, canonicalRules, canonicalPrompts, canonicalAgents] = await Promise.all([
-    typesToDiscover.has('skill')
-      ? discoverCanonicalSkills(resolvedBase, maxItems, maxFileSize, warnings)
-      : empty(),
-    typesToDiscover.has('rule')
-      ? discoverCanonicalRules(resolvedBase, maxItems, maxFileSize, warnings)
-      : empty(),
-    typesToDiscover.has('prompt')
-      ? discoverCanonicalPrompts(resolvedBase, maxItems, maxFileSize, warnings)
-      : empty(),
-    typesToDiscover.has('agent')
-      ? discoverCanonicalAgents(resolvedBase, maxItems, maxFileSize, warnings)
-      : empty(),
-  ]);
+  // Discover in parallel — skills, rules, prompts, agents, and instructions are independent
+  const [skills, canonicalRules, canonicalPrompts, canonicalAgents, canonicalInstructions] =
+    await Promise.all([
+      typesToDiscover.has('skill')
+        ? discoverCanonicalSkills(resolvedBase, maxItems, maxFileSize, warnings)
+        : empty(),
+      typesToDiscover.has('rule')
+        ? discoverCanonicalRules(resolvedBase, maxItems, maxFileSize, warnings)
+        : empty(),
+      typesToDiscover.has('prompt')
+        ? discoverCanonicalPrompts(resolvedBase, maxItems, maxFileSize, warnings)
+        : empty(),
+      typesToDiscover.has('agent')
+        ? discoverCanonicalAgents(resolvedBase, maxItems, maxFileSize, warnings)
+        : empty(),
+      typesToDiscover.has('instruction')
+        ? discoverCanonicalInstructions(resolvedBase, maxItems, maxFileSize, warnings)
+        : empty(),
+    ]);
 
   // Native rules share the cap with canonical rules
   const nativeRules = typesToDiscover.has('rule')
@@ -750,6 +807,7 @@ export async function discover(
       ...nativePrompts,
       ...canonicalAgents,
       ...nativeAgents,
+      ...canonicalInstructions,
     ],
     warnings,
   };

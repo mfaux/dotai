@@ -48,29 +48,45 @@ describe('discoverRemoteContext', () => {
       blob('rules/code-style/RULES.md'),
       blob('prompts/review-code/PROMPT.md'),
       blob('agents/reviewer/AGENT.md'),
+      blob('INSTRUCTIONS.md'),
     ];
-    const result = discoverRemoteContext(entries);
-
-    expect(result.skills).toHaveLength(1);
-    expect(result.rules).toHaveLength(1);
-    expect(result.prompts).toHaveLength(1);
-    expect(result.agents).toHaveLength(1);
-
-    expect(result.rules[0]!.name).toBe('code-style');
-    expect(result.prompts[0]!.name).toBe('review-code');
-    expect(result.agents[0]!.name).toBe('reviewer');
-  });
-
-  it('discovers root-level items for all types', () => {
-    const entries = [blob('SKILL.md'), blob('RULES.md'), blob('PROMPT.md'), blob('AGENT.md')];
     const result = discoverRemoteContext(entries, 'my-repo');
 
     expect(result.skills).toHaveLength(1);
     expect(result.rules).toHaveLength(1);
     expect(result.prompts).toHaveLength(1);
     expect(result.agents).toHaveLength(1);
+    expect(result.instructions).toHaveLength(1);
 
-    for (const list of [result.skills, result.rules, result.prompts, result.agents]) {
+    expect(result.rules[0]!.name).toBe('code-style');
+    expect(result.prompts[0]!.name).toBe('review-code');
+    expect(result.agents[0]!.name).toBe('reviewer');
+    expect(result.instructions[0]!.name).toBe('my-repo');
+  });
+
+  it('discovers root-level items for all types', () => {
+    const entries = [
+      blob('SKILL.md'),
+      blob('RULES.md'),
+      blob('PROMPT.md'),
+      blob('AGENT.md'),
+      blob('INSTRUCTIONS.md'),
+    ];
+    const result = discoverRemoteContext(entries, 'my-repo');
+
+    expect(result.skills).toHaveLength(1);
+    expect(result.rules).toHaveLength(1);
+    expect(result.prompts).toHaveLength(1);
+    expect(result.agents).toHaveLength(1);
+    expect(result.instructions).toHaveLength(1);
+
+    for (const list of [
+      result.skills,
+      result.rules,
+      result.prompts,
+      result.agents,
+      result.instructions,
+    ]) {
       expect(list[0]!.name).toBe('my-repo');
     }
   });
@@ -107,6 +123,7 @@ describe('discoverRemoteContext', () => {
     expect(result.rules).toHaveLength(0);
     expect(result.prompts).toHaveLength(0);
     expect(result.agents).toHaveLength(0);
+    expect(result.instructions).toHaveLength(0);
   });
 
   it('handles empty tree', () => {
@@ -116,6 +133,7 @@ describe('discoverRemoteContext', () => {
     expect(result.rules).toHaveLength(0);
     expect(result.prompts).toHaveLength(0);
     expect(result.agents).toHaveLength(0);
+    expect(result.instructions).toHaveLength(0);
   });
 
   it('ignores deeply nested context files', () => {
@@ -139,6 +157,48 @@ describe('discoverRemoteContext', () => {
     expect(result.rules).toHaveLength(2);
     expect(result.skills.map((s) => s.name).sort()).toEqual(['my-repo', 'react']);
     expect(result.rules.map((r) => r.name).sort()).toEqual(['code-style', 'my-repo']);
+  });
+
+  // -----------------------------------------------------------------------
+  // Canonical INSTRUCTIONS.md patterns
+  // -----------------------------------------------------------------------
+
+  it('discovers root-level INSTRUCTIONS.md', () => {
+    const entries = [blob('INSTRUCTIONS.md')];
+    const result = discoverRemoteContext(entries, 'my-repo');
+
+    expect(result.instructions).toHaveLength(1);
+    expect(result.instructions[0]).toEqual({
+      name: 'my-repo',
+      path: 'INSTRUCTIONS.md',
+      type: 'instruction',
+    });
+  });
+
+  it('falls back to "root" for INSTRUCTIONS.md when no repo name given', () => {
+    const entries = [blob('INSTRUCTIONS.md')];
+    const result = discoverRemoteContext(entries);
+
+    expect(result.instructions).toHaveLength(1);
+    expect(result.instructions[0]!.name).toBe('root');
+  });
+
+  it('ignores INSTRUCTIONS.md in subdirectories', () => {
+    const entries = [
+      blob('instructions/sub/INSTRUCTIONS.md'),
+      blob('src/INSTRUCTIONS.md'),
+      blob('docs/INSTRUCTIONS.md'),
+    ];
+    const result = discoverRemoteContext(entries);
+
+    expect(result.instructions).toHaveLength(0);
+  });
+
+  it('INSTRUCTIONS.md does not have native field', () => {
+    const entries = [blob('INSTRUCTIONS.md')];
+    const result = discoverRemoteContext(entries, 'my-repo');
+
+    expect(result.instructions[0]!.native).toBeUndefined();
   });
 
   // -----------------------------------------------------------------------

@@ -24,7 +24,7 @@ Full option tables, examples, and authoring format for `dotai`. For a quick over
 
 > **`--targets`:** A single flag for both skill install targets and transpilation targets. For skills, any of the supported targets (e.g., `--targets cursor,claude-code`). For rules, prompts, and agents, the 4 transpilation targets: copilot, claude, cursor, opencode. When omitted, all detected targets are used for skills and all 4 transpilation targets for rules/prompts/agents.
 
-> **Zero-flag mode:** Running `dotai add owner/repo` with no type-specific flags discovers all content types (skills, rules, prompts, agents) and presents an interactive grouped selection. Use `dotai find owner/repo` for a non-interactive preview.
+> **Zero-flag mode:** Running `dotai add owner/repo` with no type-specific flags discovers all content types (skills, rules, prompts, agents, instructions) and presents an interactive grouped selection. Use `dotai find owner/repo` for a non-interactive preview.
 
 > **`--append`:** Instead of writing individual rule files (e.g., `.github/instructions/code-style.instructions.md`), rules are appended as marker-delimited sections into `AGENTS.md` (Copilot) and `CLAUDE.md` (Claude Code). Useful for projects that prefer a single monolithic instruction file. Only applies to Copilot and Claude Code targets; other targets always get individual files.
 
@@ -71,7 +71,7 @@ Found in vercel-labs/agent-skills:
 ```
 
 - **Install selected skill only** installs the single skill you picked from the search results.
-- **Install all context from this repo** installs every skill, rule, prompt, and agent in the repo.
+- **Install all context from this repo** installs every skill, rule, prompt, agent, and instruction in the repo.
 - **Pick individual items** opens a multi-select where you choose exactly which items to install.
 
 If the GitHub Trees API is unreachable (rate limit, private repo, network error), the preview step is skipped and the selected skill is installed directly.
@@ -133,11 +133,11 @@ Convert native agent-specific rule files into canonical `RULES.md` format.
 
 ### Supported native formats
 
-| Agent          | Source directory                         | Parsed fields                     |
-| -------------- | ---------------------------------------- | --------------------------------- |
-| Cursor         | `.cursor/rules/*.mdc`                    | description, alwaysApply, globs   |
-| Claude Code    | `.claude/rules/*.md`                     | description, globs                |
-| GitHub Copilot | `.github/instructions/*.instructions.md` | applyTo                           |
+| Agent          | Source directory                         | Parsed fields                   |
+| -------------- | ---------------------------------------- | ------------------------------- |
+| Cursor         | `.cursor/rules/*.mdc`                    | description, alwaysApply, globs |
+| Claude Code    | `.claude/rules/*.md`                     | description, globs              |
+| GitHub Copilot | `.github/instructions/*.instructions.md` | applyTo                         |
 
 ## list command options
 
@@ -302,6 +302,16 @@ Each type is discovered in two places:
 
 If a root-level file and a subdirectory file share the same `name` (from frontmatter), the root-level file takes priority.
 
+### Instructions
+
+Instructions are discovered only at the package root:
+
+| Type         | Root file         | Subdirectory pattern |
+| ------------ | ----------------- | -------------------- |
+| Instructions | `INSTRUCTIONS.md` | _(none)_             |
+
+Only one `INSTRUCTIONS.md` per package is supported. Subdirectory files are ignored.
+
 ### Skills
 
 Skills use a richer discovery strategy. dotai checks, in order:
@@ -317,6 +327,7 @@ A source repo with multiple context types might look like this:
 
 ```
 my-context-repo/
+  INSTRUCTIONS.md               # root-level instructions
   RULES.md                    # single root-level rule
   rules/
     code-style/
@@ -340,7 +351,7 @@ my-context-repo/
     deploy.md
 ```
 
-Every canonical file (`RULES.md`, `PROMPT.md`, `AGENT.md`, `SKILL.md`) must contain YAML frontmatter with at least `name` and `description`:
+Every canonical file (`RULES.md`, `PROMPT.md`, `AGENT.md`, `SKILL.md`, `INSTRUCTIONS.md`) must contain YAML frontmatter with at least `name` and `description`:
 
 ```markdown
 ---

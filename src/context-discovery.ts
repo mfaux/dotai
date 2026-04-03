@@ -1,8 +1,8 @@
 import { readdir, readFile, stat } from 'fs/promises';
 import { join, resolve, sep } from 'path';
 import { parseAgentContent } from './agent-parser.ts';
+import { parseInstructionContent } from './instruction-parser.ts';
 import { parsePromptContent } from './prompt-parser.ts';
-import { parseRuleContent } from './rule-parser.ts';
 import { targetAgents } from './target-agents.ts';
 import type { ContextFormat, ContextType, DiscoveredItem, TargetAgent } from './types.ts';
 
@@ -11,7 +11,7 @@ import type { ContextFormat, ContextType, DiscoveredItem, TargetAgent } from './
 // ---------------------------------------------------------------------------
 
 /** All context types, used as default when no type filter is provided. */
-const ALL_TYPES: readonly ContextType[] = ['skill', 'rule', 'prompt', 'agent'] as const;
+const ALL_TYPES: readonly ContextType[] = ['skill', 'prompt', 'agent', 'instruction'] as const;
 
 /** Maximum number of discovered items per context type. */
 const MAX_ITEMS_PER_TYPE = 500;
@@ -116,80 +116,6 @@ function matchesPattern(filename: string, pattern: string): boolean {
     return filename.endsWith(pattern.slice(1));
   }
   return filename === pattern;
-}
-
-// ---------------------------------------------------------------------------
-// Canonical RULES.md discovery
-// ---------------------------------------------------------------------------
-
-async function discoverCanonicalRules(
-  basePath: string,
-  maxItems: number,
-  maxFileSize: number,
-  warnings: DiscoveryWarning[]
-): Promise<DiscoveredItem[]> {
-  const items: DiscoveredItem[] = [];
-  const seenNames = new Set<string>();
-
-  async function tryAddRule(filePath: string): Promise<boolean> {
-    if (items.length >= maxItems) {
-      return false; // Cap reached — caller will add warning
-    }
-    if (!isWithinBase(filePath, basePath)) {
-      return false;
-    }
-    const result = await safeReadFile(filePath, maxFileSize);
-    if ('error' in result) {
-      warnings.push({ type: 'file-too-large', message: result.error, path: filePath });
-      return false;
-    }
-
-    const parsed = parseRuleContent(result.content);
-    if (!parsed.ok) {
-      warnings.push({ type: 'parse-error', message: parsed.error, path: filePath });
-      return false;
-    }
-
-    if (seenNames.has(parsed.rule.name)) {
-      return false; // Duplicate name — first one wins
-    }
-
-    seenNames.add(parsed.rule.name);
-    items.push({
-      type: 'rule',
-      format: 'canonical',
-      name: parsed.rule.name,
-      description: parsed.rule.description,
-      sourcePath: filePath,
-      rawContent: result.content,
-    });
-    return true;
-  }
-
-  // 1. Root RULES.md
-  const rootRulesPath = join(basePath, 'RULES.md');
-  if (await fileExists(rootRulesPath)) {
-    await tryAddRule(rootRulesPath);
-  }
-
-  // 2. rules/*/RULES.md
-  const rulesDir = join(basePath, 'rules');
-  const ruleDirs = await listDirs(rulesDir);
-  for (const dir of ruleDirs) {
-    if (items.length >= maxItems) {
-      warnings.push({
-        type: 'cap-reached',
-        message: `discovery capped at ${maxItems} rules`,
-      });
-      break;
-    }
-    const ruleFile = join(rulesDir, dir, 'RULES.md');
-    if (await fileExists(ruleFile)) {
-      await tryAddRule(ruleFile);
-    }
-  }
-
-  return items;
 }
 
 // ---------------------------------------------------------------------------
@@ -438,11 +364,56 @@ async function discoverCanonicalSkills(
 }
 
 // ---------------------------------------------------------------------------
-// Native passthrough rules discovery
+// Canonical INSTRUCTIONS.md discovery (root-only)
+// ---------------------------------------------------------------------------
+
+async function discoverCanonicalInstructions(
+  basePath: string,
+  maxItems: number,
+  maxFileSize: number,
+  warnings: DiscoveryWarning[]
+): Promise<DiscoveredItem[]> {
+  const items: DiscoveredItem[] = [];
+
+  // Only root-level INSTRUCTIONS.md — no subdirectory scanning
+  const rootInstructionPath = join(basePath, 'INSTRUCTIONS.md');
+  if (!(await fileExists(rootInstructionPath))) {
+    return items;
+  }
+  if (!isWithinBase(rootInstructionPath, basePath)) {
+    return items;
+  }
+
+  const result = await safeReadFile(rootInstructionPath, maxFileSize);
+  if ('error' in result) {
+    warnings.push({ type: 'file-too-large', message: result.error, path: rootInstructionPath });
+    return items;
+  }
+
+  const parsed = parseInstructionContent(result.content);
+  if (!parsed.ok) {
+    warnings.push({ type: 'parse-error', message: parsed.error, path: rootInstructionPath });
+    return items;
+  }
+
+  items.push({
+    type: 'instruction',
+    format: 'canonical',
+    name: parsed.instruction.name,
+    description: parsed.instruction.description,
+    sourcePath: rootInstructionPath,
+    rawContent: result.content,
+  });
+
+  return items;
+}
+
+// ---------------------------------------------------------------------------
+// Native passthrough discovery helpers
 // ---------------------------------------------------------------------------
 
 /**
- * Derive a kebab-case name from a native rule filename.
+ * Derive a kebab-case name from a native filename.
  * Strips the agent-specific extension and returns the base name.
  *
  * Examples:
@@ -457,65 +428,6 @@ function deriveNameFromFilename(filename: string, extension: string): string {
   // Fallback: strip last extension
   const dotIndex = filename.lastIndexOf('.');
   return dotIndex > 0 ? filename.slice(0, dotIndex) : filename;
-}
-
-async function discoverNativeRules(
-  basePath: string,
-  maxItems: number,
-  maxFileSize: number,
-  existingCount: number,
-  warnings: DiscoveryWarning[]
-): Promise<DiscoveredItem[]> {
-  const items: DiscoveredItem[] = [];
-  const seenPaths = new Set<string>();
-  let totalCount = existingCount;
-
-  for (const [agentName, config] of Object.entries(targetAgents)) {
-    const agent = agentName as TargetAgent;
-    const { sourceDir, pattern } = config.nativeRuleDiscovery;
-    const searchDir = join(basePath, sourceDir);
-
-    const files = await listFiles(searchDir);
-    for (const file of files) {
-      if (totalCount + items.length >= maxItems) {
-        warnings.push({
-          type: 'cap-reached',
-          message: `discovery capped at ${maxItems} rules (including native)`,
-        });
-        return items;
-      }
-
-      if (!matchesPattern(file, pattern)) {
-        continue;
-      }
-
-      const filePath = join(searchDir, file);
-      if (seenPaths.has(filePath) || !isWithinBase(filePath, basePath)) {
-        continue;
-      }
-      seenPaths.add(filePath);
-
-      const result = await safeReadFile(filePath, maxFileSize);
-      if ('error' in result) {
-        warnings.push({ type: 'file-too-large', message: result.error, path: filePath });
-        continue;
-      }
-
-      const name = deriveNameFromFilename(file, config.rulesConfig.extension);
-      const format: ContextFormat = `native:${agent}`;
-
-      items.push({
-        type: 'rule',
-        format,
-        name,
-        description: `Native ${config.displayName} rule`,
-        sourcePath: filePath,
-        rawContent: result.content,
-      });
-    }
-  }
-
-  return items;
 }
 
 // ---------------------------------------------------------------------------
@@ -665,9 +577,9 @@ async function discoverNativeAgents(
 /**
  * Discover all canonical and native context items in a source repo.
  *
- * Discovers `SKILL.md` (canonical), `RULES.md` (canonical + native passthrough),
- * `PROMPT.md` (canonical + native passthrough), and `AGENT.md` (canonical +
- * native passthrough) files. Each item is tagged with `type` and `format`.
+ * Discovers `SKILL.md` (canonical), `PROMPT.md` (canonical + native passthrough),
+ * `AGENT.md` (canonical + native passthrough), and `INSTRUCTIONS.md`
+ * (canonical, root-only) files. Each item is tagged with `type` and `format`.
  *
  * Security:
  * - Caps discovery at `maxItemsPerType` per context type (default 500).
@@ -692,13 +604,10 @@ export async function discover(
   // Helper that returns an empty array for skipped types
   const empty = (): Promise<DiscoveredItem[]> => Promise.resolve([]);
 
-  // Discover in parallel — skills, rules, prompts, and agents are independent
-  const [skills, canonicalRules, canonicalPrompts, canonicalAgents] = await Promise.all([
+  // Discover in parallel — skills, prompts, agents, and instructions are independent
+  const [skills, canonicalPrompts, canonicalAgents, canonicalInstructions] = await Promise.all([
     typesToDiscover.has('skill')
       ? discoverCanonicalSkills(resolvedBase, maxItems, maxFileSize, warnings)
-      : empty(),
-    typesToDiscover.has('rule')
-      ? discoverCanonicalRules(resolvedBase, maxItems, maxFileSize, warnings)
       : empty(),
     typesToDiscover.has('prompt')
       ? discoverCanonicalPrompts(resolvedBase, maxItems, maxFileSize, warnings)
@@ -706,18 +615,10 @@ export async function discover(
     typesToDiscover.has('agent')
       ? discoverCanonicalAgents(resolvedBase, maxItems, maxFileSize, warnings)
       : empty(),
+    typesToDiscover.has('instruction')
+      ? discoverCanonicalInstructions(resolvedBase, maxItems, maxFileSize, warnings)
+      : empty(),
   ]);
-
-  // Native rules share the cap with canonical rules
-  const nativeRules = typesToDiscover.has('rule')
-    ? await discoverNativeRules(
-        resolvedBase,
-        maxItems,
-        maxFileSize,
-        canonicalRules.length,
-        warnings
-      )
-    : [];
 
   // Native prompts share the cap with canonical prompts
   const nativePrompts = typesToDiscover.has('prompt')
@@ -744,12 +645,11 @@ export async function discover(
   return {
     items: [
       ...skills,
-      ...canonicalRules,
-      ...nativeRules,
       ...canonicalPrompts,
       ...nativePrompts,
       ...canonicalAgents,
       ...nativeAgents,
+      ...canonicalInstructions,
     ],
     warnings,
   };

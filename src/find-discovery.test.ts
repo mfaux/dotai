@@ -45,32 +45,37 @@ describe('discoverRemoteContext', () => {
   it('discovers all context types', () => {
     const entries = [
       blob('skills/react/SKILL.md'),
-      blob('rules/code-style/RULES.md'),
       blob('prompts/review-code/PROMPT.md'),
       blob('agents/reviewer/AGENT.md'),
+      blob('INSTRUCTIONS.md'),
     ];
-    const result = discoverRemoteContext(entries);
-
-    expect(result.skills).toHaveLength(1);
-    expect(result.rules).toHaveLength(1);
-    expect(result.prompts).toHaveLength(1);
-    expect(result.agents).toHaveLength(1);
-
-    expect(result.rules[0]!.name).toBe('code-style');
-    expect(result.prompts[0]!.name).toBe('review-code');
-    expect(result.agents[0]!.name).toBe('reviewer');
-  });
-
-  it('discovers root-level items for all types', () => {
-    const entries = [blob('SKILL.md'), blob('RULES.md'), blob('PROMPT.md'), blob('AGENT.md')];
     const result = discoverRemoteContext(entries, 'my-repo');
 
     expect(result.skills).toHaveLength(1);
-    expect(result.rules).toHaveLength(1);
     expect(result.prompts).toHaveLength(1);
     expect(result.agents).toHaveLength(1);
+    expect(result.instructions).toHaveLength(1);
 
-    for (const list of [result.skills, result.rules, result.prompts, result.agents]) {
+    expect(result.prompts[0]!.name).toBe('review-code');
+    expect(result.agents[0]!.name).toBe('reviewer');
+    expect(result.instructions[0]!.name).toBe('my-repo');
+  });
+
+  it('discovers root-level items for all types', () => {
+    const entries = [
+      blob('SKILL.md'),
+      blob('PROMPT.md'),
+      blob('AGENT.md'),
+      blob('INSTRUCTIONS.md'),
+    ];
+    const result = discoverRemoteContext(entries, 'my-repo');
+
+    expect(result.skills).toHaveLength(1);
+    expect(result.prompts).toHaveLength(1);
+    expect(result.agents).toHaveLength(1);
+    expect(result.instructions).toHaveLength(1);
+
+    for (const list of [result.skills, result.prompts, result.agents, result.instructions]) {
       expect(list[0]!.name).toBe('my-repo');
     }
   });
@@ -104,74 +109,92 @@ describe('discoverRemoteContext', () => {
     const result = discoverRemoteContext(entries);
 
     expect(result.skills).toHaveLength(0);
-    expect(result.rules).toHaveLength(0);
     expect(result.prompts).toHaveLength(0);
     expect(result.agents).toHaveLength(0);
+    expect(result.instructions).toHaveLength(0);
   });
 
   it('handles empty tree', () => {
     const result = discoverRemoteContext([]);
 
     expect(result.skills).toHaveLength(0);
-    expect(result.rules).toHaveLength(0);
     expect(result.prompts).toHaveLength(0);
     expect(result.agents).toHaveLength(0);
+    expect(result.instructions).toHaveLength(0);
   });
 
   it('ignores deeply nested context files', () => {
-    const entries = [blob('src/skills/react/SKILL.md'), blob('foo/rules/bar/RULES.md')];
+    const entries = [blob('src/skills/react/SKILL.md'), blob('foo/prompts/bar/PROMPT.md')];
     const result = discoverRemoteContext(entries);
 
     expect(result.skills).toHaveLength(0);
-    expect(result.rules).toHaveLength(0);
+    expect(result.prompts).toHaveLength(0);
   });
 
   it('handles mixed root and directory items', () => {
     const entries = [
       blob('SKILL.md'),
       blob('skills/react/SKILL.md'),
-      blob('RULES.md'),
-      blob('rules/code-style/RULES.md'),
+      blob('PROMPT.md'),
+      blob('prompts/review-code/PROMPT.md'),
     ];
     const result = discoverRemoteContext(entries, 'my-repo');
 
     expect(result.skills).toHaveLength(2);
-    expect(result.rules).toHaveLength(2);
+    expect(result.prompts).toHaveLength(2);
     expect(result.skills.map((s) => s.name).sort()).toEqual(['my-repo', 'react']);
-    expect(result.rules.map((r) => r.name).sort()).toEqual(['code-style', 'my-repo']);
+    expect(result.prompts.map((p) => p.name).sort()).toEqual(['my-repo', 'review-code']);
+  });
+
+  // -----------------------------------------------------------------------
+  // Canonical INSTRUCTIONS.md patterns
+  // -----------------------------------------------------------------------
+
+  it('discovers root-level INSTRUCTIONS.md', () => {
+    const entries = [blob('INSTRUCTIONS.md')];
+    const result = discoverRemoteContext(entries, 'my-repo');
+
+    expect(result.instructions).toHaveLength(1);
+    expect(result.instructions[0]).toEqual({
+      name: 'my-repo',
+      path: 'INSTRUCTIONS.md',
+      type: 'instruction',
+    });
+  });
+
+  it('falls back to "root" for INSTRUCTIONS.md when no repo name given', () => {
+    const entries = [blob('INSTRUCTIONS.md')];
+    const result = discoverRemoteContext(entries);
+
+    expect(result.instructions).toHaveLength(1);
+    expect(result.instructions[0]!.name).toBe('root');
+  });
+
+  it('ignores INSTRUCTIONS.md in subdirectories', () => {
+    const entries = [
+      blob('instructions/sub/INSTRUCTIONS.md'),
+      blob('src/INSTRUCTIONS.md'),
+      blob('docs/INSTRUCTIONS.md'),
+    ];
+    const result = discoverRemoteContext(entries);
+
+    expect(result.instructions).toHaveLength(0);
+  });
+
+  it('INSTRUCTIONS.md does not have native field', () => {
+    const entries = [blob('INSTRUCTIONS.md')];
+    const result = discoverRemoteContext(entries, 'my-repo');
+
+    expect(result.instructions[0]!.native).toBeUndefined();
   });
 
   // -----------------------------------------------------------------------
   // Native agent-specific patterns
   // -----------------------------------------------------------------------
 
-  it('discovers Cursor native rules', () => {
-    const entries = [blob('.cursor/rules/no-any.mdc')];
+  it('discovers Claude Code native prompts and agents', () => {
+    const entries = [blob('.claude/commands/deploy.md'), blob('.claude/agents/reviewer.md')];
     const result = discoverRemoteContext(entries);
-
-    expect(result.rules).toHaveLength(1);
-    expect(result.rules[0]).toEqual({
-      name: 'no-any',
-      path: '.cursor/rules/no-any.mdc',
-      type: 'rule',
-      native: 'cursor',
-    });
-  });
-
-  it('discovers Claude Code native rules, prompts, and agents', () => {
-    const entries = [
-      blob('.claude/rules/code-style.md'),
-      blob('.claude/commands/deploy.md'),
-      blob('.claude/agents/reviewer.md'),
-    ];
-    const result = discoverRemoteContext(entries);
-
-    expect(result.rules).toHaveLength(1);
-    expect(result.rules[0]).toMatchObject({
-      name: 'code-style',
-      type: 'rule',
-      native: 'claude-code',
-    });
 
     expect(result.prompts).toHaveLength(1);
     expect(result.prompts[0]).toMatchObject({
@@ -188,20 +211,12 @@ describe('discoverRemoteContext', () => {
     });
   });
 
-  it('discovers GitHub Copilot native rules, prompts, and agents', () => {
+  it('discovers GitHub Copilot native prompts and agents', () => {
     const entries = [
-      blob('.github/instructions/testing.instructions.md'),
       blob('.github/prompts/review.prompt.md'),
       blob('.github/agents/security.agent.md'),
     ];
     const result = discoverRemoteContext(entries);
-
-    expect(result.rules).toHaveLength(1);
-    expect(result.rules[0]).toMatchObject({
-      name: 'testing',
-      type: 'rule',
-      native: 'github-copilot',
-    });
 
     expect(result.prompts).toHaveLength(1);
     expect(result.prompts[0]).toMatchObject({
@@ -218,47 +233,37 @@ describe('discoverRemoteContext', () => {
     });
   });
 
-  it('mixes canonical and native items', () => {
+  it('mixes canonical and native prompts', () => {
     const entries = [
-      blob('rules/code-style/RULES.md'),
-      blob('.cursor/rules/no-any.mdc'),
-      blob('.claude/rules/imports.md'),
-      blob('.github/instructions/testing.instructions.md'),
+      blob('prompts/review-code/PROMPT.md'),
+      blob('.claude/commands/deploy.md'),
+      blob('.github/prompts/review.prompt.md'),
     ];
     const result = discoverRemoteContext(entries);
 
-    expect(result.rules).toHaveLength(4);
+    expect(result.prompts).toHaveLength(3);
 
-    const canonical = result.rules.filter((r) => !r.native);
-    const native = result.rules.filter((r) => r.native);
+    const canonical = result.prompts.filter((p) => !p.native);
+    const native = result.prompts.filter((p) => p.native);
     expect(canonical).toHaveLength(1);
-    expect(canonical[0]!.name).toBe('code-style');
-    expect(native).toHaveLength(3);
-    expect(native.map((r) => r.native).sort()).toEqual(['claude-code', 'cursor', 'github-copilot']);
+    expect(canonical[0]!.name).toBe('review-code');
+    expect(native).toHaveLength(2);
+    expect(native.map((p) => p.native).sort()).toEqual(['claude-code', 'github-copilot']);
   });
 
   it('ignores native files in subdirectories', () => {
-    const entries = [blob('.cursor/rules/nested/deep.mdc'), blob('.claude/rules/sub/dir.md')];
+    const entries = [blob('.claude/commands/nested/deep.md'), blob('.claude/agents/sub/dir.md')];
     const result = discoverRemoteContext(entries);
 
-    expect(result.rules).toHaveLength(0);
-  });
-
-  it('ignores native files with wrong extension', () => {
-    const entries = [
-      blob('.cursor/rules/readme.txt'),
-      blob('.cursor/rules/notes.md'), // .md is not .mdc for Cursor
-    ];
-    const result = discoverRemoteContext(entries);
-
-    expect(result.rules).toHaveLength(0);
+    expect(result.prompts).toHaveLength(0);
+    expect(result.agents).toHaveLength(0);
   });
 
   it('canonical items do not have native field', () => {
-    const entries = [blob('rules/style/RULES.md'), blob('SKILL.md')];
+    const entries = [blob('prompts/review/PROMPT.md'), blob('SKILL.md')];
     const result = discoverRemoteContext(entries, 'my-repo');
 
-    expect(result.rules[0]!.native).toBeUndefined();
+    expect(result.prompts[0]!.native).toBeUndefined();
     expect(result.skills[0]!.native).toBeUndefined();
   });
 });

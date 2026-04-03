@@ -347,12 +347,12 @@ This is a test skill.
     it('should show error for invalid --type value', () => {
       const result = runCli(['remove', '--type', 'invalid', '-y'], testDir);
       expect(result.stdout).toContain('Invalid type: invalid');
-      expect(result.stdout).toContain('Valid types: skill, rule, prompt, agent');
+      expect(result.stdout).toContain('Valid types: skill, prompt, agent, instruction');
       expect(result.exitCode).toBe(1);
     });
 
     it('should show error for invalid value in comma-separated --type', () => {
-      const result = runCli(['remove', '--type', 'rule,invalid', '-y'], testDir);
+      const result = runCli(['remove', '--type', 'instruction,invalid', '-y'], testDir);
       expect(result.stdout).toContain('Invalid type: invalid');
       expect(result.exitCode).toBe(1);
     });
@@ -360,8 +360,8 @@ This is a test skill.
 
   describe('parseRemoveOptions', () => {
     it('should parse --type with single value', () => {
-      const { options } = parseRemoveOptions(['--type', 'rule']);
-      expect(options.type).toEqual(['rule']);
+      const { options } = parseRemoveOptions(['--type', 'instruction']);
+      expect(options.type).toEqual(['instruction']);
     });
 
     it('should parse -t short flag', () => {
@@ -370,46 +370,57 @@ This is a test skill.
     });
 
     it('should parse comma-separated --type values', () => {
-      const { options } = parseRemoveOptions(['--type', 'rule,prompt']);
-      expect(options.type).toEqual(['rule', 'prompt']);
+      const { options } = parseRemoveOptions(['--type', 'instruction,prompt']);
+      expect(options.type).toEqual(['instruction', 'prompt']);
     });
 
     it('should parse comma-separated --type with all four types', () => {
-      const { options } = parseRemoveOptions(['-t', 'skill,rule,prompt,agent']);
-      expect(options.type).toEqual(['skill', 'rule', 'prompt', 'agent']);
+      const { options } = parseRemoveOptions(['-t', 'skill,instruction,prompt,agent']);
+      expect(options.type).toEqual(['skill', 'instruction', 'prompt', 'agent']);
     });
 
     it('should deduplicate comma-separated --type values', () => {
-      const { options } = parseRemoveOptions(['--type', 'rule,rule,prompt']);
-      expect(options.type).toEqual(['rule', 'prompt']);
+      const { options } = parseRemoveOptions(['--type', 'instruction,instruction,prompt']);
+      expect(options.type).toEqual(['instruction', 'prompt']);
     });
 
     it('should deduplicate across repeated flags and comma values', () => {
-      const { options } = parseRemoveOptions(['--type', 'rule,prompt', '--type', 'rule']);
-      expect(options.type).toEqual(['rule', 'prompt']);
+      const { options } = parseRemoveOptions([
+        '--type',
+        'instruction,prompt',
+        '--type',
+        'instruction',
+      ]);
+      expect(options.type).toEqual(['instruction', 'prompt']);
     });
 
     it('should parse multiple --type flags', () => {
-      const { options } = parseRemoveOptions(['--type', 'skill', '--type', 'rule']);
-      expect(options.type).toEqual(['skill', 'rule']);
+      const { options } = parseRemoveOptions(['--type', 'skill', '--type', 'instruction']);
+      expect(options.type).toEqual(['skill', 'instruction']);
     });
 
     it('should parse --type with other flags', () => {
-      const { skills, options } = parseRemoveOptions(['my-skill', '-g', '--type', 'rule', '-y']);
+      const { skills, options } = parseRemoveOptions([
+        'my-skill',
+        '-g',
+        '--type',
+        'instruction',
+        '-y',
+      ]);
       expect(skills).toEqual(['my-skill']);
       expect(options.global).toBe(true);
       expect(options.yes).toBe(true);
-      expect(options.type).toEqual(['rule']);
+      expect(options.type).toEqual(['instruction']);
     });
 
     it('should lowercase --type values', () => {
-      const { options } = parseRemoveOptions(['--type', 'Rule,PROMPT']);
-      expect(options.type).toEqual(['rule', 'prompt']);
+      const { options } = parseRemoveOptions(['--type', 'Instruction,PROMPT']);
+      expect(options.type).toEqual(['instruction', 'prompt']);
     });
 
     it('should not consume positional args as type values', () => {
-      const { skills, options } = parseRemoveOptions(['--type', 'rule', 'my-skill']);
-      expect(options.type).toEqual(['rule']);
+      const { skills, options } = parseRemoveOptions(['--type', 'instruction', 'my-skill']);
+      expect(options.type).toEqual(['instruction']);
       expect(skills).toEqual(['my-skill']);
     });
 
@@ -430,14 +441,14 @@ This is a test skill.
     });
 
     it('should filter empty segments from comma-separated --type', () => {
-      const { options } = parseRemoveOptions(['--type', 'rule,,prompt']);
-      expect(options.type).toEqual(['rule', 'prompt']);
+      const { options } = parseRemoveOptions(['--type', 'instruction,,prompt']);
+      expect(options.type).toEqual(['instruction', 'prompt']);
     });
 
     it('should combine --all with --type', () => {
-      const { options } = parseRemoveOptions(['--all', '--type', 'rule']);
+      const { options } = parseRemoveOptions(['--all', '--type', 'instruction']);
       expect(options.all).toBe(true);
-      expect(options.type).toEqual(['rule']);
+      expect(options.type).toEqual(['instruction']);
     });
 
     it('should combine --all with positional skill name', () => {
@@ -458,10 +469,10 @@ This is a test skill.
     });
 
     it('should throw CommandError for invalid value in comma-separated --type', () => {
-      expect(() => parseRemoveOptions(['--type', 'rule,bogus'])).toThrow(CommandError);
+      expect(() => parseRemoveOptions(['--type', 'instruction,bogus'])).toThrow(CommandError);
 
       try {
-        parseRemoveOptions(['--type', 'rule,bogus']);
+        parseRemoveOptions(['--type', 'instruction,bogus']);
       } catch (error) {
         expect(error).toBeInstanceOf(CommandError);
         expect((error as CommandError).exitCode).toBe(1);

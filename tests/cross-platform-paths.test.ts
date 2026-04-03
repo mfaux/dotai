@@ -294,37 +294,53 @@ describe('createPlannedWrite — output path construction', () => {
 
   it('produces a resolved absolute path from projectRoot + outputDir + filename', () => {
     const projectRoot = '/home/user/project';
-    const output = makeOutput('.github/instructions', 'my-rule.instructions.md');
-    const pw = createPlannedWrite(output, projectRoot, 'rule', 'my-rule', 'canonical', 'test/repo');
+    const output = makeOutput('.github/instructions', 'my-prompt.instructions.md');
+    const pw = createPlannedWrite(
+      output,
+      projectRoot,
+      'prompt',
+      'my-prompt',
+      'canonical',
+      'test/repo'
+    );
 
     // resolve(join(...)) always produces an absolute path with OS-native separators
-    const expected = resolve(join(projectRoot, '.github/instructions', 'my-rule.instructions.md'));
+    const expected = resolve(
+      join(projectRoot, '.github/instructions', 'my-prompt.instructions.md')
+    );
     expect(pw.absolutePath).toBe(expected);
   });
 
   it('normalizes paths with forward slashes in outputDir', () => {
     const projectRoot = '/home/user/project';
-    const output = makeOutput('.cursor/rules', 'my-rule.mdc');
-    const pw = createPlannedWrite(output, projectRoot, 'rule', 'my-rule', 'canonical', 'test/repo');
+    const output = makeOutput('.github/prompts', 'my-prompt.prompt.md');
+    const pw = createPlannedWrite(
+      output,
+      projectRoot,
+      'prompt',
+      'my-prompt',
+      'canonical',
+      'test/repo'
+    );
 
-    expect(pw.absolutePath).toBe(resolve(join(projectRoot, '.cursor/rules', 'my-rule.mdc')));
+    expect(pw.absolutePath).toBe(
+      resolve(join(projectRoot, '.github/prompts', 'my-prompt.prompt.md'))
+    );
     // Path should not contain double separators
     expect(pw.absolutePath).not.toMatch(/[/\\]{2}/);
   });
 
-  it('handles all five agent output directories', () => {
+  it('handles multiple agent output directories', () => {
     const projectRoot = '/home/user/project';
     const agentOutputDirs: Array<{ dir: string; filename: string }> = [
       { dir: '.github/instructions', filename: 'r.instructions.md' },
-      { dir: '.claude/rules', filename: 'r.md' },
-      { dir: '.cursor/rules', filename: 'r.mdc' },
-      { dir: '.windsurf/rules', filename: 'r.md' },
-      { dir: '.clinerules', filename: 'r.md' },
+      { dir: '.github/prompts', filename: 'r.prompt.md' },
+      { dir: '.claude/commands', filename: 'r.md' },
     ];
 
     for (const { dir, filename } of agentOutputDirs) {
       const output = makeOutput(dir, filename);
-      const pw = createPlannedWrite(output, projectRoot, 'rule', 'r', 'canonical', 'test/repo');
+      const pw = createPlannedWrite(output, projectRoot, 'prompt', 'r', 'canonical', 'test/repo');
 
       // Should be an absolute path
       expect(pw.absolutePath).toBe(resolve(pw.absolutePath));
@@ -374,17 +390,17 @@ describe('lock file path consistency', () => {
     tempDir = setup();
     try {
       const outputPaths = [
-        resolve(join(tempDir, '.github/instructions/my-rule.instructions.md')),
-        resolve(join(tempDir, '.cursor/rules/my-rule.mdc')),
-        resolve(join(tempDir, '.claude/rules/my-rule.md')),
+        resolve(join(tempDir, '.github/prompts/my-prompt.prompt.md')),
+        resolve(join(tempDir, '.claude/commands/my-prompt.md')),
+        resolve(join(tempDir, '.opencode/prompts/my-prompt.md')),
       ];
 
       const entry: LockEntry = {
-        type: 'rule',
-        name: 'my-rule',
+        type: 'prompt',
+        name: 'my-prompt',
         source: 'test/repo',
         format: 'canonical',
-        agents: ['github-copilot', 'cursor', 'claude-code'] as TargetAgent[],
+        agents: ['github-copilot', 'claude-code', 'opencode'] as TargetAgent[],
         hash: 'abc123',
         installedAt: new Date().toISOString(),
         outputs: outputPaths,
@@ -407,16 +423,16 @@ describe('lock file path consistency', () => {
     try {
       // Simulate paths as they would appear with forward slashes
       const outputPaths = [
-        '/home/user/project/.github/instructions/test.instructions.md',
-        '/home/user/project/.cursor/rules/test.mdc',
+        '/home/user/project/.github/prompts/test.prompt.md',
+        '/home/user/project/.claude/commands/test.md',
       ];
 
       const entry: LockEntry = {
-        type: 'rule',
+        type: 'prompt',
         name: 'test',
         source: 'test/repo',
         format: 'canonical',
-        agents: ['github-copilot', 'cursor'] as TargetAgent[],
+        agents: ['github-copilot', 'claude-code'] as TargetAgent[],
         hash: 'def456',
         installedAt: new Date().toISOString(),
         outputs: outputPaths,
@@ -436,17 +452,17 @@ describe('lock file path consistency', () => {
   it('stores multiple entries with distinct output paths', async () => {
     tempDir = setup();
     try {
-      const ruleEntry: LockEntry = {
-        type: 'rule',
+      const instructionEntry: LockEntry = {
+        type: 'instruction',
         name: 'code-style',
         source: 'test/repo',
         format: 'canonical',
-        agents: ['github-copilot', 'cursor'] as TargetAgent[],
+        agents: ['github-copilot', 'claude-code'] as TargetAgent[],
         hash: 'aaa',
         installedAt: new Date().toISOString(),
         outputs: [
           resolve(join(tempDir, '.github/instructions/code-style.instructions.md')),
-          resolve(join(tempDir, '.cursor/rules/code-style.mdc')),
+          resolve(join(tempDir, '.claude/instructions/code-style.md')),
         ],
       };
 
@@ -462,20 +478,20 @@ describe('lock file path consistency', () => {
       };
 
       let lock = createEmptyLock();
-      lock = upsertLockEntry(lock, ruleEntry);
+      lock = upsertLockEntry(lock, instructionEntry);
       lock = upsertLockEntry(lock, promptEntry);
       await writeDotaiLock(lock, tempDir);
 
       const { lock: readBack } = await readDotaiLock(tempDir);
       expect(readBack.items).toHaveLength(2);
 
-      // Items are sorted by (type, name) — prompt:review comes before rule:code-style
+      // Items are sorted by (type, name) — instruction:code-style comes before prompt:review
+      const instruction = readBack.items.find((i) => i.type === 'instruction');
       const prompt = readBack.items.find((i) => i.type === 'prompt');
-      const rule = readBack.items.find((i) => i.type === 'rule');
+      expect(instruction).toBeDefined();
       expect(prompt).toBeDefined();
-      expect(rule).toBeDefined();
+      expect(instruction!.outputs).toEqual(instructionEntry.outputs);
       expect(prompt!.outputs).toEqual(promptEntry.outputs);
-      expect(rule!.outputs).toEqual(ruleEntry.outputs);
     } finally {
       cleanup(tempDir);
     }
@@ -493,12 +509,12 @@ describe('backslash path handling', () => {
     const projectRoot = '/home/user/project';
     const output: TranspiledOutput = {
       content: 'test',
-      outputDir: '.cursor/rules',
-      filename: 'test.mdc',
+      outputDir: '.github/prompts',
+      filename: 'test.prompt.md',
       mode: 'write',
     };
 
-    const pw = createPlannedWrite(output, projectRoot, 'rule', 'test', 'canonical', 'test/repo');
+    const pw = createPlannedWrite(output, projectRoot, 'prompt', 'test', 'canonical', 'test/repo');
 
     // resolve() always produces an absolute path
     expect(pw.absolutePath).toBe(resolve(pw.absolutePath));

@@ -64,8 +64,8 @@ describe('list command', () => {
     });
 
     it('should parse --type with single value', () => {
-      const options = parseListOptions(['--type', 'rule']);
-      expect(options.type).toEqual(['rule']);
+      const options = parseListOptions(['--type', 'instruction']);
+      expect(options.type).toEqual(['instruction']);
     });
 
     it('should parse -t short flag', () => {
@@ -79,57 +79,57 @@ describe('list command', () => {
     });
 
     it('should parse multiple --type flags', () => {
-      const options = parseListOptions(['--type', 'skill', '--type', 'rule']);
-      expect(options.type).toEqual(['skill', 'rule']);
+      const options = parseListOptions(['--type', 'skill', '--type', 'instruction']);
+      expect(options.type).toEqual(['skill', 'instruction']);
     });
 
     it('should parse comma-separated --type values', () => {
-      const options = parseListOptions(['--type', 'rule,prompt']);
-      expect(options.type).toEqual(['rule', 'prompt']);
+      const options = parseListOptions(['--type', 'instruction,prompt']);
+      expect(options.type).toEqual(['instruction', 'prompt']);
     });
 
     it('should parse comma-separated --type with all four types', () => {
-      const options = parseListOptions(['-t', 'skill,rule,prompt,agent']);
-      expect(options.type).toEqual(['skill', 'rule', 'prompt', 'agent']);
+      const options = parseListOptions(['-t', 'skill,instruction,prompt,agent']);
+      expect(options.type).toEqual(['skill', 'instruction', 'prompt', 'agent']);
     });
 
     it('should deduplicate comma-separated --type values', () => {
-      const options = parseListOptions(['--type', 'rule,rule,prompt']);
-      expect(options.type).toEqual(['rule', 'prompt']);
+      const options = parseListOptions(['--type', 'instruction,instruction,prompt']);
+      expect(options.type).toEqual(['instruction', 'prompt']);
     });
 
     it('should deduplicate across repeated flags and comma values', () => {
-      const options = parseListOptions(['--type', 'rule,prompt', '--type', 'rule']);
-      expect(options.type).toEqual(['rule', 'prompt']);
+      const options = parseListOptions(['--type', 'instruction,prompt', '--type', 'instruction']);
+      expect(options.type).toEqual(['instruction', 'prompt']);
     });
 
     it('should parse --type with other flags', () => {
-      const options = parseListOptions(['-g', '--type', 'rule', '-a', 'cursor']);
+      const options = parseListOptions(['-g', '--type', 'instruction', '-a', 'cursor']);
       expect(options.global).toBe(true);
-      expect(options.type).toEqual(['rule']);
+      expect(options.type).toEqual(['instruction']);
       expect(options.targets).toEqual(['cursor']);
     });
 
     it('should parse --type with other flags', () => {
-      const options = parseListOptions(['-g', '--type', 'rule', '-a', 'cursor']);
+      const options = parseListOptions(['-g', '--type', 'instruction', '-a', 'cursor']);
       expect(options.global).toBe(true);
-      expect(options.type).toEqual(['rule']);
+      expect(options.type).toEqual(['instruction']);
       expect(options.targets).toEqual(['cursor']);
     });
 
     it('should normalize --type values to lowercase', () => {
-      const options = parseListOptions(['--type', 'RULE']);
-      expect(options.type).toEqual(['rule']);
+      const options = parseListOptions(['--type', 'INSTRUCTION']);
+      expect(options.type).toEqual(['instruction']);
     });
 
     it('should normalize mixed-case comma-separated --type values', () => {
-      const options = parseListOptions(['--type', 'Rule,PROMPT,Agent']);
-      expect(options.type).toEqual(['rule', 'prompt', 'agent']);
+      const options = parseListOptions(['--type', 'Instruction,PROMPT,Agent']);
+      expect(options.type).toEqual(['instruction', 'prompt', 'agent']);
     });
 
     it('should filter empty segments from comma-separated --type', () => {
-      const options = parseListOptions(['--type', 'rule,,prompt']);
-      expect(options.type).toEqual(['rule', 'prompt']);
+      const options = parseListOptions(['--type', 'instruction,,prompt']);
+      expect(options.type).toEqual(['instruction', 'prompt']);
     });
 
     it('should combine -g with --type agent', () => {
@@ -340,12 +340,12 @@ description: A test skill
     it('should show error for invalid --type value', () => {
       const result = runCli(['list', '--type', 'invalid'], testDir);
       expect(result.stdout).toContain('Invalid type: invalid');
-      expect(result.stdout).toContain('Valid types: skill, rule, prompt');
+      expect(result.stdout).toContain('Valid types: skill, prompt, agent, instruction');
       expect(result.exitCode).toBe(1);
     });
 
     it('should show error for invalid value in comma-separated --type', () => {
-      const result = runCli(['list', '--type', 'rule,invalid'], testDir);
+      const result = runCli(['list', '--type', 'instruction,invalid'], testDir);
       expect(result.stdout).toContain('Invalid type: invalid');
       expect(result.exitCode).toBe(1);
     });
@@ -370,14 +370,14 @@ description: A test skill
 `
       );
 
-      // Create a .dotai-lock.json with a rule
+      // Create a .dotai-lock.json with an instruction
       writeFileSync(
         join(testDir, '.dotai-lock.json'),
         JSON.stringify({
           version: 1,
           items: [
             {
-              type: 'rule',
+              type: 'instruction',
               name: 'code-style',
               source: 'owner/repo',
               format: 'canonical',
@@ -393,63 +393,20 @@ description: A test skill
       const result = runCli(['list', '--type', 'skill'], testDir);
       expect(result.stdout).toContain('test-skill');
       expect(result.stdout).toContain('Skills');
-      expect(result.stdout).not.toContain('Rules');
+      expect(result.stdout).not.toContain('Instructions');
       expect(result.stdout).not.toContain('code-style');
       expect(result.exitCode).toBe(0);
     });
 
-    it('should show only rules with --type rule', () => {
-      // Create a skill
-      const skillDir = join(testDir, '.agents', 'skills', 'test-skill');
-      mkdirSync(skillDir, { recursive: true });
-      writeFileSync(
-        join(skillDir, 'SKILL.md'),
-        `---
-name: test-skill
-description: A test skill
----
-# Test Skill
-`
-      );
-
-      // Create a .dotai-lock.json with a rule
+    it('should show instructions with agent display names', () => {
       writeFileSync(
         join(testDir, '.dotai-lock.json'),
         JSON.stringify({
           version: 1,
           items: [
             {
-              type: 'rule',
-              name: 'code-style',
-              source: 'owner/repo',
-              format: 'canonical',
-              agents: ['github-copilot', 'claude-code'],
-              hash: 'abc123',
-              installedAt: '2025-01-01T00:00:00.000Z',
-              outputs: ['.github/instructions/code-style.instructions.md'],
-            },
-          ],
-        })
-      );
-
-      const result = runCli(['list', '--type', 'rule'], testDir);
-      expect(result.stdout).toContain('code-style');
-      expect(result.stdout).toContain('Rules');
-      expect(result.stdout).toContain('owner/repo');
-      expect(result.stdout).not.toContain('Skills');
-      expect(result.stdout).not.toContain('test-skill');
-      expect(result.exitCode).toBe(0);
-    });
-
-    it('should show rules with agent display names', () => {
-      writeFileSync(
-        join(testDir, '.dotai-lock.json'),
-        JSON.stringify({
-          version: 1,
-          items: [
-            {
-              type: 'rule',
-              name: 'testing-rule',
+              type: 'instruction',
+              name: 'testing-guidelines',
               source: 'test/repo',
               format: 'canonical',
               agents: ['cursor', 'opencode'],
@@ -462,13 +419,13 @@ description: A test skill
       );
 
       const result = runCli(['list'], testDir);
-      expect(result.stdout).toContain('testing-rule');
+      expect(result.stdout).toContain('testing-guidelines');
       expect(result.stdout).toContain('Cursor');
       expect(result.stdout).toContain('OpenCode');
       expect(result.exitCode).toBe(0);
     });
 
-    it('should show both skills and rules by default', () => {
+    it('should show both skills and instructions by default', () => {
       // Create a skill
       const skillDir = join(testDir, '.agents', 'skills', 'my-skill');
       mkdirSync(skillDir, { recursive: true });
@@ -482,15 +439,15 @@ description: A skill
 `
       );
 
-      // Create a .dotai-lock.json with a rule
+      // Create a .dotai-lock.json with an instruction
       writeFileSync(
         join(testDir, '.dotai-lock.json'),
         JSON.stringify({
           version: 1,
           items: [
             {
-              type: 'rule',
-              name: 'my-rule',
+              type: 'instruction',
+              name: 'my-instruction',
               source: 'owner/repo',
               format: 'canonical',
               agents: ['github-copilot'],
@@ -505,12 +462,12 @@ description: A skill
       const result = runCli(['list'], testDir);
       expect(result.stdout).toContain('Skills');
       expect(result.stdout).toContain('my-skill');
-      expect(result.stdout).toContain('Rules');
-      expect(result.stdout).toContain('my-rule');
+      expect(result.stdout).toContain('Instructions');
+      expect(result.stdout).toContain('my-instruction');
       expect(result.exitCode).toBe(0);
     });
 
-    it('should show no rules section when no rules are installed', () => {
+    it('should show no instructions section when no instructions are installed', () => {
       const skillDir = join(testDir, '.agents', 'skills', 'test-skill');
       mkdirSync(skillDir, { recursive: true });
       writeFileSync(
@@ -525,25 +482,19 @@ description: A test skill
 
       const result = runCli(['list'], testDir);
       expect(result.stdout).toContain('test-skill');
-      expect(result.stdout).not.toContain('Rules');
+      expect(result.stdout).not.toContain('Instructions');
       expect(result.exitCode).toBe(0);
     });
 
-    it('should show empty state for --type rule with no rules', () => {
-      const result = runCli(['list', '--type', 'rule'], testDir);
-      expect(result.stdout).toContain('No project rules found');
-      expect(result.exitCode).toBe(0);
-    });
-
-    it('should filter rules by agent', () => {
+    it('should filter instructions by agent', () => {
       writeFileSync(
         join(testDir, '.dotai-lock.json'),
         JSON.stringify({
           version: 1,
           items: [
             {
-              type: 'rule',
-              name: 'cursor-rule',
+              type: 'instruction',
+              name: 'cursor-instruction',
               source: 'owner/repo',
               format: 'canonical',
               agents: ['cursor'],
@@ -552,8 +503,8 @@ description: A test skill
               outputs: [],
             },
             {
-              type: 'rule',
-              name: 'opencode-rule',
+              type: 'instruction',
+              name: 'opencode-instruction',
               source: 'owner/repo',
               format: 'canonical',
               agents: ['opencode'],
@@ -565,40 +516,13 @@ description: A test skill
         })
       );
 
-      const result = runCli(['list', '-t', 'rule', '-a', 'cursor'], testDir);
-      expect(result.stdout).toContain('cursor-rule');
-      expect(result.stdout).not.toContain('opencode-rule');
+      const result = runCli(['list', '-t', 'instruction', '-a', 'cursor'], testDir);
+      expect(result.stdout).toContain('cursor-instruction');
+      expect(result.stdout).not.toContain('opencode-instruction');
       expect(result.exitCode).toBe(0);
     });
 
-    it('should explain rules are project-scoped for --type rule -g', () => {
-      // Create a .dotai-lock.json with a rule in the project
-      writeFileSync(
-        join(testDir, '.dotai-lock.json'),
-        JSON.stringify({
-          version: 1,
-          items: [
-            {
-              type: 'rule',
-              name: 'some-rule',
-              source: 'owner/repo',
-              format: 'canonical',
-              agents: ['cursor'],
-              hash: 'abc',
-              installedAt: '2025-01-01T00:00:00.000Z',
-              outputs: [],
-            },
-          ],
-        })
-      );
-
-      const result = runCli(['list', '--type', 'rule', '-g'], testDir);
-      expect(result.stdout).toContain('project-scoped');
-      expect(result.stdout).not.toContain('some-rule');
-      expect(result.exitCode).toBe(0);
-    });
-
-    it('should show dim note about rules when using -g with project rules', () => {
+    it('should show dim note about instructions when using -g with project instructions', () => {
       // Create a global skill so there's output
       const globalSkillDir = join(homedir(), '.agents', 'skills', 'global-test-skill-list');
       mkdirSync(globalSkillDir, { recursive: true });
@@ -612,15 +536,15 @@ description: A global test skill
 `
       );
 
-      // Create a .dotai-lock.json with a rule in the project
+      // Create a .dotai-lock.json with an instruction in the project
       writeFileSync(
         join(testDir, '.dotai-lock.json'),
         JSON.stringify({
           version: 1,
           items: [
             {
-              type: 'rule',
-              name: 'project-rule',
+              type: 'instruction',
+              name: 'project-instruction',
               source: 'owner/repo',
               format: 'canonical',
               agents: ['cursor'],
@@ -635,7 +559,7 @@ description: A global test skill
       try {
         const result = runCli(['list', '-g'], testDir);
         expect(result.stdout).toContain('project-scoped');
-        expect(result.stdout).not.toContain('project-rule');
+        expect(result.stdout).not.toContain('project-instruction');
         expect(result.exitCode).toBe(0);
       } finally {
         // Clean up the global skill we created
@@ -643,14 +567,14 @@ description: A global test skill
       }
     });
     it('should show only prompts with --type prompt', () => {
-      // Create a .dotai-lock.json with a rule and a prompt
+      // Create a .dotai-lock.json with an instruction and a prompt
       writeFileSync(
         join(testDir, '.dotai-lock.json'),
         JSON.stringify({
           version: 1,
           items: [
             {
-              type: 'rule',
+              type: 'instruction',
               name: 'code-style',
               source: 'owner/repo',
               format: 'canonical',
@@ -676,20 +600,20 @@ description: A global test skill
       const result = runCli(['list', '--type', 'prompt'], testDir);
       expect(result.stdout).toContain('review-code');
       expect(result.stdout).toContain('Prompts');
-      expect(result.stdout).not.toContain('Rules');
+      expect(result.stdout).not.toContain('Instructions');
       expect(result.stdout).not.toContain('code-style');
       expect(result.exitCode).toBe(0);
     });
 
-    it('should show prompts alongside rules by default', () => {
+    it('should show prompts alongside instructions by default', () => {
       writeFileSync(
         join(testDir, '.dotai-lock.json'),
         JSON.stringify({
           version: 1,
           items: [
             {
-              type: 'rule',
-              name: 'my-rule',
+              type: 'instruction',
+              name: 'my-instruction',
               source: 'owner/repo',
               format: 'canonical',
               agents: ['cursor'],
@@ -712,8 +636,8 @@ description: A global test skill
       );
 
       const result = runCli(['list'], testDir);
-      expect(result.stdout).toContain('Rules');
-      expect(result.stdout).toContain('my-rule');
+      expect(result.stdout).toContain('Instructions');
+      expect(result.stdout).toContain('my-instruction');
       expect(result.stdout).toContain('Prompts');
       expect(result.stdout).toContain('my-prompt');
       expect(result.exitCode).toBe(0);
@@ -781,7 +705,7 @@ description: A global test skill
       expect(result.stdout).toContain('dotai list');
       expect(result.stdout).toContain('dotai ls -g');
       expect(result.stdout).toContain('dotai ls -a claude-code');
-      expect(result.stdout).toContain('dotai ls -t rule');
+      expect(result.stdout).toContain('dotai ls -t prompt');
     });
   });
 

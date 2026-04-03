@@ -2,9 +2,9 @@
 
 Share AI agent context across tools and teams.
 
-dotai takes canonical context files — skills, rules, prompts, and agent
-definitions — and installs them into the config directories of supported AI
-coding agents. Write once, distribute everywhere. Your team gets consistent AI
+dotai takes canonical context files — skills, prompts, agent
+definitions, and instructions — and installs them into the config directories
+of supported AI coding agents. Write once, distribute everywhere. Your team gets consistent AI
 behavior across Copilot, Claude Code, Cursor, and more.
 
 Requires Node.js 18+ (or Bun/Deno).
@@ -25,12 +25,12 @@ npx dotai add owner/repo --dry-run # preview without writing files
 ## Why dotai?
 
 AI coding agents each store context in different places with different formats.
-Keeping rules, prompts, and skills in sync across agents is manual and
+Keeping instructions, prompts, and skills in sync across agents is manual and
 error-prone.
 
-dotai solves this with **canonical authoring**: write a single `RULES.md`,
-`PROMPT.md`, or `AGENT.md` and dotai transpiles it into every target agent's
-native format automatically.
+dotai solves this with **canonical authoring**: write a single
+`PROMPT.md`, `AGENT.md`, or `INSTRUCTIONS.md` and dotai transpiles it into every
+target agent's native format automatically.
 
 - **Write once** — one canonical file fans out to all targets
 - **5 targets** — Copilot, Claude Code, Cursor, Codex, OpenCode
@@ -53,21 +53,21 @@ npx dotai add owner/repo
 # Limit to specific targets
 npx dotai add owner/repo --targets copilot,claude,cursor
 
-# Install specific rules or skills
-npx dotai add owner/repo --rule code-style --skill db-migrate
+# Install specific instructions or skills
+npx dotai add owner/repo --instruction my-instructions --skill db-migrate
 ```
 
-dotai discovers skills, rules, prompts, and agent definitions in the source
+dotai discovers skills, prompts, agent definitions, and instructions in the source
 repo and transpiles them for your selected targets.
 
 ## What dotai installs
 
-| Layer   | Canonical file | Install behavior               |
-| ------- | -------------- | ------------------------------ |
-| Skills  | `SKILL.md`     | Passthrough (symlink or copy)  |
-| Rules   | `RULES.md`     | Transpile per target           |
-| Prompts | `PROMPT.md`    | Transpile per supported target |
-| Agents  | `AGENT.md`     | Transpile per supported target |
+| Layer        | Canonical file    | Install behavior               |
+| ------------ | ----------------- | ------------------------------ |
+| Skills       | `SKILL.md`        | Passthrough (symlink or copy)  |
+| Prompts      | `PROMPT.md`       | Transpile per supported target |
+| Agents       | `AGENT.md`        | Transpile per supported target |
+| Instructions | `INSTRUCTIONS.md` | Append per target              |
 
 See [Source repo layout](docs/cli-reference.md#source-repo-layout) for where to place these files in your repo so dotai discovers them.
 
@@ -85,34 +85,33 @@ npx dotai add ./my-local-context                        # local path
 
 ## Commands
 
-| Command         | Description                                               |
-| --------------- | --------------------------------------------------------- |
-| `add <package>` | Discover, select, transpile, and install context          |
-| `remove [name]` | Remove installed context                                  |
-| `list`          | List installed items                                      |
-| `find [query]`  | Search for skills & preview all context in a repo         |
-| `import`        | Convert native agent rules to canonical `RULES.md` format |
-| `check`         | Check for available updates                               |
-| `update`        | Update installed items to latest versions                 |
-| `init [name]`   | Create a context template (skill, rule, prompt, agent)    |
-| `restore`       | Restore from lock files                                   |
+| Command         | Description                                                   |
+| --------------- | ------------------------------------------------------------- |
+| `add <package>` | Discover, select, transpile, and install context              |
+| `remove [name]` | Remove installed context                                      |
+| `list`          | List installed items                                          |
+| `find [query]`  | Search for skills & preview all context in a repo             |
+| `check`         | Check for available updates                                   |
+| `update`        | Update installed items to latest versions                     |
+| `init [name]`   | Create a context template (skill, prompt, agent, instruction) |
+| `restore`       | Restore from lock files                                       |
 
 ## Supported Targets
 
 <details>
 <summary>Transpilation support by agent</summary>
 
-| Agent          | Skills | Rules | Prompts                 | Agents                    |
-| -------------- | ------ | ----- | ----------------------- | ------------------------- |
-| GitHub Copilot | ✅     | ✅    | ✅                      | ✅                        |
-| Claude Code    | ✅     | ✅    | ✅                      | ✅                        |
-| OpenCode       | ✅     | ✅    | ✅                      | ✅                        |
-| Cursor         | ✅     | ✅    | ⚠️ (native/compat only) | ⚠️ (via `.github/agents`) |
-| Codex          | ✅     | —    | —                       | —                         |
+| Agent          | Skills | Prompts                 | Agents                    | Instructions |
+| -------------- | ------ | ----------------------- | ------------------------- | ------------ |
+| GitHub Copilot | ✅     | ✅                      | ✅                        | ✅           |
+| Claude Code    | ✅     | ✅                      | ✅                        | ✅           |
+| OpenCode       | ✅     | ✅                      | ✅                        | ✅           |
+| Cursor         | ✅     | ⚠️ (native/compat only) | ⚠️ (via `.github/agents`) | ✅           |
+| Codex          | ✅     | —                       | —                         | —            |
 
 - **Cursor prompts:** Cursor reads Copilot's `.github/prompts/` path. Canonical `PROMPT.md` is not transpiled to a Cursor-specific format.
 - **Cursor agents:** Cursor reads `.github/agents/` from the Copilot path. Canonical `AGENT.md` transpiles to Copilot format, which Cursor picks up.
-- **OpenCode rules:** OpenCode rules are plain markdown (no frontmatter). After installing, add the output paths to the `instructions` array in `opencode.json`.
+- **Instructions:** `INSTRUCTIONS.md` content is appended as marker-delimited sections to project-wide files (`CLAUDE.md`, `AGENTS.md`, `.github/copilot-instructions.md`). Cursor and OpenCode share `AGENTS.md`.
 
 </details>
 
@@ -127,7 +126,7 @@ Skill installs target [5 targets](docs/supported-targets.md).
 
 dotai started as a fork of [vercel-labs/skills](https://github.com/vercel-labs/skills) / [skills.sh](https://skills.sh).
 The inherited skills install pipeline remains first-class. dotai extends it with
-transpilation of rules, prompts, and agent definitions to multiple targets.
+transpilation of prompts, agent definitions, and instructions to multiple targets.
 
 ## Acknowledgements
 

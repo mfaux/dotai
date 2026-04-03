@@ -51,9 +51,9 @@ export async function runList(args: string[]): Promise<void> {
 
   // Determine which types to show
   const showSkills = !options.type || options.type.includes('skill');
-  const showRules = !options.type || options.type.includes('rule');
   const showPrompts = !options.type || options.type.includes('prompt');
   const showAgents = !options.type || options.type.includes('agent');
+  const showInstructions = !options.type || options.type.includes('instruction');
 
   // Validate agent filter if provided
   let agentFilter: AgentType[] | undefined;
@@ -81,14 +81,14 @@ export async function runList(args: string[]): Promise<void> {
     lockedSkills = await getAllLockedSkills();
   }
 
-  // ── Read dotai lock file once (used for rules, prompts, agents) ──
+  // ── Read dotai lock file once (used for prompts, agents, instructions) ──
   let dotaiLock: DotaiLockFile | null = null;
-  if (showRules || showPrompts || showAgents) {
+  if (showPrompts || showAgents || showInstructions) {
     try {
       const { lock } = await readDotaiLock(process.cwd());
       dotaiLock = lock;
     } catch {
-      // Lock file doesn't exist or is corrupt — no rules/prompts/agents to show
+      // Lock file doesn't exist or is corrupt — no prompts/agents to show
     }
   }
 
@@ -103,12 +103,6 @@ export async function runList(args: string[]): Promise<void> {
     return filtered;
   }
 
-  // ── Fetch rules (project-scoped only) ──
-  let ruleEntries: LockEntry[] = [];
-  if (showRules && !scope && dotaiLock) {
-    ruleEntries = filterAndSort(getLockEntriesByType(dotaiLock, 'rule'));
-  }
-
   // ── Fetch prompts (project-scoped only) ──
   let promptEntries: LockEntry[] = [];
   if (showPrompts && !scope && dotaiLock) {
@@ -121,41 +115,49 @@ export async function runList(args: string[]): Promise<void> {
     agentEntries = filterAndSort(getLockEntriesByType(dotaiLock, 'agent'));
   }
 
+  // ── Fetch instructions (project-scoped only) ──
+  let instructionEntries: LockEntry[] = [];
+  if (showInstructions && !scope && dotaiLock) {
+    instructionEntries = filterAndSort(getLockEntriesByType(dotaiLock, 'instruction'));
+  }
+
   const cwd = process.cwd();
   const scopeLabel = scope ? 'Global' : 'Project';
   const hasSkills = installedSkills.length > 0;
-  const hasRules = ruleEntries.length > 0;
   const hasPrompts = promptEntries.length > 0;
   const hasAgents = agentEntries.length > 0;
+  const hasInstructions = instructionEntries.length > 0;
 
   // ── Empty state ──
-  if (!hasSkills && !hasRules && !hasPrompts && !hasAgents) {
+  if (!hasSkills && !hasPrompts && !hasAgents && !hasInstructions) {
     console.log(`${BOLD}${scopeLabel}${RESET}`);
     console.log();
 
-    if (scope && (showRules || showPrompts || showAgents) && !showSkills) {
-      // User asked for --type rule/prompt/agent -g — explain they are project-scoped
+    if (scope && (showPrompts || showAgents || showInstructions) && !showSkills) {
+      // User asked for --type prompt/agent/instruction -g — explain they are project-scoped
       console.log(
-        `${DIM}Rules, prompts, and agents are project-scoped (use without -g to see them)${RESET}`
+        `${DIM}Prompts, agents, and instructions are project-scoped (use without -g to see them)${RESET}`
       );
       return;
     }
-    if (!showSkills && showRules && !showPrompts && !showAgents) {
-      console.log(`${DIM}No project rules found.${RESET}`);
-      console.log(`${DIM}Add rules with: npx dotai add <package> --rule <name>${RESET}`);
-      return;
-    }
-    if (!showSkills && !showRules && showPrompts && !showAgents) {
+    if (!showSkills && showPrompts && !showAgents) {
       console.log(`${DIM}No project prompts found.${RESET}`);
       console.log(`${DIM}Add prompts with: npx dotai add <package> --prompt <name>${RESET}`);
       return;
     }
-    if (!showSkills && !showRules && !showPrompts && showAgents) {
+    if (!showSkills && !showPrompts && showAgents && !showInstructions) {
       console.log(`${DIM}No project agents found.${RESET}`);
       console.log(`${DIM}Add agents with: npx dotai add <package> --custom-agent <name>${RESET}`);
       return;
     }
-    if (showSkills && !showRules && !showPrompts && !showAgents) {
+    if (!showSkills && !showPrompts && !showAgents && showInstructions) {
+      console.log(`${DIM}No project instructions found.${RESET}`);
+      console.log(
+        `${DIM}Add instructions with: npx dotai add <package> --instruction <name>${RESET}`
+      );
+      return;
+    }
+    if (showSkills && !showPrompts && !showAgents && !showInstructions) {
       console.log(`${DIM}No ${scopeLabel.toLowerCase()} skills found.${RESET}`);
       if (scope) {
         console.log(`${DIM}Try listing project skills without -g${RESET}`);
@@ -166,10 +168,14 @@ export async function runList(args: string[]): Promise<void> {
     }
     // Default: show generic empty state
     console.log(`${DIM}No ${scopeLabel.toLowerCase()} context found.${RESET}`);
-    console.log(`${DIM}Add skills with:  npx dotai add <package>${RESET}`);
-    console.log(`${DIM}Add rules with:   npx dotai add <package> --rule <name>${RESET}`);
-    console.log(`${DIM}Add prompts with: npx dotai add <package> --prompt <name>${RESET}`);
-    console.log(`${DIM}Add agents with:  npx dotai add <package> --custom-agent <name>${RESET}`);
+    console.log(`${DIM}Add skills with:       npx dotai add <package>${RESET}`);
+    console.log(`${DIM}Add prompts with:      npx dotai add <package> --prompt <name>${RESET}`);
+    console.log(
+      `${DIM}Add agents with:       npx dotai add <package> --custom-agent <name>${RESET}`
+    );
+    console.log(
+      `${DIM}Add instructions with: npx dotai add <package> --instruction <name>${RESET}`
+    );
     return;
   }
 
@@ -251,16 +257,6 @@ export async function runList(args: string[]): Promise<void> {
     }
   }
 
-  // ── Rules section ──
-  if (hasRules && showRules) {
-    console.log(`${BOLD}Rules${RESET}`);
-    console.log();
-    for (const entry of ruleEntries) {
-      printRule(entry);
-    }
-    console.log();
-  }
-
   // ── Prompts section ──
   if (hasPrompts && showPrompts) {
     console.log(`${BOLD}Prompts${RESET}`);
@@ -281,16 +277,32 @@ export async function runList(args: string[]): Promise<void> {
     console.log();
   }
 
-  // ── Global mode note about rules/prompts/agents ──
-  if (scope && (showRules || showPrompts || showAgents) && !hasRules && !hasPrompts && !hasAgents) {
-    // Check if there are rules, prompts, or agents in the project to mention
+  // ── Instructions section ──
+  if (hasInstructions && showInstructions) {
+    console.log(`${BOLD}Instructions${RESET}`);
+    console.log();
+    for (const entry of instructionEntries) {
+      printRule(entry); // Same display format works for instructions
+    }
+    console.log();
+  }
+
+  // ── Global mode note about prompts/agents/instructions ──
+  if (
+    scope &&
+    (showPrompts || showAgents || showInstructions) &&
+    !hasPrompts &&
+    !hasAgents &&
+    !hasInstructions
+  ) {
+    // Check if there are prompts, agents, or instructions in the project to mention
     if (dotaiLock) {
-      const projectRules = getLockEntriesByType(dotaiLock, 'rule');
       const projectPrompts = getLockEntriesByType(dotaiLock, 'prompt');
       const projectAgents = getLockEntriesByType(dotaiLock, 'agent');
-      if (projectRules.length > 0 || projectPrompts.length > 0 || projectAgents.length > 0) {
+      const projectInstructions = getLockEntriesByType(dotaiLock, 'instruction');
+      if (projectPrompts.length > 0 || projectAgents.length > 0 || projectInstructions.length > 0) {
         console.log(
-          `${DIM}Rules, prompts, and agents are project-scoped (use without -g to see them)${RESET}`
+          `${DIM}Prompts, agents, and instructions are project-scoped (use without -g to see them)${RESET}`
         );
         console.log();
       }

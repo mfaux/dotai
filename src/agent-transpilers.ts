@@ -9,7 +9,7 @@ import type {
 import { parseAgentContent } from './agent-parser.ts';
 import { getTargetAgentConfig } from './target-agents.ts';
 import { resolveModel, type ModelOverrides } from './model-aliases.ts';
-import { quoteYaml } from './rule-transpilers.ts';
+import { quoteYaml } from './utils.ts';
 import { mergeOverrides } from './override-parser.ts';
 
 // ---------------------------------------------------------------------------

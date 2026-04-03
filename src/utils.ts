@@ -75,3 +75,18 @@ export function kebabToTitle(s: string): string {
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(' ');
 }
+
+// ---------------------------------------------------------------------------
+// YAML utilities
+// ---------------------------------------------------------------------------
+
+/**
+ * Quote a string value for safe inclusion in YAML frontmatter.
+ * Wraps the value in double quotes and escapes internal double-quote
+ * and backslash characters. This prevents YAML injection from values
+ * containing colons, quotes, or other special characters.
+ */
+export function quoteYaml(value: string): string {
+  const escaped = value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  return `"${escaped}"`;
+}

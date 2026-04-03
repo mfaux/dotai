@@ -8,10 +8,10 @@ import { multiselect } from './add-agents.ts';
 export { promptForAgents } from './add-agents.ts';
 import { cloneRepo, cleanupTempDir, GitCloneError } from './git.ts';
 import { CommandError } from './command-result.ts';
-import { addRules, addPrompts, addAgents, resolveTargetAgents } from './rule-add.ts';
+import { addPrompts, addAgents, addInstructions, resolveTargetAgents } from './context-add.ts';
 import { TARGET_AGENTS } from './target-agents.ts';
 import { discoverSkills, getSkillDisplayName, filterSkills } from './skill-discovery.ts';
-import { discover } from './rule-discovery.ts';
+import { discover } from './context-discovery.ts';
 import { installSkillForAgent, isSkillInstalled, getCanonicalPath } from './skill-installer.ts';
 import { agents } from './agents.ts';
 import { track, setVersion, fetchAuditData } from './telemetry.ts';
@@ -44,7 +44,7 @@ setVersion(version);
 /**
  * Resolve transpilation target agents from --targets flag, or default to all four.
  *
- * When --targets is used for transpilation (rules/prompts/agents), values are
+ * When --targets is used for transpilation (prompts/agents/instructions), values are
  * resolved as TargetAgent names or aliases (copilot, claude, cursor).
  *
  * Throws CommandError if invalid or no valid targets are specified.
@@ -73,7 +73,7 @@ function resolveAgentsOrDefault(options: AddOptions): TargetAgent[] {
 
 /** Config for each context type handled by handleContextInstall. */
 interface ContextInstallConfig {
-  /** Noun used in log/spinner messages (e.g., "rule", "prompt", "agent"). */
+  /** Noun used in log/spinner messages (e.g., "prompt", "agent", "instruction"). */
   noun: string;
   /** Extract item names from options. */
   getNames: (options: AddOptions) => string[];
@@ -94,25 +94,7 @@ interface ContextInstallConfig {
   }>;
 }
 
-const CONTEXT_CONFIGS: Record<'rule' | 'prompt' | 'agent', ContextInstallConfig> = {
-  rule: {
-    noun: 'rule',
-    getNames: (opts) => opts.rule ?? [],
-    install: async ({ source, sourcePath, projectRoot, names, agents, options }) => {
-      const result = await addRules({
-        source,
-        sourcePath,
-        projectRoot,
-        ruleNames: names,
-        targets: agents,
-        dryRun: options.dryRun,
-        force: options.force,
-        append: options.append,
-        gitignore: options.gitignore,
-      });
-      return { ...result, itemsInstalled: result.rulesInstalled };
-    },
-  },
+const CONTEXT_CONFIGS: Record<'prompt' | 'agent' | 'instruction', ContextInstallConfig> = {
   prompt: {
     noun: 'prompt',
     getNames: (opts) => opts.prompt ?? [],
@@ -147,16 +129,33 @@ const CONTEXT_CONFIGS: Record<'rule' | 'prompt' | 'agent', ContextInstallConfig>
       return { ...result, itemsInstalled: result.agentsInstalled };
     },
   },
+  instruction: {
+    noun: 'instruction',
+    getNames: (opts) => opts.instruction ?? [],
+    install: async ({ source, sourcePath, projectRoot, names, agents, options }) => {
+      const result = await addInstructions({
+        source,
+        sourcePath,
+        projectRoot,
+        instructionNames: names,
+        targets: agents,
+        dryRun: options.dryRun,
+        force: options.force,
+        gitignore: options.gitignore,
+      });
+      return { ...result, itemsInstalled: result.instructionsInstalled };
+    },
+  },
 };
 
 /**
- * Generic handler for rule, prompt, and agent install flows.
+ * Generic handler for prompt, agent, and instruction install flows.
  *
  * Resolves `--targets` names to TargetAgent[], runs the appropriate discovery →
  * transpile → install pipeline, and displays results using @clack/prompts.
  */
 async function handleContextInstall(
-  contextType: 'rule' | 'prompt' | 'agent',
+  contextType: 'prompt' | 'agent' | 'instruction',
   source: string,
   skillsDir: string,
   options: AddOptions,
@@ -260,9 +259,9 @@ export async function runAdd(args: string[], options: AddOptions = {}): Promise<
 
   // --type expands into the corresponding type-specific options.
   // For each requested type, if the user hasn't already specified explicit names
-  // via --rule/--prompt/--custom-agent/--skill, set them to ['*'] (discover all).
+  // via --prompt/--custom-agent/--skill, set them to ['*'] (discover all).
   if (options.type && options.type.length > 0) {
-    const validTypes: ContextType[] = ['skill', 'rule', 'prompt', 'agent'];
+    const validTypes: ContextType[] = ['skill', 'prompt', 'agent', 'instruction'];
     const invalidTypes = options.type.filter((t) => !validTypes.includes(t));
 
     if (invalidTypes.length > 0) {
@@ -279,14 +278,17 @@ export async function runAdd(args: string[], options: AddOptions = {}): Promise<
 
     const requestedTypes = new Set(options.type);
 
-    if (requestedTypes.has('rule') && (!options.rule || options.rule.length === 0)) {
-      options.rule = ['*'];
-    }
     if (requestedTypes.has('prompt') && (!options.prompt || options.prompt.length === 0)) {
       options.prompt = ['*'];
     }
     if (requestedTypes.has('agent') && (!options.customAgent || options.customAgent.length === 0)) {
       options.customAgent = ['*'];
+    }
+    if (
+      requestedTypes.has('instruction') &&
+      (!options.instruction || options.instruction.length === 0)
+    ) {
+      options.instruction = ['*'];
     }
     if (requestedTypes.has('skill') && (!options.skill || options.skill.length === 0)) {
       options.skill = ['*'];
@@ -355,33 +357,17 @@ export async function runAdd(args: string[], options: AddOptions = {}): Promise<
       }
     }
 
-    // ─── Rule install flow (--rule flag) ───
-    // When --rule is specified, run the dotai rule transpilation pipeline.
-    // This is separate from the skill flow and uses discovery + transpilers + collision detection.
-    if (options.rule && options.rule.length > 0) {
-      await handleContextInstall('rule', source, skillsDir, options, spinner);
-
-      // If no --skill, --prompt, or --custom-agent flag was also specified, we're done after rule install
-      if (
-        (!options.skill || options.skill.length === 0) &&
-        (!options.prompt || options.prompt.length === 0) &&
-        (!options.customAgent || options.customAgent.length === 0)
-      ) {
-        await cleanup(tempDir);
-        return;
-      }
-    }
-
     // ─── Prompt install flow (--prompt flag) ───
     // When --prompt is specified, run the dotai prompt transpilation pipeline.
     // This is separate from the skill flow and uses discovery + transpilers + collision detection.
     if (options.prompt && options.prompt.length > 0) {
       await handleContextInstall('prompt', source, skillsDir, options, spinner);
 
-      // If no --skill or --custom-agent flag was also specified, we're done after prompt install
+      // If no --skill, --custom-agent, or --instruction flag was also specified, we're done after prompt install
       if (
         (!options.skill || options.skill.length === 0) &&
-        (!options.customAgent || options.customAgent.length === 0)
+        (!options.customAgent || options.customAgent.length === 0) &&
+        (!options.instruction || options.instruction.length === 0)
       ) {
         await cleanup(tempDir);
         return;
@@ -394,7 +380,23 @@ export async function runAdd(args: string[], options: AddOptions = {}): Promise<
     if (options.customAgent && options.customAgent.length > 0) {
       await handleContextInstall('agent', source, skillsDir, options, spinner);
 
-      // If no --skill flag was also specified, we're done after agent install
+      // If no --skill or --instruction flag was also specified, we're done after agent install
+      if (
+        (!options.skill || options.skill.length === 0) &&
+        (!options.instruction || options.instruction.length === 0)
+      ) {
+        await cleanup(tempDir);
+        return;
+      }
+    }
+
+    // ─── Instruction install flow (--instruction flag) ───
+    // When --instruction is specified, run the dotai instruction transpilation pipeline.
+    // Instructions use append mode — all outputs go to project-wide files.
+    if (options.instruction && options.instruction.length > 0) {
+      await handleContextInstall('instruction', source, skillsDir, options, spinner);
+
+      // If no --skill flag was also specified, we're done after instruction install
       if (!options.skill || options.skill.length === 0) {
         await cleanup(tempDir);
         return;
@@ -406,9 +408,9 @@ export async function runAdd(args: string[], options: AddOptions = {}): Promise<
     // a unified interactive selection grouped by type.
     const hasTypeFlags =
       (options.skill && options.skill.length > 0) ||
-      (options.rule && options.rule.length > 0) ||
       (options.prompt && options.prompt.length > 0) ||
-      (options.customAgent && options.customAgent.length > 0);
+      (options.customAgent && options.customAgent.length > 0) ||
+      (options.instruction && options.instruction.length > 0);
 
     if (!hasTypeFlags) {
       spinner.start('Discovering context...');
@@ -422,15 +424,16 @@ export async function runAdd(args: string[], options: AddOptions = {}): Promise<
         }),
       ]);
 
-      const rules = fullResult.items.filter((i) => i.type === 'rule');
       const prompts = fullResult.items.filter((i) => i.type === 'prompt');
       const customAgents = fullResult.items.filter((i) => i.type === 'agent');
+      const instructions = fullResult.items.filter((i) => i.type === 'instruction');
 
-      const hasNonSkillContent = rules.length + prompts.length + customAgents.length > 0;
+      const hasNonSkillContent = prompts.length + customAgents.length + instructions.length > 0;
 
       // If non-skill content exists, present unified selection
       if (hasNonSkillContent && skills.length > 0 && !options.yes && process.stdin.isTTY) {
-        const totalItems = skills.length + rules.length + prompts.length + customAgents.length;
+        const totalItems =
+          skills.length + prompts.length + customAgents.length + instructions.length;
         spinner.stop(`Found ${pc.green(String(totalItems))} item${totalItems !== 1 ? 's' : ''}`);
 
         // Build grouped options for groupMultiselect
@@ -441,13 +444,6 @@ export async function runAdd(args: string[], options: AddOptions = {}): Promise<
             value: { name: getSkillDisplayName(s), type: 'skill' },
             label: getSkillDisplayName(s),
             hint: s.description.length > 60 ? s.description.slice(0, 57) + '...' : s.description,
-          }));
-        }
-        if (rules.length > 0) {
-          grouped[`Rules (${rules.length})`] = rules.map((r) => ({
-            value: { name: r.name, type: 'rule' },
-            label: r.name,
-            hint: r.description.length > 60 ? r.description.slice(0, 57) + '...' : r.description,
           }));
         }
         if (prompts.length > 0) {
@@ -462,6 +458,16 @@ export async function runAdd(args: string[], options: AddOptions = {}): Promise<
             value: { name: a.name, type: 'agent' },
             label: a.name,
             hint: a.description.length > 60 ? a.description.slice(0, 57) + '...' : a.description,
+          }));
+        }
+        if (instructions.length > 0) {
+          grouped[`Instructions (${instructions.length})`] = instructions.map((instr) => ({
+            value: { name: instr.name, type: 'instruction' },
+            label: instr.name,
+            hint:
+              instr.description.length > 60
+                ? instr.description.slice(0, 57) + '...'
+                : instr.description,
           }));
         }
 
@@ -481,24 +487,24 @@ export async function runAdd(args: string[], options: AddOptions = {}): Promise<
 
         // Map selections back to type-specific options
         const pickedSkills = picks.filter((p) => p.type === 'skill').map((p) => p.name);
-        const pickedRules = picks.filter((p) => p.type === 'rule').map((p) => p.name);
         const pickedPrompts = picks.filter((p) => p.type === 'prompt').map((p) => p.name);
         const pickedAgents = picks.filter((p) => p.type === 'agent').map((p) => p.name);
+        const pickedInstructions = picks.filter((p) => p.type === 'instruction').map((p) => p.name);
 
         if (pickedSkills.length > 0) options.skill = pickedSkills;
-        if (pickedRules.length > 0) options.rule = pickedRules;
         if (pickedPrompts.length > 0) options.prompt = pickedPrompts;
         if (pickedAgents.length > 0) options.customAgent = pickedAgents;
+        if (pickedInstructions.length > 0) options.instruction = pickedInstructions;
 
         // Re-run the type-specific handlers for any non-skill content
-        if (pickedRules.length > 0) {
-          await handleContextInstall('rule', source, skillsDir, options, spinner);
-        }
         if (pickedPrompts.length > 0) {
           await handleContextInstall('prompt', source, skillsDir, options, spinner);
         }
         if (pickedAgents.length > 0) {
           await handleContextInstall('agent', source, skillsDir, options, spinner);
+        }
+        if (pickedInstructions.length > 0) {
+          await handleContextInstall('instruction', source, skillsDir, options, spinner);
         }
 
         // If no skills were selected, we're done
@@ -526,7 +532,7 @@ export async function runAdd(args: string[], options: AddOptions = {}): Promise<
       }
     }
 
-    // When hasTypeFlags is true (user passed --skill, --rule, etc.), we need
+    // When hasTypeFlags is true (user passed --skill, --prompt, etc.), we need
     // to discover skills fresh. When !hasTypeFlags, unified discovery above
     // already handled non-skill content and set options.skill if skills were
     // picked. In either case, we need to discover skills here for the install flow.

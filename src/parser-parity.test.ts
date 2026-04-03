@@ -113,11 +113,11 @@ describe('--targets parity across commands', () => {
 
 describe('--type parity between list and remove', () => {
   it('should parse --type with a single value', () => {
-    const list = parseListOptions(['--type', 'rule']);
-    const { options: remove } = parseRemoveOptions(['--type', 'rule']);
+    const list = parseListOptions(['--type', 'instruction']);
+    const { options: remove } = parseRemoveOptions(['--type', 'instruction']);
 
-    expect(list.type).toEqual(['rule']);
-    expect(remove.type).toEqual(['rule']);
+    expect(list.type).toEqual(['instruction']);
+    expect(remove.type).toEqual(['instruction']);
   });
 
   it('should parse -t short flag', () => {
@@ -129,69 +129,74 @@ describe('--type parity between list and remove', () => {
   });
 
   it('should parse comma-separated type values', () => {
-    const list = parseListOptions(['--type', 'rule,prompt']);
-    const { options: remove } = parseRemoveOptions(['--type', 'rule,prompt']);
+    const list = parseListOptions(['--type', 'instruction,prompt']);
+    const { options: remove } = parseRemoveOptions(['--type', 'instruction,prompt']);
 
-    expect(list.type).toEqual(['rule', 'prompt']);
-    expect(remove.type).toEqual(['rule', 'prompt']);
+    expect(list.type).toEqual(['instruction', 'prompt']);
+    expect(remove.type).toEqual(['instruction', 'prompt']);
   });
 
   it('should parse all four types comma-separated', () => {
-    const list = parseListOptions(['-t', 'skill,rule,prompt,agent']);
-    const { options: remove } = parseRemoveOptions(['-t', 'skill,rule,prompt,agent']);
+    const list = parseListOptions(['-t', 'skill,instruction,prompt,agent']);
+    const { options: remove } = parseRemoveOptions(['-t', 'skill,instruction,prompt,agent']);
 
-    expect(list.type).toEqual(['skill', 'rule', 'prompt', 'agent']);
-    expect(remove.type).toEqual(['skill', 'rule', 'prompt', 'agent']);
+    expect(list.type).toEqual(['skill', 'instruction', 'prompt', 'agent']);
+    expect(remove.type).toEqual(['skill', 'instruction', 'prompt', 'agent']);
   });
 
   it('should normalize to lowercase', () => {
-    const list = parseListOptions(['--type', 'RULE']);
-    const { options: remove } = parseRemoveOptions(['--type', 'RULE']);
+    const list = parseListOptions(['--type', 'INSTRUCTION']);
+    const { options: remove } = parseRemoveOptions(['--type', 'INSTRUCTION']);
 
-    expect(list.type).toEqual(['rule']);
-    expect(remove.type).toEqual(['rule']);
+    expect(list.type).toEqual(['instruction']);
+    expect(remove.type).toEqual(['instruction']);
   });
 
   it('should normalize mixed-case CSV values', () => {
-    const list = parseListOptions(['--type', 'Rule,PROMPT']);
-    const { options: remove } = parseRemoveOptions(['--type', 'Rule,PROMPT']);
+    const list = parseListOptions(['--type', 'Instruction,PROMPT']);
+    const { options: remove } = parseRemoveOptions(['--type', 'Instruction,PROMPT']);
 
-    expect(list.type).toEqual(['rule', 'prompt']);
-    expect(remove.type).toEqual(['rule', 'prompt']);
+    expect(list.type).toEqual(['instruction', 'prompt']);
+    expect(remove.type).toEqual(['instruction', 'prompt']);
   });
 
   it('should deduplicate CSV values', () => {
-    const list = parseListOptions(['--type', 'rule,rule,prompt']);
-    const { options: remove } = parseRemoveOptions(['--type', 'rule,rule,prompt']);
+    const list = parseListOptions(['--type', 'instruction,instruction,prompt']);
+    const { options: remove } = parseRemoveOptions(['--type', 'instruction,instruction,prompt']);
 
-    expect(list.type).toEqual(['rule', 'prompt']);
-    expect(remove.type).toEqual(['rule', 'prompt']);
+    expect(list.type).toEqual(['instruction', 'prompt']);
+    expect(remove.type).toEqual(['instruction', 'prompt']);
   });
 
   it('should deduplicate across repeated flags', () => {
-    const list = parseListOptions(['--type', 'rule,prompt', '--type', 'rule']);
-    const { options: remove } = parseRemoveOptions(['--type', 'rule,prompt', '--type', 'rule']);
+    const list = parseListOptions(['--type', 'instruction,prompt', '--type', 'instruction']);
+    const { options: remove } = parseRemoveOptions([
+      '--type',
+      'instruction,prompt',
+      '--type',
+      'instruction',
+    ]);
 
-    expect(list.type).toEqual(['rule', 'prompt']);
-    expect(remove.type).toEqual(['rule', 'prompt']);
+    expect(list.type).toEqual(['instruction', 'prompt']);
+    expect(remove.type).toEqual(['instruction', 'prompt']);
   });
 
   it('should filter empty segments from CSV', () => {
-    const list = parseListOptions(['--type', 'rule,,prompt']);
-    const { options: remove } = parseRemoveOptions(['--type', 'rule,,prompt']);
+    const list = parseListOptions(['--type', 'instruction,,prompt']);
+    const { options: remove } = parseRemoveOptions(['--type', 'instruction,,prompt']);
 
-    expect(list.type).toEqual(['rule', 'prompt']);
-    expect(remove.type).toEqual(['rule', 'prompt']);
+    expect(list.type).toEqual(['instruction', 'prompt']);
+    expect(remove.type).toEqual(['instruction', 'prompt']);
   });
 
   it('should parse --type alongside --agent', () => {
-    const list = parseListOptions(['--type', 'rule', '-a', 'cursor']);
-    const { options: remove } = parseRemoveOptions(['--type', 'rule', '-a', 'cursor']);
+    const list = parseListOptions(['--type', 'instruction', '-a', 'cursor']);
+    const { options: remove } = parseRemoveOptions(['--type', 'instruction', '-a', 'cursor']);
 
-    expect(list.type).toEqual(['rule']);
+    expect(list.type).toEqual(['instruction']);
     expect(list.targets).toEqual(['cursor']);
 
-    expect(remove.type).toEqual(['rule']);
+    expect(remove.type).toEqual(['instruction']);
     expect(remove.targets).toEqual(['cursor']);
   });
 });
@@ -217,15 +222,15 @@ describe('--type intentional differences', () => {
   it('remove: --type consumes only one token (not greedy)', () => {
     // remove's --type consumes a single token; subsequent non-flag args are
     // treated as positional skill names
-    const { skills, options } = parseRemoveOptions(['--type', 'rule', 'my-skill']);
-    expect(options.type).toEqual(['rule']);
+    const { skills, options } = parseRemoveOptions(['--type', 'instruction', 'my-skill']);
+    expect(options.type).toEqual(['instruction']);
     expect(skills).toEqual(['my-skill']);
   });
 
   it('list: --type consumes multiple space-separated values (greedy)', () => {
     // list has no positional args, so --type can safely consume multiple values
-    const options = parseListOptions(['--type', 'rule', 'prompt']);
-    expect(options.type).toEqual(['rule', 'prompt']);
+    const options = parseListOptions(['--type', 'instruction', 'prompt']);
+    expect(options.type).toEqual(['instruction', 'prompt']);
   });
 });
 

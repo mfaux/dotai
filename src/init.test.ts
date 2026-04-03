@@ -163,40 +163,48 @@ describe('init command', () => {
     expect(existsSync(agentPath)).toBe(true);
   });
 
-  it('should initialize a rule with init rule <name>', () => {
-    const output = stripLogo(runCliOutput(['init', 'rule', 'no-console'], testDir));
-    expect(output).toContain('Initialized rule: no-console');
-    expect(output).toContain('no-console/RULES.md');
+  it('should initialize an instruction with init instruction <name>', () => {
+    const output = stripLogo(runCliOutput(['init', 'instruction', 'my-instructions'], testDir));
+    expect(output).toContain('Initialized instruction: my-instructions');
+    expect(output).toContain('my-instructions/INSTRUCTIONS.md');
 
-    const rulePath = join(testDir, 'no-console', 'RULES.md');
-    expect(existsSync(rulePath)).toBe(true);
+    const instructionPath = join(testDir, 'my-instructions', 'INSTRUCTIONS.md');
+    expect(existsSync(instructionPath)).toBe(true);
 
-    const content = readFileSync(rulePath, 'utf-8');
-    expect(content).toContain('name: no-console');
-    expect(content).toContain('description: Describe what this rule enforces');
-    expect(content).toContain('globs:');
-    expect(content).toContain('activation: always');
+    const content = readFileSync(instructionPath, 'utf-8');
+    expect(content).toContain('name: my-instructions');
+    expect(content).toContain('description: Describe what this instruction does');
+    expect(content).toContain('Your instruction content here.');
   });
 
-  it('should init RULES.md in cwd when no name provided for rule', () => {
-    const output = stripLogo(runCliOutput(['init', 'rule'], testDir));
-    expect(output).toContain('Initialized rule:');
-    expect(output).toContain('Created:\n  RULES.md');
-    expect(existsSync(join(testDir, 'RULES.md'))).toBe(true);
+  it('should init INSTRUCTIONS.md in cwd when no name provided for instruction', () => {
+    const output = stripLogo(runCliOutput(['init', 'instruction'], testDir));
+    expect(output).toContain('Initialized instruction:');
+    expect(output).toContain('Created:\n  INSTRUCTIONS.md');
+    expect(existsSync(join(testDir, 'INSTRUCTIONS.md'))).toBe(true);
   });
 
-  it('should show error if rule already exists', () => {
-    runCliOutput(['init', 'rule', 'existing-rule'], testDir);
-    const output = stripLogo(runCliOutput(['init', 'rule', 'existing-rule'], testDir));
-    expect(output).toContain('Rule already exists');
+  it('should show error if instruction already exists', () => {
+    runCliOutput(['init', 'instruction', 'existing-instruction'], testDir);
+    const output = stripLogo(
+      runCliOutput(['init', 'instruction', 'existing-instruction'], testDir)
+    );
+    expect(output).toContain('Instruction already exists');
   });
 
-  it('should support --rule flag for init', () => {
-    const output = stripLogo(runCliOutput(['init', '--rule', 'my-rule'], testDir));
-    expect(output).toContain('Initialized rule: my-rule');
+  it('should support --instruction flag for init', () => {
+    const output = stripLogo(runCliOutput(['init', '--instruction', 'my-instruction'], testDir));
+    expect(output).toContain('Initialized instruction: my-instruction');
 
-    const rulePath = join(testDir, 'my-rule', 'RULES.md');
-    expect(existsSync(rulePath)).toBe(true);
+    const instructionPath = join(testDir, 'my-instruction', 'INSTRUCTIONS.md');
+    expect(existsSync(instructionPath)).toBe(true);
+  });
+
+  it('should reject instruction names with path traversal', () => {
+    const escapeName = `escape-instruction-${Date.now()}`;
+    const output = stripLogo(runCliOutput(['init', 'instruction', `../${escapeName}`], testDir));
+    expect(output).toContain('Invalid name');
+    expect(existsSync(join(testDir, `../${escapeName}`, 'INSTRUCTIONS.md'))).toBe(false);
   });
 
   describe('name validation', () => {
@@ -236,12 +244,6 @@ describe('init command', () => {
       const output = stripLogo(runCliOutput(['init', 'agent', `../${escapeName}`], testDir));
       expect(output).toContain('Invalid name');
       expect(existsSync(join(testDir, `../${escapeName}`, 'AGENT.md'))).toBe(false);
-    });
-
-    it('should reject rule names with path traversal', () => {
-      const output = stripLogo(runCliOutput(['init', 'rule', `../${escapeName}`], testDir));
-      expect(output).toContain('Invalid name');
-      expect(existsSync(join(testDir, `../${escapeName}`, 'RULES.md'))).toBe(false);
     });
 
     it('should reject names with uppercase letters', () => {

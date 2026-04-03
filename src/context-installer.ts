@@ -7,12 +7,11 @@ import type {
   PlannedWrite,
   LockEntry,
   Collision,
-  ContextType,
 } from './types.ts';
 import type { ModelOverrides } from './model-aliases.ts';
-import { transpileRuleForAllAgents } from './rule-transpilers.ts';
 import { transpilePromptForAllAgents } from './prompt-transpilers.ts';
 import { transpileAgentForAllAgents } from './agent-transpilers.ts';
+import { transpileInstructionForAllAgents } from './instruction-transpilers.ts';
 import { checkCollisions, createPlannedWrite, filterBlockingCollisions } from './collisions.ts';
 import { upsertSection } from './append-markers.ts';
 
@@ -22,9 +21,9 @@ import { upsertSection } from './append-markers.ts';
 // Orchestrates the full dotai install flow:
 //   discover → transpile → check collisions → install
 //
-// This module handles transpiled rule, prompt, and agent outputs. Skill installation
-// uses the existing installer.ts symlink/copy semantics and is not part of
-// this pipeline.
+// This module handles transpiled prompt, agent, and instruction outputs.
+// Skill installation uses the existing installer.ts symlink/copy semantics
+// and is not part of this pipeline.
 //
 // Transactional semantics: all collision checks run before any writes.
 // On write failure, all files written so far are rolled back.
@@ -89,15 +88,15 @@ const ALL_AGENTS: readonly TargetAgent[] = [
 ] as const;
 
 /**
- * Plan transpiled outputs for discovered rule and prompt items.
+ * Plan transpiled outputs for discovered prompt, agent, and instruction items.
  *
- * Transpiles each rule/prompt item for all target agents and builds PlannedWrite
+ * Transpiles each item for all target agents and builds PlannedWrite
  * entries with resolved absolute paths and metadata.
  *
  * Skills are not transpiled — they use existing symlink/copy semantics
  * via installer.ts and are skipped here.
  */
-export function planRuleWrites(
+export function planContextWrites(
   items: DiscoveredItem[],
   options: InstallPipelineOptions
 ): { writes: PipelineWrite[]; skipped: Array<{ item: DiscoveredItem; reason: string }> } {
@@ -111,17 +110,17 @@ export function planRuleWrites(
       continue;
     }
 
-    if (item.type !== 'rule' && item.type !== 'prompt' && item.type !== 'agent') {
+    if (item.type !== 'prompt' && item.type !== 'agent' && item.type !== 'instruction') {
       skipped.push({ item, reason: `unsupported context type: ${item.type}` });
       continue;
     }
 
     const outputs =
-      item.type === 'agent'
-        ? transpileAgentForAllAgents(item, agents, options.modelOverrides)
-        : item.type === 'prompt'
-          ? transpilePromptForAllAgents(item, agents, options.modelOverrides)
-          : transpileRuleForAllAgents(item, agents, options.append);
+      item.type === 'instruction'
+        ? transpileInstructionForAllAgents(item, agents)
+        : item.type === 'agent'
+          ? transpileAgentForAllAgents(item, agents, options.modelOverrides)
+          : transpilePromptForAllAgents(item, agents, options.modelOverrides);
 
     if (outputs.length === 0) {
       skipped.push({ item, reason: 'transpilation produced no outputs' });
@@ -154,7 +153,7 @@ export function planRuleWrites(
  * Execute the full MVP install pipeline.
  *
  * Flow:
- * 1. Plan: transpile discovered rules → PlannedWrites
+ * 1. Plan: transpile discovered context → PlannedWrites
  * 2. Check: detect collisions against lock entries and filesystem
  * 3. Execute: write files to disk (or report dry-run plan)
  *
@@ -170,7 +169,7 @@ export async function executeInstallPipeline(
   const dryRun = options.dryRun ?? false;
 
   // Phase 1: Plan — transpile and build planned writes
-  const { writes, skipped } = planRuleWrites(items, options);
+  const { writes, skipped } = planContextWrites(items, options);
 
   if (writes.length === 0) {
     return {
@@ -334,13 +333,8 @@ async function rollbackWrites(paths: string[], appendSnapshots: AppendSnapshot[]
 // Internal: agent resolution from TranspiledOutput
 // ---------------------------------------------------------------------------
 
-/** Output directory prefixes for each target agent (rules + prompts + agents). */
+/** Output directory prefixes for each target agent (prompts + agents). */
 const OUTPUT_DIR_TO_AGENT: ReadonlyArray<{ prefix: string; agent: TargetAgent }> = [
-  // Rules
-  { prefix: '.github/instructions', agent: 'github-copilot' },
-  { prefix: '.claude/rules', agent: 'claude-code' },
-  { prefix: '.cursor/rules', agent: 'cursor' },
-  { prefix: '.opencode/rules', agent: 'opencode' },
   // Prompts
   { prefix: '.github/prompts', agent: 'github-copilot' },
   { prefix: '.claude/commands', agent: 'claude-code' },
@@ -356,9 +350,17 @@ const OUTPUT_DIR_TO_AGENT: ReadonlyArray<{ prefix: string; agent: TargetAgent }>
  * Append transpilers output to the project root (`outputDir: '.'`) with
  * well-known filenames like `AGENTS.md` and `CLAUDE.md`.
  */
-const APPEND_FILENAME_TO_AGENT: ReadonlyArray<{ filename: string; agent: TargetAgent }> = [
-  { filename: 'AGENTS.md', agent: 'github-copilot' },
-  { filename: 'CLAUDE.md', agent: 'claude-code' },
+const APPEND_FILENAME_TO_AGENT: ReadonlyArray<{
+  outputDir: string;
+  filename: string;
+  agent: TargetAgent;
+}> = [
+  // Instructions: Copilot → .github/copilot-instructions.md
+  { outputDir: '.github', filename: 'copilot-instructions.md', agent: 'github-copilot' },
+  // Instructions: Claude → CLAUDE.md
+  { outputDir: '.', filename: 'CLAUDE.md', agent: 'claude-code' },
+  // Instructions: Cursor + OpenCode → AGENTS.md (deduplicated by transpiler)
+  { outputDir: '.', filename: 'AGENTS.md', agent: 'cursor' },
 ];
 
 /**
@@ -370,10 +372,14 @@ function resolveAgentFromOutput(
   output: TranspiledOutput,
   agents: readonly TargetAgent[]
 ): TargetAgent | null {
-  // Check append-mode outputs first (outputDir === '.' with well-known filenames)
-  if (output.mode === 'append' && output.outputDir === '.') {
-    for (const { filename, agent } of APPEND_FILENAME_TO_AGENT) {
-      if (output.filename === filename && agents.includes(agent)) {
+  // Check append-mode outputs first (well-known dir+filename combinations)
+  if (output.mode === 'append') {
+    for (const { outputDir, filename, agent } of APPEND_FILENAME_TO_AGENT) {
+      if (
+        output.outputDir === outputDir &&
+        output.filename === filename &&
+        agents.includes(agent)
+      ) {
         return agent;
       }
     }

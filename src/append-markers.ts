@@ -1,11 +1,9 @@
 // ---------------------------------------------------------------------------
-// Marker management for append-mode rule transpilation
+// Marker management for append-mode transpilation
 //
 // Manages `<!-- dotai:<name>:start -->` / `<!-- dotai:<name>:end -->` sections
 // in markdown files (AGENTS.md, CLAUDE.md). Enables clean insert, update, and
-// remove of rule content without touching user-authored content.
-//
-// Reference: prd-rule-append-fallback.md Task 1
+// remove of content without touching user-authored content.
 // ---------------------------------------------------------------------------
 
 /**

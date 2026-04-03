@@ -1,10 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
+import { writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import {
   createTempProject,
   cleanupProject,
-  makeRuleContent,
   makePromptContent,
   makeAgentContent,
   writeCanonicalFile,
@@ -14,22 +13,20 @@ import {
   assertLockEntry,
   assertLockEntryCount,
   assertNoLockEntry,
-  ALL_AGENTS,
   PROMPT_AGENTS,
   AGENT_AGENTS,
 } from './e2e-utils.ts';
-import { addRules, addPrompts, addAgents } from '../src/rule-add.ts';
+import { addPrompts, addAgents } from '../src/context-add.ts';
 import { removeCommand } from '../src/remove.ts';
-import { checkRuleUpdates, updateRules } from '../src/rule-check.ts';
-import { runList } from '../src/list.ts';
+import { checkContextUpdates, updateContext } from '../src/context-check.ts';
 import { runCli } from '../src/test-utils.ts';
 
 // ---------------------------------------------------------------------------
 // E2E CLI Matrix Tests
 //
-// Focused matrix suite exercising high-value four-type CLI scenarios at the
-// command entrypoint level. Covers:
-//   1. add with --rule, --prompt, --custom-agent, and mixed --type
+// Focused matrix suite exercising high-value CLI scenarios at the command
+// entrypoint level. Covers:
+//   1. add with --prompt, --custom-agent, and mixed --type
 //   2. remove --type for non-skill contexts
 //   3. list default + --type agent behavior
 //   4. check/update messaging for non-skill lock entries
@@ -40,7 +37,7 @@ import { runCli } from '../src/test-utils.ts';
 // subprocess calls (for routing/output assertions).
 // ---------------------------------------------------------------------------
 
-describe('E2E CLI matrix: four-type flows', () => {
+describe('E2E CLI matrix: multi-type flows', () => {
   let projectRoot: string;
   let sourceRepo: string;
   let oldCwd: string;
@@ -58,18 +55,11 @@ describe('E2E CLI matrix: four-type flows', () => {
   });
 
   // -------------------------------------------------------------------------
-  // 1. add with --rule, --prompt, --custom-agent
+  // 1. add with --prompt, --custom-agent
   // -------------------------------------------------------------------------
 
   describe('add with individual type flags', () => {
-    it('--rule installs only rules from a source with mixed types', async () => {
-      // Source has rules, prompts, and agents
-      writeCanonicalFile(
-        sourceRepo,
-        'rule',
-        'style-guide',
-        makeRuleContent('style-guide', { body: 'Follow the style guide.' })
-      );
+    it('--prompt installs only prompts from a source with mixed types', async () => {
       writeCanonicalFile(
         sourceRepo,
         'prompt',
@@ -81,41 +71,6 @@ describe('E2E CLI matrix: four-type flows', () => {
         'agent',
         'helper',
         makeAgentContent('helper', { body: 'I help with code.' })
-      );
-
-      // Install only rules
-      const result = await addRules({
-        source: 'team/shared-context',
-        sourcePath: sourceRepo,
-        projectRoot,
-        ruleNames: ['*'],
-      });
-
-      expect(result.success).toBe(true);
-      expect(result.rulesInstalled).toBe(1);
-
-      // Rule files exist for all 6 agents
-      for (const agent of ALL_AGENTS) {
-        assertFileExists(getExpectedOutputPath(projectRoot, agent, 'rule', 'style-guide'));
-      }
-
-      // No prompts or agents installed
-      await assertLockEntryCount(projectRoot, 1);
-      await assertLockEntry(projectRoot, 'rule', 'style-guide');
-    });
-
-    it('--prompt installs only prompts from a source with mixed types', async () => {
-      writeCanonicalFile(
-        sourceRepo,
-        'rule',
-        'style-guide',
-        makeRuleContent('style-guide', { body: 'Follow the style guide.' })
-      );
-      writeCanonicalFile(
-        sourceRepo,
-        'prompt',
-        'review',
-        makePromptContent('review', { body: 'Review the code.' })
       );
 
       // Install only prompts
@@ -134,7 +89,7 @@ describe('E2E CLI matrix: four-type flows', () => {
         assertFileExists(getExpectedOutputPath(projectRoot, agent, 'prompt', 'review'));
       }
 
-      // Only prompt in lock, no rules
+      // Only prompt in lock, no agents
       await assertLockEntryCount(projectRoot, 1);
       await assertLockEntry(projectRoot, 'prompt', 'review');
     });
@@ -142,9 +97,9 @@ describe('E2E CLI matrix: four-type flows', () => {
     it('--custom-agent installs only agents from a source with mixed types', async () => {
       writeCanonicalFile(
         sourceRepo,
-        'rule',
-        'style-guide',
-        makeRuleContent('style-guide', { body: 'Follow the style guide.' })
+        'prompt',
+        'review',
+        makePromptContent('review', { body: 'Review the code.' })
       );
       writeCanonicalFile(
         sourceRepo,
@@ -172,7 +127,7 @@ describe('E2E CLI matrix: four-type flows', () => {
         assertFileExists(getExpectedOutputPath(projectRoot, agent, 'agent', 'reviewer'));
       }
 
-      // Only agent in lock, no rules
+      // Only agent in lock, no prompts
       await assertLockEntryCount(projectRoot, 1);
       await assertLockEntry(projectRoot, 'agent', 'reviewer');
     });
@@ -183,13 +138,7 @@ describe('E2E CLI matrix: four-type flows', () => {
   // -------------------------------------------------------------------------
 
   describe('add with mixed types', () => {
-    it('installs rules and prompts from the same source in sequence', async () => {
-      writeCanonicalFile(
-        sourceRepo,
-        'rule',
-        'code-style',
-        makeRuleContent('code-style', { body: 'Consistent code style.' })
-      );
+    it('installs prompts and agents from the same source in sequence', async () => {
       writeCanonicalFile(
         sourceRepo,
         'prompt',
@@ -203,15 +152,7 @@ describe('E2E CLI matrix: four-type flows', () => {
         makeAgentContent('architect', { body: 'Architecture planning.' })
       );
 
-      // Simulate --type rule,prompt by running both flows
-      const ruleResult = await addRules({
-        source: 'team/context',
-        sourcePath: sourceRepo,
-        projectRoot,
-        ruleNames: ['*'],
-      });
-      expect(ruleResult.success).toBe(true);
-
+      // Simulate --type prompt,agent by running both flows
       const promptResult = await addPrompts({
         source: 'team/context',
         sourcePath: sourceRepo,
@@ -220,24 +161,21 @@ describe('E2E CLI matrix: four-type flows', () => {
       });
       expect(promptResult.success).toBe(true);
 
-      // Rule + prompt installed, agent NOT installed
-      await assertLockEntryCount(projectRoot, 2);
-      await assertLockEntry(projectRoot, 'rule', 'code-style');
-      await assertLockEntry(projectRoot, 'prompt', 'explain');
+      const agentResult = await addAgents({
+        source: 'team/context',
+        sourcePath: sourceRepo,
+        projectRoot,
+        agentNames: ['*'],
+      });
+      expect(agentResult.success).toBe(true);
 
-      // Agent files should NOT exist
-      for (const agent of AGENT_AGENTS) {
-        assertFileNotExists(getExpectedOutputPath(projectRoot, agent, 'agent', 'architect'));
-      }
+      // Prompt + agent installed
+      await assertLockEntryCount(projectRoot, 2);
+      await assertLockEntry(projectRoot, 'prompt', 'explain');
+      await assertLockEntry(projectRoot, 'agent', 'architect');
     });
 
-    it('installs all three types from the same source', async () => {
-      writeCanonicalFile(
-        sourceRepo,
-        'rule',
-        'lint',
-        makeRuleContent('lint', { body: 'Lint all files.' })
-      );
+    it('installs both prompts and agents from the same source', async () => {
       writeCanonicalFile(
         sourceRepo,
         'prompt',
@@ -251,13 +189,7 @@ describe('E2E CLI matrix: four-type flows', () => {
         makeAgentContent('tester', { body: 'You write and run tests.' })
       );
 
-      // Install all three types
-      const ruleResult = await addRules({
-        source: 'team/full',
-        sourcePath: sourceRepo,
-        projectRoot,
-        ruleNames: ['*'],
-      });
+      // Install both types
       const promptResult = await addPrompts({
         source: 'team/full',
         sourcePath: sourceRepo,
@@ -271,19 +203,14 @@ describe('E2E CLI matrix: four-type flows', () => {
         agentNames: ['*'],
       });
 
-      expect(ruleResult.success).toBe(true);
       expect(promptResult.success).toBe(true);
       expect(agentResult.success).toBe(true);
 
-      await assertLockEntryCount(projectRoot, 3);
-      await assertLockEntry(projectRoot, 'rule', 'lint');
+      await assertLockEntryCount(projectRoot, 2);
       await assertLockEntry(projectRoot, 'prompt', 'debug');
       await assertLockEntry(projectRoot, 'agent', 'tester');
 
       // Verify output files exist for each type's supported agents
-      for (const agent of ALL_AGENTS) {
-        assertFileExists(getExpectedOutputPath(projectRoot, agent, 'rule', 'lint'));
-      }
       for (const agent of PROMPT_AGENTS) {
         assertFileExists(getExpectedOutputPath(projectRoot, agent, 'prompt', 'debug'));
       }
@@ -346,70 +273,12 @@ describe('E2E CLI matrix: four-type flows', () => {
       }
     });
 
-    it('--type rule only removes rules, leaving prompts and agents intact', async () => {
-      // Install all three types
-      writeCanonicalFile(
-        sourceRepo,
-        'rule',
-        'shared',
-        makeRuleContent('shared', { body: 'Shared rule.' })
-      );
+    it('--all --type agent removes all agents but keeps prompts intact', async () => {
       writeCanonicalFile(
         sourceRepo,
         'prompt',
-        'shared',
-        makePromptContent('shared', { body: 'Shared prompt.' })
-      );
-      writeCanonicalFile(
-        sourceRepo,
-        'agent',
-        'shared',
-        makeAgentContent('shared', { body: 'Shared agent.' })
-      );
-
-      await addRules({
-        source: 'team/ctx',
-        sourcePath: sourceRepo,
-        projectRoot,
-        ruleNames: ['*'],
-      });
-      await addPrompts({
-        source: 'team/ctx',
-        sourcePath: sourceRepo,
-        projectRoot,
-        promptNames: ['*'],
-      });
-      await addAgents({
-        source: 'team/ctx',
-        sourcePath: sourceRepo,
-        projectRoot,
-        agentNames: ['*'],
-      });
-
-      await assertLockEntryCount(projectRoot, 3);
-
-      // Remove only rules named "shared"
-      process.chdir(projectRoot);
-      await removeCommand(['shared'], { type: ['rule'], yes: true });
-
-      // Rule gone
-      await assertNoLockEntry(projectRoot, 'rule', 'shared');
-      for (const agent of ALL_AGENTS) {
-        assertFileNotExists(getExpectedOutputPath(projectRoot, agent, 'rule', 'shared'));
-      }
-
-      // Prompt and agent still present
-      await assertLockEntry(projectRoot, 'prompt', 'shared');
-      await assertLockEntry(projectRoot, 'agent', 'shared');
-      await assertLockEntryCount(projectRoot, 2);
-    });
-
-    it('--all --type agent removes all agents but keeps rules and prompts', async () => {
-      writeCanonicalFile(
-        sourceRepo,
-        'rule',
-        'my-rule',
-        makeRuleContent('my-rule', { body: 'Rule body.' })
+        'my-prompt',
+        makePromptContent('my-prompt', { body: 'Prompt body.' })
       );
       writeCanonicalFile(
         sourceRepo,
@@ -424,11 +293,11 @@ describe('E2E CLI matrix: four-type flows', () => {
         makeAgentContent('agent-b', { body: 'Agent B.' })
       );
 
-      await addRules({
+      await addPrompts({
         source: 'team/ctx',
         sourcePath: sourceRepo,
         projectRoot,
-        ruleNames: ['*'],
+        promptNames: ['*'],
       });
       await addAgents({
         source: 'team/ctx',
@@ -446,8 +315,8 @@ describe('E2E CLI matrix: four-type flows', () => {
       await assertNoLockEntry(projectRoot, 'agent', 'agent-a');
       await assertNoLockEntry(projectRoot, 'agent', 'agent-b');
 
-      // Rule still present
-      await assertLockEntry(projectRoot, 'rule', 'my-rule');
+      // Prompt still present
+      await assertLockEntry(projectRoot, 'prompt', 'my-prompt');
       await assertLockEntryCount(projectRoot, 1);
     });
   });
@@ -481,7 +350,6 @@ describe('E2E CLI matrix: four-type flows', () => {
       const result = runCli(['list', '--type', 'agent'], projectRoot);
       expect(result.stdout).toContain('my-agent');
       expect(result.stdout).toContain('Agents');
-      expect(result.stdout).not.toContain('Rules');
       expect(result.stdout).not.toContain('Prompts');
       expect(result.stdout).not.toContain('Skills');
       expect(result.exitCode).toBe(0);
@@ -493,7 +361,7 @@ describe('E2E CLI matrix: four-type flows', () => {
       expect(result.exitCode).toBe(0);
     });
 
-    it('list shows all four types by default when all are present', () => {
+    it('list shows all types by default when all are present', () => {
       // Create a skill
       const skillDir = join(projectRoot, '.agents', 'skills', 'my-skill');
       mkdirSync(skillDir, { recursive: true });
@@ -507,22 +375,12 @@ description: A test skill
 `
       );
 
-      // Create lock with rule, prompt, and agent
+      // Create lock with prompt and agent
       writeFileSync(
         join(projectRoot, '.dotai-lock.json'),
         JSON.stringify({
           version: 1,
           items: [
-            {
-              type: 'rule',
-              name: 'my-rule',
-              source: 'team/repo',
-              format: 'canonical',
-              agents: ['cursor'],
-              hash: 'aaa',
-              installedAt: '2025-01-01T00:00:00.000Z',
-              outputs: [],
-            },
             {
               type: 'prompt',
               name: 'my-prompt',
@@ -550,8 +408,6 @@ description: A test skill
       const result = runCli(['list'], projectRoot);
       expect(result.stdout).toContain('Skills');
       expect(result.stdout).toContain('my-skill');
-      expect(result.stdout).toContain('Rules');
-      expect(result.stdout).toContain('my-rule');
       expect(result.stdout).toContain('Prompts');
       expect(result.stdout).toContain('my-prompt');
       expect(result.stdout).toContain('Agents');
@@ -601,9 +457,8 @@ description: A test skill
   // -------------------------------------------------------------------------
 
   describe('check/update for non-skill context', () => {
-    it('check detects updates across all three non-skill types', async () => {
-      // Install rule, prompt, and agent
-      writeCanonicalFile(sourceRepo, 'rule', 'lint', makeRuleContent('lint', { body: 'Lint v1.' }));
+    it('check detects updates across both non-skill types', async () => {
+      // Install prompt and agent
       writeCanonicalFile(
         sourceRepo,
         'prompt',
@@ -617,12 +472,6 @@ description: A test skill
         makeAgentContent('helper', { body: 'Helper v1.' })
       );
 
-      await addRules({
-        source: sourceRepo,
-        sourcePath: sourceRepo,
-        projectRoot,
-        ruleNames: ['*'],
-      });
       await addPrompts({
         source: sourceRepo,
         sourcePath: sourceRepo,
@@ -636,10 +485,9 @@ description: A test skill
         agentNames: ['*'],
       });
 
-      await assertLockEntryCount(projectRoot, 3);
+      await assertLockEntryCount(projectRoot, 2);
 
-      // Modify all three
-      writeCanonicalFile(sourceRepo, 'rule', 'lint', makeRuleContent('lint', { body: 'Lint v2.' }));
+      // Modify both
       writeCanonicalFile(
         sourceRepo,
         'prompt',
@@ -653,18 +501,17 @@ description: A test skill
         makeAgentContent('helper', { body: 'Helper v2.' })
       );
 
-      // Check detects all 3
-      const checkResult = await checkRuleUpdates(projectRoot);
-      expect(checkResult.totalChecked).toBe(3);
-      expect(checkResult.updates).toHaveLength(3);
+      // Check detects both
+      const checkResult = await checkContextUpdates(projectRoot);
+      expect(checkResult.totalChecked).toBe(2);
+      expect(checkResult.updates).toHaveLength(2);
       expect(checkResult.errors).toHaveLength(0);
 
       const types = checkResult.updates.map((u) => u.entry.type).sort();
-      expect(types).toEqual(['agent', 'prompt', 'rule']);
+      expect(types).toEqual(['agent', 'prompt']);
     });
 
-    it('update applies changes to all three non-skill types', async () => {
-      writeCanonicalFile(sourceRepo, 'rule', 'lint', makeRuleContent('lint', { body: 'Lint v1.' }));
+    it('update applies changes to both non-skill types', async () => {
       writeCanonicalFile(
         sourceRepo,
         'prompt',
@@ -678,12 +525,6 @@ description: A test skill
         makeAgentContent('helper', { body: 'Helper v1.' })
       );
 
-      await addRules({
-        source: sourceRepo,
-        sourcePath: sourceRepo,
-        projectRoot,
-        ruleNames: ['*'],
-      });
       await addPrompts({
         source: sourceRepo,
         sourcePath: sourceRepo,
@@ -698,12 +539,10 @@ description: A test skill
       });
 
       // Save initial hashes
-      const initialRule = await assertLockEntry(projectRoot, 'rule', 'lint');
       const initialPrompt = await assertLockEntry(projectRoot, 'prompt', 'review');
       const initialAgent = await assertLockEntry(projectRoot, 'agent', 'helper');
 
-      // Modify all three
-      writeCanonicalFile(sourceRepo, 'rule', 'lint', makeRuleContent('lint', { body: 'Lint v2.' }));
+      // Modify both
       writeCanonicalFile(
         sourceRepo,
         'prompt',
@@ -718,24 +557,19 @@ description: A test skill
       );
 
       // Update all
-      const updateResult = await updateRules(projectRoot);
-      expect(updateResult.totalChecked).toBe(3);
-      expect(updateResult.successCount).toBe(3);
+      const updateResult = await updateContext(projectRoot);
+      expect(updateResult.totalChecked).toBe(2);
+      expect(updateResult.successCount).toBe(2);
       expect(updateResult.failCount).toBe(0);
 
       // Verify hashes changed
-      const updatedRule = await assertLockEntry(projectRoot, 'rule', 'lint');
       const updatedPrompt = await assertLockEntry(projectRoot, 'prompt', 'review');
       const updatedAgent = await assertLockEntry(projectRoot, 'agent', 'helper');
 
-      expect(updatedRule.hash).not.toBe(initialRule.hash);
       expect(updatedPrompt.hash).not.toBe(initialPrompt.hash);
       expect(updatedAgent.hash).not.toBe(initialAgent.hash);
 
       // Verify output content updated
-      for (const agent of ALL_AGENTS) {
-        assertFileExists(getExpectedOutputPath(projectRoot, agent, 'rule', 'lint'), 'Lint v2.');
-      }
       for (const agent of PROMPT_AGENTS) {
         assertFileExists(
           getExpectedOutputPath(projectRoot, agent, 'prompt', 'review'),
@@ -765,7 +599,7 @@ description: A test skill
         agentNames: ['*'],
       });
 
-      const checkResult = await checkRuleUpdates(projectRoot);
+      const checkResult = await checkContextUpdates(projectRoot);
       expect(checkResult.totalChecked).toBe(1);
       expect(checkResult.updates).toHaveLength(0);
       expect(checkResult.errors).toHaveLength(0);
@@ -808,45 +642,43 @@ description: A test skill
   // -------------------------------------------------------------------------
 
   describe('onboarding: shared command installs expected context', () => {
-    it('team-shared rule install produces correct output files and lock', async () => {
-      // Scenario: A developer shares "dotai add team/rules --rule code-style -y"
+    it('team-shared prompt install produces correct output files and lock', async () => {
+      // Scenario: A developer shares "dotai add team/prompts --prompt code-style -y"
       // We simulate this at the pipeline level (deterministic, no network).
 
-      // 1. Source repo has a rule that a teammate created
+      // 1. Source repo has a prompt that a teammate created
       writeCanonicalFile(
         sourceRepo,
-        'rule',
+        'prompt',
         'code-style',
-        makeRuleContent('code-style', {
+        makePromptContent('code-style', {
           description: 'Team code style guidelines',
-          activation: 'always',
           body: 'Use 2-space indentation. Prefer const over let.',
         })
       );
 
       // 2. New developer runs the shared command (simulated via pipeline)
-      const result = await addRules({
-        source: 'team/shared-rules',
+      const result = await addPrompts({
+        source: 'team/shared-prompts',
         sourcePath: sourceRepo,
         projectRoot,
-        ruleNames: ['code-style'],
+        promptNames: ['code-style'],
       });
 
       // 3. Verify: install succeeded
       expect(result.success).toBe(true);
-      expect(result.rulesInstalled).toBe(1);
+      expect(result.promptsInstalled).toBe(1);
 
-      // 4. Verify: output files exist for all 6 target agents
-      for (const agent of ALL_AGENTS) {
-        const outputPath = getExpectedOutputPath(projectRoot, agent, 'rule', 'code-style');
+      // 4. Verify: output files exist for supported agents
+      for (const agent of PROMPT_AGENTS) {
+        const outputPath = getExpectedOutputPath(projectRoot, agent, 'prompt', 'code-style');
         assertFileExists(outputPath, 'Use 2-space indentation');
       }
 
       // 5. Verify: lock file is correct
-      const lockEntry = await assertLockEntry(projectRoot, 'rule', 'code-style', {
-        source: 'team/shared-rules',
+      const lockEntry = await assertLockEntry(projectRoot, 'prompt', 'code-style', {
+        source: 'team/shared-prompts',
         format: 'canonical',
-        outputCount: 4,
       });
       expect(lockEntry.hash).toMatch(/^[a-f0-9]{64}$/);
       await assertLockEntryCount(projectRoot, 1);
@@ -921,62 +753,62 @@ description: A test skill
     it('full onboarding: install → list → update → remove lifecycle', async () => {
       // Complete lifecycle test
 
-      // 1. Install a rule
+      // 1. Install a prompt
       writeCanonicalFile(
         sourceRepo,
-        'rule',
+        'prompt',
         'testing',
-        makeRuleContent('testing', {
+        makePromptContent('testing', {
           description: 'Testing guidelines',
           body: 'Write tests first. v1.',
         })
       );
 
-      const installResult = await addRules({
+      const installResult = await addPrompts({
         source: sourceRepo,
         sourcePath: sourceRepo,
         projectRoot,
-        ruleNames: ['*'],
+        promptNames: ['*'],
       });
       expect(installResult.success).toBe(true);
 
-      // 2. List shows the rule
-      const listResult = runCli(['list', '--type', 'rule'], projectRoot);
+      // 2. List shows the prompt
+      const listResult = runCli(['list', '--type', 'prompt'], projectRoot);
       expect(listResult.stdout).toContain('testing');
-      expect(listResult.stdout).toContain('Rules');
+      expect(listResult.stdout).toContain('Prompts');
 
       // 3. Modify source → check detects update
       writeCanonicalFile(
         sourceRepo,
-        'rule',
+        'prompt',
         'testing',
-        makeRuleContent('testing', {
+        makePromptContent('testing', {
           description: 'Testing guidelines',
           body: 'Write tests first. Always. v2.',
         })
       );
 
-      const checkResult = await checkRuleUpdates(projectRoot);
+      const checkResult = await checkContextUpdates(projectRoot);
       expect(checkResult.updates).toHaveLength(1);
       expect(checkResult.updates[0]!.entry.name).toBe('testing');
 
       // 4. Update applies the change
-      const updateResult = await updateRules(projectRoot);
+      const updateResult = await updateContext(projectRoot);
       expect(updateResult.successCount).toBe(1);
 
-      for (const agent of ALL_AGENTS) {
-        assertFileExists(getExpectedOutputPath(projectRoot, agent, 'rule', 'testing'), 'v2.');
+      for (const agent of PROMPT_AGENTS) {
+        assertFileExists(getExpectedOutputPath(projectRoot, agent, 'prompt', 'testing'), 'v2.');
       }
 
       // 5. Remove cleans up
       process.chdir(projectRoot);
-      await removeCommand(['testing'], { type: ['rule'], yes: true });
+      await removeCommand(['testing'], { type: ['prompt'], yes: true });
 
-      await assertNoLockEntry(projectRoot, 'rule', 'testing');
+      await assertNoLockEntry(projectRoot, 'prompt', 'testing');
       await assertLockEntryCount(projectRoot, 0);
 
-      for (const agent of ALL_AGENTS) {
-        assertFileNotExists(getExpectedOutputPath(projectRoot, agent, 'rule', 'testing'));
+      for (const agent of PROMPT_AGENTS) {
+        assertFileNotExists(getExpectedOutputPath(projectRoot, agent, 'prompt', 'testing'));
       }
     });
   });
@@ -985,11 +817,10 @@ description: A test skill
   // 8. CLI help and messaging consistency
   // -------------------------------------------------------------------------
 
-  describe('CLI help reflects four-type support', () => {
-    it('add --help mentions all four content types', () => {
+  describe('CLI help reflects type support', () => {
+    it('add --help mentions supported content types', () => {
       const result = runCli(['add', '--help']);
       expect(result.stdout).toContain('skill');
-      expect(result.stdout).toContain('rule');
       expect(result.stdout).toContain('prompt');
       expect(result.stdout).toContain('agent');
     });
@@ -997,7 +828,9 @@ description: A test skill
     it('remove --help mentions --type option', () => {
       const result = runCli(['remove', '--help']);
       expect(result.stdout).toContain('--type');
-      expect(result.stdout).toContain('skill, rule, prompt, agent');
+      expect(result.stdout).toContain('skill');
+      expect(result.stdout).toContain('prompt');
+      expect(result.stdout).toContain('agent');
     });
 
     it('remove --help shows --type in options', () => {

@@ -1,6 +1,6 @@
 import { writeFileSync, existsSync, mkdirSync } from 'fs';
 import { basename, join } from 'path';
-import { RESET, DIM, TEXT } from './utils.ts';
+import { RESET, DIM, TEXT, BOLD, YELLOW } from './utils.ts';
 import { KEBAB_CASE_PATTERN } from './validation.ts';
 
 // ---------------------------------------------------------------------------
@@ -8,9 +8,9 @@ import { KEBAB_CASE_PATTERN } from './validation.ts';
 // ---------------------------------------------------------------------------
 
 interface TemplateConfig {
-  /** The markdown filename (e.g. "RULES.md") */
+  /** The markdown filename (e.g. "INSTRUCTIONS.md") */
   file: string;
-  /** Human-readable noun (e.g. "rule") */
+  /** Human-readable noun (e.g. "instruction") */
   noun: string;
   /** Generate the template content given the name */
   generateContent: (name: string) => string;
@@ -24,27 +24,6 @@ interface TemplateConfig {
 }
 
 const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
-  rule: {
-    file: 'RULES.md',
-    noun: 'rule',
-    generateContent: (name: string) => `---
-name: ${name}
-description: Describe what this rule enforces
-globs:
-  - '*.ts'
-  - '*.tsx'
-activation: always
----
-
-Your rule instructions here.
-`,
-    extraNextSteps: [
-      `  3. Keep body content agent-agnostic ${DIM}(it is passed verbatim to all target agents)${RESET}`,
-    ],
-    installSection: (name: string) =>
-      `${DIM}Installing:${RESET}\n  ${DIM}From repo:${RESET}  ${TEXT}npx dotai add <owner>/<repo> --rule ${name}${RESET}`,
-  },
-
   prompt: {
     file: 'PROMPT.md',
     noun: 'prompt',
@@ -82,6 +61,23 @@ Provide instructions for the agent here.
     ],
     installSection: (name: string) =>
       `${DIM}Installing:${RESET}\n  ${DIM}From repo:${RESET}  ${TEXT}npx dotai add <owner>/<repo> --custom-agent ${name}${RESET}`,
+  },
+
+  instruction: {
+    file: 'INSTRUCTIONS.md',
+    noun: 'instruction',
+    generateContent: (name: string) => `---
+name: ${name}
+description: Describe what this instruction does
+---
+
+Your instruction content here.
+`,
+    extraNextSteps: [
+      `  3. Keep body content agent-agnostic ${DIM}(it is passed verbatim to all target agents)${RESET}`,
+    ],
+    installSection: (name: string) =>
+      `${DIM}Installing:${RESET}\n  ${DIM}From repo:${RESET}  ${TEXT}npx dotai add <owner>/<repo> --instruction ${name}${RESET}`,
   },
 
   skill: {
@@ -145,7 +141,7 @@ function initTemplate(config: TemplateConfig, name: string, hasName: boolean, cw
   const displayPath = hasName ? `${name}/${config.file}` : config.file;
 
   if (existsSync(filePath)) {
-    // Capitalize the noun for display: "rule" → "Rule"
+    // Capitalize the noun for display: "instruction" → "Instruction"
     const label = config.noun.charAt(0).toUpperCase() + config.noun.slice(1);
     console.log(`${TEXT}${label} already exists at ${DIM}${displayPath}${RESET}`);
     return;
@@ -185,13 +181,12 @@ export function runInit(args: string[]): void {
   // Determine which template type to create
   const typeArg = args[0];
 
-  // Rule template
+  // Rule template — removed, show deprecation error
   if (typeArg === 'rule' || typeArg === '--rule') {
-    const config = TEMPLATE_CONFIGS['rule']!;
-    const name = args[1] || basename(cwd);
-    const hasName = args[1] !== undefined;
-    initTemplate(config, name, hasName, cwd);
-    return;
+    console.log(
+      `${YELLOW}The rule template has been removed.${RESET} Use ${BOLD}dotai init instruction${RESET} instead.\nSee ${TEXT}https://github.com/mfaux/dotai/issues/17${RESET} for details.`
+    );
+    process.exit(1);
   }
 
   // Prompt template
@@ -206,6 +201,15 @@ export function runInit(args: string[]): void {
   // Agent template
   if (typeArg === 'agent' || typeArg === '--agent') {
     const config = TEMPLATE_CONFIGS['agent']!;
+    const name = args[1] || basename(cwd);
+    const hasName = args[1] !== undefined;
+    initTemplate(config, name, hasName, cwd);
+    return;
+  }
+
+  // Instruction template
+  if (typeArg === 'instruction' || typeArg === '--instruction') {
+    const config = TEMPLATE_CONFIGS['instruction']!;
     const name = args[1] || basename(cwd);
     const hasName = args[1] !== undefined;
     initTemplate(config, name, hasName, cwd);

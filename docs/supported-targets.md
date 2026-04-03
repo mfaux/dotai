@@ -2,7 +2,7 @@
 
 dotai installs `SKILL.md` files into the config directories of its supported targets. **GitHub Copilot**, **Claude Code**, **Codex**, **Cursor**, and **OpenCode** are actively tested.
 
-Rules, prompts, and agent definitions use [transpilation targets](../README.md#supported-targets) (Copilot, Claude Code, Cursor, OpenCode).
+Instructions, prompts, and agent definitions use [transpilation targets](../README.md#supported-targets) (Copilot, Claude Code, Cursor, OpenCode).
 
 <details>
 <summary>Full target table</summary>

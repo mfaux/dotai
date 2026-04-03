@@ -3,9 +3,9 @@ import type { ContextType } from './types.ts';
 /** Valid context types accepted by --type flags. */
 export const VALID_CONTEXT_TYPES: readonly ContextType[] = [
   'skill',
-  'rule',
   'prompt',
   'agent',
+  'instruction',
 ] as const;
 
 /**

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { extractOverrides, mergeOverrides } from './override-parser.ts';
-import type { CanonicalRule, TargetAgent } from './types.ts';
+import type { CanonicalPrompt, TargetAgent } from './types.ts';
 
 // ---------------------------------------------------------------------------
 // extractOverrides
@@ -126,14 +126,13 @@ describe('extractOverrides', () => {
 // ---------------------------------------------------------------------------
 
 describe('mergeOverrides', () => {
-  function makeRule(
-    overrides?: Partial<Record<TargetAgent, Partial<CanonicalRule>>>
-  ): CanonicalRule {
+  function makePrompt(
+    overrides?: Partial<Record<TargetAgent, Partial<CanonicalPrompt>>>
+  ): CanonicalPrompt {
     return {
-      name: 'code-style',
+      name: 'review-code',
       description: 'Base description',
-      globs: ['*.ts'],
-      activation: 'auto',
+      tools: ['search'],
       schemaVersion: 1,
       body: 'Body text',
       overrides,
@@ -141,14 +140,13 @@ describe('mergeOverrides', () => {
   }
 
   it('returns base fields unchanged when no overrides exist', () => {
-    const rule = makeRule();
-    const merged = mergeOverrides(rule, 'github-copilot');
+    const prompt = makePrompt();
+    const merged = mergeOverrides(prompt, 'github-copilot');
 
     expect(merged).toEqual({
-      name: 'code-style',
+      name: 'review-code',
       description: 'Base description',
-      globs: ['*.ts'],
-      activation: 'auto',
+      tools: ['search'],
       schemaVersion: 1,
       body: 'Body text',
     });
@@ -156,42 +154,42 @@ describe('mergeOverrides', () => {
   });
 
   it('returns base fields when target agent has no override', () => {
-    const rule = makeRule({
-      cursor: { activation: 'always' },
+    const prompt = makePrompt({
+      cursor: { description: 'Cursor-specific' },
     });
-    const merged = mergeOverrides(rule, 'github-copilot');
+    const merged = mergeOverrides(prompt, 'github-copilot');
 
-    expect(merged.activation).toBe('auto');
-    expect('overrides' in merged).toBe(false);
-  });
-
-  it('merges override fields for matching target agent', () => {
-    const rule = makeRule({
-      'github-copilot': { activation: 'always' },
-    });
-    const merged = mergeOverrides(rule, 'github-copilot');
-
-    expect(merged.activation).toBe('always');
     expect(merged.description).toBe('Base description');
     expect('overrides' in merged).toBe(false);
   });
 
-  it('merges multiple override fields', () => {
-    const rule = makeRule({
-      'claude-code': { severity: 'error', description: 'Claude-specific' },
+  it('merges override fields for matching target agent', () => {
+    const prompt = makePrompt({
+      'github-copilot': { description: 'Copilot-specific' },
     });
-    const merged = mergeOverrides(rule, 'claude-code');
+    const merged = mergeOverrides(prompt, 'github-copilot');
 
-    expect(merged.severity).toBe('error');
+    expect(merged.description).toBe('Copilot-specific');
+    expect(merged.name).toBe('review-code');
+    expect('overrides' in merged).toBe(false);
+  });
+
+  it('merges multiple override fields', () => {
+    const prompt = makePrompt({
+      'claude-code': { agent: 'plan', description: 'Claude-specific' },
+    });
+    const merged = mergeOverrides(prompt, 'claude-code');
+
+    expect(merged.agent).toBe('plan');
     expect(merged.description).toBe('Claude-specific');
-    expect(merged.activation).toBe('auto');
+    expect(merged.tools).toEqual(['search']);
   });
 
   it('strips overrides field from result', () => {
-    const rule = makeRule({
-      'github-copilot': { activation: 'always' },
+    const prompt = makePrompt({
+      'github-copilot': { description: 'Copilot-specific' },
     });
-    const merged = mergeOverrides(rule, 'github-copilot');
+    const merged = mergeOverrides(prompt, 'github-copilot');
 
     expect('overrides' in merged).toBe(false);
   });

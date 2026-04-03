@@ -89,7 +89,7 @@ describe('consumeMultiValues', () => {
 
 describe('VALID_CONTEXT_TYPES', () => {
   it('should contain all four context types', () => {
-    expect(VALID_CONTEXT_TYPES).toEqual(['skill', 'rule', 'prompt', 'agent']);
+    expect(VALID_CONTEXT_TYPES).toEqual(['skill', 'prompt', 'agent', 'instruction']);
   });
 });
 
@@ -99,50 +99,50 @@ describe('parseTypeFlag', () => {
   };
 
   it('should parse a single type value', () => {
-    const { types, nextIndex } = parseTypeFlag([], ['rule'], 0, throwError);
-    expect(types).toEqual(['rule']);
+    const { types, nextIndex } = parseTypeFlag([], ['prompt'], 0, throwError);
+    expect(types).toEqual(['prompt']);
     expect(nextIndex).toBe(1);
   });
 
   it('should parse comma-separated type values', () => {
-    const { types } = parseTypeFlag([], ['rule,prompt'], 0, throwError);
-    expect(types).toEqual(['rule', 'prompt']);
+    const { types } = parseTypeFlag([], ['prompt,agent'], 0, throwError);
+    expect(types).toEqual(['prompt', 'agent']);
   });
 
   it('should parse space-separated type values', () => {
-    const { types, nextIndex } = parseTypeFlag([], ['rule', 'prompt', '--flag'], 0, throwError);
-    expect(types).toEqual(['rule', 'prompt']);
+    const { types, nextIndex } = parseTypeFlag([], ['prompt', 'agent', '--flag'], 0, throwError);
+    expect(types).toEqual(['prompt', 'agent']);
     expect(nextIndex).toBe(2);
   });
 
   it('should normalize to lowercase', () => {
-    const { types } = parseTypeFlag([], ['RULE'], 0, throwError);
-    expect(types).toEqual(['rule']);
+    const { types } = parseTypeFlag([], ['PROMPT'], 0, throwError);
+    expect(types).toEqual(['prompt']);
   });
 
   it('should normalize mixed-case comma-separated values', () => {
-    const { types } = parseTypeFlag([], ['Rule,PROMPT,Agent'], 0, throwError);
-    expect(types).toEqual(['rule', 'prompt', 'agent']);
+    const { types } = parseTypeFlag([], ['Skill,PROMPT,Agent'], 0, throwError);
+    expect(types).toEqual(['skill', 'prompt', 'agent']);
   });
 
   it('should deduplicate values', () => {
-    const { types } = parseTypeFlag([], ['rule,rule,prompt'], 0, throwError);
-    expect(types).toEqual(['rule', 'prompt']);
+    const { types } = parseTypeFlag([], ['prompt,prompt,agent'], 0, throwError);
+    expect(types).toEqual(['prompt', 'agent']);
   });
 
   it('should merge with existing values and deduplicate', () => {
-    const { types } = parseTypeFlag(['rule'], ['prompt,rule'], 0, throwError);
-    expect(types).toEqual(['rule', 'prompt']);
+    const { types } = parseTypeFlag(['prompt'], ['agent,prompt'], 0, throwError);
+    expect(types).toEqual(['prompt', 'agent']);
   });
 
   it('should filter empty segments from CSV', () => {
-    const { types } = parseTypeFlag([], ['rule,,prompt'], 0, throwError);
-    expect(types).toEqual(['rule', 'prompt']);
+    const { types } = parseTypeFlag([], ['prompt,,agent'], 0, throwError);
+    expect(types).toEqual(['prompt', 'agent']);
   });
 
   it('should accept all four valid types', () => {
-    const { types } = parseTypeFlag([], ['skill,rule,prompt,agent'], 0, throwError);
-    expect(types).toEqual(['skill', 'rule', 'prompt', 'agent']);
+    const { types } = parseTypeFlag([], ['skill,prompt,agent,instruction'], 0, throwError);
+    expect(types).toEqual(['skill', 'prompt', 'agent', 'instruction']);
   });
 
   it('should throw on invalid type value', () => {
@@ -163,13 +163,11 @@ describe('parseTypeFlag', () => {
 
   it('should include valid types message in error for invalid type', () => {
     expect(() => parseTypeFlag([], ['bad'], 0, throwError)).toThrow(
-      'Valid types: skill, rule, prompt, agent'
+      'Valid types: skill, prompt, agent'
     );
   });
 
   it('should include valid types message in error for missing value', () => {
-    expect(() => parseTypeFlag([], [], 0, throwError)).toThrow(
-      'Valid types: skill, rule, prompt, agent'
-    );
+    expect(() => parseTypeFlag([], [], 0, throwError)).toThrow('Valid types: skill, prompt, agent');
   });
 });

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { runCliOutput, stripLogo, hasLogo } from './test-utils.ts';
+import { runCli, runCliOutput, stripLogo, hasLogo } from './test-utils.ts';
 
 describe('dotai CLI', () => {
   describe('--help', () => {
@@ -55,12 +55,10 @@ describe('dotai CLI', () => {
       const output = runCliOutput(['add', '--help-all']);
       expect(output).toContain('Usage: dotai add <package> [options]');
       expect(output).toContain('-s, --skill');
-      expect(output).toContain('-r, --rule');
       expect(output).toContain('-p, --prompt');
       expect(output).toContain('-a, --targets');
       expect(output).toContain('--dry-run');
       expect(output).toContain('--force');
-      expect(output).toContain('--append');
       expect(output).toContain('--gitignore');
       expect(output).toContain('-y, --yes');
       expect(output).toContain('--all');
@@ -80,19 +78,21 @@ describe('dotai CLI', () => {
   describe('remove --help', () => {
     it('should describe removing all context types', () => {
       const output = runCliOutput(['remove', '--help']);
-      expect(output).toContain('Remove installed context (skills, rules, prompts, or agents)');
+      expect(output).toContain(
+        'Remove installed context (skills, prompts, agents, or instructions)'
+      );
     });
 
     it('should document --type option', () => {
       const output = runCliOutput(['remove', '--help']);
       expect(output).toContain('-t, --type');
-      expect(output).toContain('skill, rule, prompt, agent');
+      expect(output).toContain('skill, prompt, agent, instruction');
     });
 
     it('should include --type examples', () => {
       const output = runCliOutput(['remove', '--help']);
-      expect(output).toContain('--type rule');
       expect(output).toContain('--type prompt');
+      expect(output).toContain('--type skill,prompt');
     });
   });
 
@@ -156,5 +156,54 @@ describe('dotai CLI', () => {
       const output = runCliOutput(['update']);
       expect(hasLogo(output)).toBe(false);
     }, 60000);
+  });
+
+  describe('removed rules features', () => {
+    it('should error when --rule flag is passed to add', () => {
+      const result = runCli(['add', 'owner/repo', '--rule', 'my-rule']);
+      expect(result.exitCode).toBe(1);
+      expect(result.stdout).toContain('--rule flag has been removed');
+      expect(result.stdout).toContain('--instruction');
+    });
+
+    it('should error when --append flag is passed to add', () => {
+      const result = runCli(['add', 'owner/repo', '--append']);
+      expect(result.exitCode).toBe(1);
+      expect(result.stdout).toContain('--append flag has been removed');
+      expect(result.stdout).toContain('append mode');
+    });
+
+    it('should error when import command is used', () => {
+      const result = runCli(['import']);
+      expect(result.exitCode).toBe(1);
+      expect(result.stdout).toContain('import command has been removed');
+      expect(result.stdout).toContain('--instruction');
+    });
+
+    it('should error when init rule is used', () => {
+      const result = runCli(['init', 'rule']);
+      expect(result.exitCode).toBe(1);
+      expect(result.stdout).toContain('rule template has been removed');
+      expect(result.stdout).toContain('dotai init instruction');
+    });
+
+    it('should error when init --rule is used', () => {
+      const result = runCli(['init', '--rule']);
+      expect(result.exitCode).toBe(1);
+      expect(result.stdout).toContain('rule template has been removed');
+      expect(result.stdout).toContain('dotai init instruction');
+    });
+
+    it('should not reference rules in help text', () => {
+      const output = runCliOutput(['--help']);
+      expect(output).not.toContain('--rule');
+      expect(output).not.toContain('import');
+    });
+
+    it('should not reference --append in add help text', () => {
+      const output = runCliOutput(['add', '--help-all']);
+      expect(output).not.toContain('--append');
+      expect(output).not.toContain('--rule');
+    });
   });
 });

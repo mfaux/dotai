@@ -26,7 +26,7 @@ import type { LockEntry } from './types.js';
 
 function makeLockEntry(overrides: Partial<LockEntry> = {}): LockEntry {
   return {
-    type: 'rule',
+    type: 'prompt',
     name: 'code-style',
     source: 'acme/repo',
     format: 'canonical',
@@ -172,9 +172,9 @@ describe('readDotaiLock', () => {
       items: [
         validEntry,
         { type: 'invalid-type', name: 'bad' }, // invalid type
-        { type: 'rule', name: '' }, // empty name
+        { type: 'prompt', name: '' }, // empty name
         {
-          type: 'rule',
+          type: 'prompt',
           name: 'ok',
           source: '',
           format: 'canonical',
@@ -192,6 +192,30 @@ describe('readDotaiLock', () => {
     const result = await readDotaiLock(tmpDir);
     expect(result.lock.items).toHaveLength(1);
     expect(result.lock.items[0]!.name).toBe('code-style');
+  });
+
+  it('silently drops legacy rule entries from lock file', async () => {
+    const promptEntry = makeLockEntry({ type: 'prompt', name: 'my-prompt' });
+    // Manually construct a rule entry (can't use makeLockEntry since 'rule' is
+    // no longer a valid ContextType)
+    const ruleEntry = {
+      type: 'rule',
+      name: 'my-rule',
+      source: 'acme/repo',
+      format: 'canonical',
+      agents: ['cursor', 'github-copilot', 'claude-code', 'opencode'],
+      hash: 'abc123',
+      installedAt: '2026-02-28T12:00:00.000Z',
+      outputs: ['/project/.cursor/rules/my-rule.mdc'],
+    };
+    const lock = { version: 1, items: [promptEntry, ruleEntry] };
+    await writeFile(getDotaiLockPath(tmpDir), JSON.stringify(lock), 'utf-8');
+
+    const result = await readDotaiLock(tmpDir);
+    // Rule entry should be silently dropped
+    expect(result.lock.items).toHaveLength(1);
+    expect(result.lock.items[0]!.type).toBe('prompt');
+    expect(result.lock.items[0]!.name).toBe('my-prompt');
   });
 
   it('validates agent names in items', async () => {
@@ -257,8 +281,8 @@ describe('writeDotaiLock', () => {
       version: 1,
       items: [
         makeLockEntry({ type: 'skill', name: 'zeta' }),
-        makeLockEntry({ type: 'rule', name: 'beta' }),
-        makeLockEntry({ type: 'rule', name: 'alpha' }),
+        makeLockEntry({ type: 'prompt', name: 'beta' }),
+        makeLockEntry({ type: 'prompt', name: 'alpha' }),
         makeLockEntry({ type: 'skill', name: 'alpha' }),
       ],
     };
@@ -268,7 +292,7 @@ describe('writeDotaiLock', () => {
     const content = await readFile(getDotaiLockPath(tmpDir), 'utf-8');
     const parsed = JSON.parse(content) as DotaiLockFile;
     const keys = parsed.items.map((i) => `${i.type}:${i.name}`);
-    expect(keys).toEqual(['rule:alpha', 'rule:beta', 'skill:alpha', 'skill:zeta']);
+    expect(keys).toEqual(['prompt:alpha', 'prompt:beta', 'skill:alpha', 'skill:zeta']);
   });
 
   it('appends trailing newline', async () => {
@@ -315,7 +339,7 @@ describe('writeDotaiLock', () => {
 describe('round-trip', () => {
   it('preserves all lock entry fields through write/read', async () => {
     const entry = makeLockEntry({
-      type: 'rule',
+      type: 'prompt',
       name: 'security',
       source: 'org/security-rules',
       format: 'canonical',
@@ -333,8 +357,8 @@ describe('round-trip', () => {
 
   it('preserves multiple items', async () => {
     const items = [
-      makeLockEntry({ type: 'rule', name: 'alpha' }),
-      makeLockEntry({ type: 'rule', name: 'beta' }),
+      makeLockEntry({ type: 'prompt', name: 'alpha' }),
+      makeLockEntry({ type: 'prompt', name: 'beta' }),
       makeLockEntry({ type: 'skill', name: 'gamma' }),
     ];
 
@@ -362,13 +386,13 @@ describe('round-trip', () => {
     expect(result.lock.items[0]).toEqual(entry);
   });
 
-  it('sorts prompt entries alongside rules and skills', async () => {
+  it('sorts prompt entries alongside other types and skills', async () => {
     const lock: DotaiLockFile = {
       version: 1,
       items: [
         makeLockEntry({ type: 'skill', name: 'zeta' }),
         makeLockEntry({ type: 'prompt', name: 'review' }),
-        makeLockEntry({ type: 'rule', name: 'alpha' }),
+        makeLockEntry({ type: 'prompt', name: 'alpha' }),
         makeLockEntry({ type: 'prompt', name: 'deploy' }),
       ],
     };
@@ -376,7 +400,7 @@ describe('round-trip', () => {
     await writeDotaiLock(lock, tmpDir);
     const result = await readDotaiLock(tmpDir);
     const keys = result.lock.items.map((i) => `${i.type}:${i.name}`);
-    expect(keys).toEqual(['prompt:deploy', 'prompt:review', 'rule:alpha', 'skill:zeta']);
+    expect(keys).toEqual(['prompt:alpha', 'prompt:deploy', 'prompt:review', 'skill:zeta']);
   });
 });
 
@@ -389,36 +413,36 @@ describe('findLockEntry', () => {
     const lock: DotaiLockFile = {
       version: 1,
       items: [
-        makeLockEntry({ type: 'rule', name: 'alpha' }),
-        makeLockEntry({ type: 'rule', name: 'beta' }),
+        makeLockEntry({ type: 'prompt', name: 'alpha' }),
+        makeLockEntry({ type: 'prompt', name: 'beta' }),
         makeLockEntry({ type: 'skill', name: 'alpha' }),
       ],
     };
 
-    const found = findLockEntry(lock, 'rule', 'beta');
+    const found = findLockEntry(lock, 'prompt', 'beta');
     expect(found).toBeDefined();
     expect(found!.name).toBe('beta');
-    expect(found!.type).toBe('rule');
+    expect(found!.type).toBe('prompt');
   });
 
   it('returns undefined when not found', () => {
     const lock = createEmptyLock();
-    expect(findLockEntry(lock, 'rule', 'nonexistent')).toBeUndefined();
+    expect(findLockEntry(lock, 'prompt', 'nonexistent')).toBeUndefined();
   });
 
   it('distinguishes between types with the same name', () => {
     const lock: DotaiLockFile = {
       version: 1,
       items: [
-        makeLockEntry({ type: 'rule', name: 'auth', source: 'rule-source' }),
+        makeLockEntry({ type: 'prompt', name: 'auth', source: 'prompt-source' }),
         makeLockEntry({ type: 'skill', name: 'auth', source: 'skill-source' }),
       ],
     };
 
-    const ruleEntry = findLockEntry(lock, 'rule', 'auth');
+    const promptEntry = findLockEntry(lock, 'prompt', 'auth');
     const skillEntry = findLockEntry(lock, 'skill', 'auth');
 
-    expect(ruleEntry!.source).toBe('rule-source');
+    expect(promptEntry!.source).toBe('prompt-source');
     expect(skillEntry!.source).toBe('skill-source');
   });
 });
@@ -490,7 +514,7 @@ describe('removeLockEntry', () => {
       items: [makeLockEntry({ name: 'alpha' }), makeLockEntry({ name: 'beta' })],
     };
 
-    const { lock: updated, removed } = removeLockEntry(lock, 'rule', 'alpha');
+    const { lock: updated, removed } = removeLockEntry(lock, 'prompt', 'alpha');
     expect(updated.items).toHaveLength(1);
     expect(updated.items[0]!.name).toBe('beta');
     expect(removed).toBeDefined();
@@ -503,7 +527,7 @@ describe('removeLockEntry', () => {
       items: [makeLockEntry({ name: 'alpha' })],
     };
 
-    const { lock: updated, removed } = removeLockEntry(lock, 'rule', 'nonexistent');
+    const { lock: updated, removed } = removeLockEntry(lock, 'prompt', 'nonexistent');
     expect(updated.items).toHaveLength(1);
     expect(removed).toBeUndefined();
   });
@@ -514,7 +538,7 @@ describe('removeLockEntry', () => {
       items: [makeLockEntry()],
     };
 
-    const { lock: updated } = removeLockEntry(lock, 'rule', 'code-style');
+    const { lock: updated } = removeLockEntry(lock, 'prompt', 'code-style');
     expect(lock.items).toHaveLength(1);
     expect(updated.items).toHaveLength(0);
   });
@@ -523,12 +547,12 @@ describe('removeLockEntry', () => {
     const lock: DotaiLockFile = {
       version: 1,
       items: [
-        makeLockEntry({ type: 'rule', name: 'auth' }),
+        makeLockEntry({ type: 'prompt', name: 'auth' }),
         makeLockEntry({ type: 'skill', name: 'auth' }),
       ],
     };
 
-    const { lock: updated } = removeLockEntry(lock, 'rule', 'auth');
+    const { lock: updated } = removeLockEntry(lock, 'prompt', 'auth');
     expect(updated.items).toHaveLength(1);
     expect(updated.items[0]!.type).toBe('skill');
   });
@@ -543,15 +567,15 @@ describe('getLockEntriesByType', () => {
     const lock: DotaiLockFile = {
       version: 1,
       items: [
-        makeLockEntry({ type: 'rule', name: 'a' }),
+        makeLockEntry({ type: 'prompt', name: 'a' }),
         makeLockEntry({ type: 'skill', name: 'b' }),
-        makeLockEntry({ type: 'rule', name: 'c' }),
+        makeLockEntry({ type: 'prompt', name: 'c' }),
       ],
     };
 
-    const rules = getLockEntriesByType(lock, 'rule');
-    expect(rules).toHaveLength(2);
-    expect(rules.map((r) => r.name)).toEqual(['a', 'c']);
+    const prompts = getLockEntriesByType(lock, 'prompt');
+    expect(prompts).toHaveLength(2);
+    expect(prompts.map((r) => r.name)).toEqual(['a', 'c']);
   });
 
   it('returns empty array when no entries match', () => {
@@ -563,7 +587,7 @@ describe('getLockEntriesByType', () => {
     const lock: DotaiLockFile = {
       version: 1,
       items: [
-        makeLockEntry({ type: 'rule', name: 'a' }),
+        makeLockEntry({ type: 'instruction', name: 'a' }),
         makeLockEntry({ type: 'prompt', name: 'b' }),
         makeLockEntry({ type: 'skill', name: 'c' }),
         makeLockEntry({ type: 'prompt', name: 'd' }),
@@ -717,7 +741,7 @@ describe('edge cases', () => {
       version: 1,
       items: [
         {
-          type: 'rule',
+          type: 'prompt',
           name: 'bad-outputs',
           source: 'acme/repo',
           format: 'canonical',
@@ -769,7 +793,7 @@ describe('edge cases', () => {
       version: 1,
       items: [
         {
-          type: 'rule',
+          type: 'prompt',
           name: 'bad-gitignored',
           source: 'acme/repo',
           format: 'canonical',
@@ -792,7 +816,7 @@ describe('edge cases', () => {
       version: 1,
       items: [
         {
-          type: 'rule',
+          type: 'prompt',
           name: 'bad-append',
           source: 'acme/repo',
           format: 'canonical',
@@ -815,7 +839,7 @@ describe('edge cases', () => {
       version: 1,
       items: [
         {
-          type: 'rule',
+          type: 'prompt',
           name: 'no-hash',
           source: 'acme/repo',
           format: 'canonical',

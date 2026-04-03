@@ -12,9 +12,9 @@ export interface RemoteContextItem {
 
 export interface RemoteContextSummary {
   skills: RemoteContextItem[];
-  rules: RemoteContextItem[];
   prompts: RemoteContextItem[];
   agents: RemoteContextItem[];
+  instructions: RemoteContextItem[];
 }
 
 /**
@@ -23,9 +23,9 @@ export interface RemoteContextSummary {
  */
 const PATTERNS: Array<{ regex: RegExp; type: ContextType }> = [
   { regex: /^(?:skills\/([^/]+)\/)?SKILL\.md$/, type: 'skill' },
-  { regex: /^(?:rules\/([^/]+)\/)?RULES\.md$/, type: 'rule' },
   { regex: /^(?:prompts\/([^/]+)\/)?PROMPT\.md$/, type: 'prompt' },
   { regex: /^(?:agents\/([^/]+)\/)?AGENT\.md$/, type: 'agent' },
+  { regex: /^INSTRUCTIONS\.md$/, type: 'instruction' },
 ];
 
 /**
@@ -46,17 +46,6 @@ function buildNativeMatchers(): NativeMatcher[] {
   const matchers: NativeMatcher[] = [];
 
   for (const config of Object.values(targetAgents)) {
-    // Native rules
-    const ruleDiscovery = config.nativeRuleDiscovery;
-    const ruleExt = ruleDiscovery.pattern.replace('*', '');
-    matchers.push({
-      dirPrefix: ruleDiscovery.sourceDir + '/',
-      extension: ruleExt,
-      type: 'rule',
-      agentName: config.name,
-      agentDisplayName: config.displayName,
-    });
-
     // Native prompts
     if (config.nativePromptDiscovery) {
       const promptExt = config.nativePromptDiscovery.pattern.replace('*', '');
@@ -106,7 +95,12 @@ export function discoverRemoteContext(
   tree: GitHubTreeEntry[],
   repoName?: string
 ): RemoteContextSummary {
-  const summary: RemoteContextSummary = { skills: [], rules: [], prompts: [], agents: [] };
+  const summary: RemoteContextSummary = {
+    skills: [],
+    prompts: [],
+    agents: [],
+    instructions: [],
+  };
   const fallbackName = repoName ?? 'root';
 
   for (const entry of tree) {

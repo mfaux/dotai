@@ -1,7 +1,7 @@
 import type { TargetAgent, ContextType } from './types.ts';
 
 // ---------------------------------------------------------------------------
-// Target agent registry for dotai transpilation (rules, skills, prompts, agents)
+// Target agent registry for dotai transpilation (skills, prompts, agents, instructions)
 //
 // This is separate from the upstream `agents.ts` (skills-only registry with
 // 40+ agents) to avoid merge conflicts and keep concerns separated. The
@@ -20,15 +20,16 @@ export interface ContextTypeConfig {
 }
 
 /**
- * Configuration for native passthrough discovery within a source repo.
- * Used to find agent-native rule files that should be installed without
- * transpilation.
+ * Configuration for instruction output within a target agent.
+ *
+ * Instructions use append mode: all instructions are written as marker-based
+ * sections in a single project-wide file (e.g., `AGENTS.md`, `CLAUDE.md`).
  */
-export interface NativeRuleDiscovery {
-  /** Directory to search for native rule files (relative to repo root). */
-  sourceDir: string;
-  /** Glob pattern for matching native rule files within sourceDir. */
-  pattern: string;
+export interface InstructionsConfig {
+  /** Directory containing the output file (relative to project root). */
+  outputDir: string;
+  /** Target filename (e.g., `AGENTS.md`, `CLAUDE.md`). */
+  filename: string;
 }
 
 /**
@@ -66,10 +67,6 @@ export interface TargetAgentConfig {
   displayName: string;
   /** Skills output directory (relative to project root). */
   skillsDir: string;
-  /** Rules output configuration (per-rule file output). */
-  rulesConfig: ContextTypeConfig;
-  /** Native rule file discovery locations in source repos. */
-  nativeRuleDiscovery: NativeRuleDiscovery;
   /** Prompts output configuration. Undefined = agent does not support prompts. */
   promptsConfig?: ContextTypeConfig;
   /** Native prompt file discovery locations in source repos. */
@@ -78,11 +75,13 @@ export interface TargetAgentConfig {
   agentsConfig?: ContextTypeConfig;
   /** Native agent file discovery locations in source repos. */
   nativeAgentDiscovery?: NativeAgentDiscovery;
+  /** Instructions output configuration (append-mode, project-wide file). */
+  instructionsConfig: InstructionsConfig;
 }
 
 /**
  * The four target agents for dotai transpilation, with their
- * rules + skills path configurations.
+ * context-type path configurations.
  *
  * Reference: dotai-plan.md Phase 4 (Agent Registry)
  */
@@ -91,14 +90,6 @@ export const targetAgents: Record<TargetAgent, TargetAgentConfig> = {
     name: 'github-copilot',
     displayName: 'GitHub Copilot',
     skillsDir: '.agents/skills',
-    rulesConfig: {
-      outputDir: '.github/instructions',
-      extension: '.instructions.md',
-    },
-    nativeRuleDiscovery: {
-      sourceDir: '.github/instructions',
-      pattern: '*.instructions.md',
-    },
     promptsConfig: {
       outputDir: '.github/prompts',
       extension: '.prompt.md',
@@ -115,19 +106,15 @@ export const targetAgents: Record<TargetAgent, TargetAgentConfig> = {
       sourceDir: '.github/agents',
       pattern: '*.agent.md',
     },
+    instructionsConfig: {
+      outputDir: '.github',
+      filename: 'copilot-instructions.md',
+    },
   },
   'claude-code': {
     name: 'claude-code',
     displayName: 'Claude Code',
     skillsDir: '.claude/skills',
-    rulesConfig: {
-      outputDir: '.claude/rules',
-      extension: '.md',
-    },
-    nativeRuleDiscovery: {
-      sourceDir: '.claude/rules',
-      pattern: '*.md',
-    },
     promptsConfig: {
       outputDir: '.claude/commands',
       extension: '.md',
@@ -144,18 +131,18 @@ export const targetAgents: Record<TargetAgent, TargetAgentConfig> = {
       sourceDir: '.claude/agents',
       pattern: '*.md',
     },
+    instructionsConfig: {
+      outputDir: '.',
+      filename: 'CLAUDE.md',
+    },
   },
   cursor: {
     name: 'cursor',
     displayName: 'Cursor',
     skillsDir: '.cursor/skills',
-    rulesConfig: {
-      outputDir: '.cursor/rules',
-      extension: '.mdc',
-    },
-    nativeRuleDiscovery: {
-      sourceDir: '.cursor/rules',
-      pattern: '*.mdc',
+    instructionsConfig: {
+      outputDir: '.',
+      filename: 'AGENTS.md',
     },
     // Cursor has no prompt/command system
   },
@@ -163,14 +150,6 @@ export const targetAgents: Record<TargetAgent, TargetAgentConfig> = {
     name: 'opencode',
     displayName: 'OpenCode',
     skillsDir: '.opencode/skills',
-    rulesConfig: {
-      outputDir: '.opencode/rules',
-      extension: '.md',
-    },
-    nativeRuleDiscovery: {
-      sourceDir: '.opencode/rules',
-      pattern: '*.md',
-    },
     promptsConfig: {
       outputDir: '.opencode/commands',
       extension: '.md',
@@ -186,6 +165,10 @@ export const targetAgents: Record<TargetAgent, TargetAgentConfig> = {
     nativeAgentDiscovery: {
       sourceDir: '.opencode/agents',
       pattern: '*.md',
+    },
+    instructionsConfig: {
+      outputDir: '.',
+      filename: 'AGENTS.md',
     },
   },
 };
@@ -216,14 +199,10 @@ export function getOutputDir(agent: TargetAgent, contextType: ContextType): stri
   if (contextType === 'agent') {
     return config.agentsConfig?.outputDir;
   }
-  return config.rulesConfig.outputDir;
-}
-
-/**
- * Get the file extension for transpiled rule output for a given target agent.
- */
-export function getRuleExtension(agent: TargetAgent): string {
-  return targetAgents[agent].rulesConfig.extension;
+  if (contextType === 'instruction') {
+    return config.instructionsConfig.outputDir;
+  }
+  return undefined;
 }
 
 /**

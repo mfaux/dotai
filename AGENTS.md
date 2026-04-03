@@ -1,6 +1,6 @@
 # AGENTS.md
 
-`dotai` is a CLI tool for universal context distribution to AI coding agents. It installs "skills" (SKILL.md), "rules" (RULES.md), "prompts" (PROMPT.md), and "agents" (AGENT.md) into the configuration directories of 40+ supported AI agents. It is a divergent fork of `vercel-labs/skills`.
+`dotai` is a CLI tool for universal context distribution to AI coding agents. It installs "skills" (SKILL.md), "rules" (RULES.md), "prompts" (PROMPT.md), "agents" (AGENT.md), and "instructions" (INSTRUCTIONS.md) into the configuration directories of 40+ supported AI agents. It is a divergent fork of `vercel-labs/skills`.
 
 # Agent Instructions
 

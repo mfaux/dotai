@@ -1,39 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { parseAddOptions } from './add-options.ts';
-import { resolveTargetAgents } from './rule-add.ts';
+import { resolveTargetAgents } from './context-add.ts';
 
 // ---------------------------------------------------------------------------
-// parseAddOptions — rule-related flags
+// parseAddOptions — basic flags
 // ---------------------------------------------------------------------------
 
-describe('parseAddOptions — rule-related flags', () => {
-  it('parses single --rule flag', () => {
-    const { source, options } = parseAddOptions(['owner/repo', '--rule', 'code-style']);
-    expect(source).toEqual(['owner/repo']);
-    expect(options.rule).toEqual(['code-style']);
-  });
-
-  it('parses -r shorthand', () => {
-    const { options } = parseAddOptions(['owner/repo', '-r', 'code-style']);
-    expect(options.rule).toEqual(['code-style']);
-  });
-
-  it('parses multiple --rule flags', () => {
-    const { options } = parseAddOptions([
-      'owner/repo',
-      '--rule',
-      'code-style',
-      '--rule',
-      'security',
-    ]);
-    expect(options.rule).toEqual(['code-style', 'security']);
-  });
-
-  it('parses --rule with multiple space-separated values', () => {
-    const { options } = parseAddOptions(['owner/repo', '--rule', 'code-style', 'security']);
-    expect(options.rule).toEqual(['code-style', 'security']);
-  });
-
+describe('parseAddOptions — basic flags', () => {
   it('parses --targets comma-separated', () => {
     const { options } = parseAddOptions(['owner/repo', '--targets', 'copilot,claude,cursor']);
     expect(options.targets).toEqual(['copilot', 'claude', 'cursor']);
@@ -45,90 +18,59 @@ describe('parseAddOptions — rule-related flags', () => {
   });
 
   it('parses --dry-run flag', () => {
-    const { options } = parseAddOptions(['owner/repo', '--rule', 'code-style', '--dry-run']);
+    const { options } = parseAddOptions(['owner/repo', '--prompt', 'review-code', '--dry-run']);
     expect(options.dryRun).toBe(true);
   });
 
   it('parses --force flag', () => {
-    const { options } = parseAddOptions(['owner/repo', '--rule', 'code-style', '--force']);
+    const { options } = parseAddOptions(['owner/repo', '--prompt', 'review-code', '--force']);
     expect(options.force).toBe(true);
   });
 
-  it('parses combined rule + targets + dry-run + force flags', () => {
+  it('parses combined prompt + targets + dry-run + force flags', () => {
     const { source, options } = parseAddOptions([
       'owner/repo',
-      '--rule',
-      'code-style',
+      '--prompt',
+      'review-code',
       '--targets',
       'copilot,claude',
       '--dry-run',
       '--force',
     ]);
     expect(source).toEqual(['owner/repo']);
-    expect(options.rule).toEqual(['code-style']);
+    expect(options.prompt).toEqual(['review-code']);
     expect(options.targets).toEqual(['copilot', 'claude']);
     expect(options.dryRun).toBe(true);
     expect(options.force).toBe(true);
   });
 
-  it('parses --rule and --skill together', () => {
+  it('parses --prompt and --skill together', () => {
     const { options } = parseAddOptions([
       'owner/repo',
-      '--rule',
-      'code-style',
+      '--prompt',
+      'review-code',
       '--skill',
       'my-skill',
     ]);
-    expect(options.rule).toEqual(['code-style']);
+    expect(options.prompt).toEqual(['review-code']);
     expect(options.skill).toEqual(['my-skill']);
   });
 
   it('treats unrecognized args as source', () => {
     const { source, options } = parseAddOptions(['owner/repo']);
     expect(source).toEqual(['owner/repo']);
-    expect(options.rule).toBeUndefined();
     expect(options.targets).toBeUndefined();
     expect(options.dryRun).toBeUndefined();
     expect(options.force).toBeUndefined();
-    expect(options.append).toBeUndefined();
-  });
-
-  it('parses --append flag', () => {
-    const { options } = parseAddOptions(['owner/repo', '--rule', 'code-style', '--append']);
-    expect(options.append).toBe(true);
-  });
-
-  it('parses --append with --rule, --targets, --dry-run, --force', () => {
-    const { source, options } = parseAddOptions([
-      'owner/repo',
-      '--rule',
-      'code-style',
-      '--targets',
-      'copilot,claude',
-      '--append',
-      '--dry-run',
-      '--force',
-    ]);
-    expect(source).toEqual(['owner/repo']);
-    expect(options.rule).toEqual(['code-style']);
-    expect(options.targets).toEqual(['copilot', 'claude']);
-    expect(options.append).toBe(true);
-    expect(options.dryRun).toBe(true);
-    expect(options.force).toBe(true);
-  });
-
-  it('--append defaults to undefined when not specified', () => {
-    const { options } = parseAddOptions(['owner/repo', '--rule', 'code-style']);
-    expect(options.append).toBeUndefined();
   });
 
   it('parses --gitignore flag', () => {
-    const { options } = parseAddOptions(['owner/repo', '--rule', 'code-style', '--gitignore']);
+    const { options } = parseAddOptions(['owner/repo', '--prompt', 'review-code', '--gitignore']);
     expect(options.gitignore).toBe(true);
   });
 
   it('--gitignore defaults to undefined when not specified', () => {
-    const { options } = parseAddOptions(['owner/repo', '--rule', 'code-style']);
+    const { options } = parseAddOptions(['owner/repo', '--prompt', 'review-code']);
     expect(options.gitignore).toBeUndefined();
   });
 

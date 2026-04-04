@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { parseListOptions } from './list.ts';
-import { parseRemoveOptions } from './remove.ts';
-import { parseSyncOptions } from './sync.ts';
+import { parseListOptions } from '../list/list.ts';
+import { parseRemoveOptions } from '../remove/remove.ts';
+import { parseSyncOptions } from '../sync/sync.ts';
 
 /**
  * Parser parity tests: verify that shared flags (`--targets`, `--type`) produce

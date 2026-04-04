@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mkdir, rm, writeFile, lstat, symlink } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
-import { removeCommand } from '../src/remove.ts';
+import { removeCommand } from '../src/remove/remove.ts';
 import * as agentsModule from '../src/lib/agents/agents.ts';
 
 // Mock detectInstalledAgents

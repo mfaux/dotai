@@ -6,7 +6,7 @@ import { relative } from 'path';
 import { addPrompts } from '../src/lib/install/index.ts';
 import { runCli } from '../src/lib/test-utils.ts';
 import { readManagedPaths } from '../src/lib/git/index.ts';
-import { removeCommand } from '../src/remove.ts';
+import { removeCommand } from '../src/remove/remove.ts';
 import {
   createTempProjectDir,
   makeSimplePromptContent,

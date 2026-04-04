@@ -2,9 +2,9 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { existsSync, rmSync, mkdirSync, writeFileSync, readFileSync, mkdtempSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
-import { runCli } from './lib/test-utils.ts';
-import { parseListOptions } from './list.ts';
-import { addToGitignore, readManagedPaths } from './lib/git/index.ts';
+import { runCli } from './test-utils.ts';
+import { parseListOptions } from '../list/list.ts';
+import { addToGitignore, readManagedPaths } from './git/index.ts';
 
 // ---------------------------------------------------------------------------
 // Helpers

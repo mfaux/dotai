@@ -2,9 +2,9 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { existsSync, rmSync, mkdirSync, writeFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
-import { runCli, runCliWithInput } from './lib/test-utils.js';
+import { runCli, runCliWithInput } from '../lib/test-utils.js';
 import { parseRemoveOptions, removeCommand } from './remove.ts';
-import { CommandError } from './lib/command-result.ts';
+import { CommandError } from '../lib/command-result.ts';
 
 vi.mock('@clack/prompts', async () => {
   const actual = await vi.importActual('@clack/prompts');

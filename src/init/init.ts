@@ -1,7 +1,7 @@
 import { writeFileSync, existsSync, mkdirSync } from 'fs';
 import { basename, join } from 'path';
-import { RESET, DIM, TEXT, BOLD, YELLOW } from './lib/utils.ts';
-import { KEBAB_CASE_PATTERN } from './lib/validation.ts';
+import { RESET, DIM, TEXT, BOLD, YELLOW } from '../lib/utils.ts';
+import { KEBAB_CASE_PATTERN } from '../lib/validation.ts';
 
 // ---------------------------------------------------------------------------
 // Template configuration

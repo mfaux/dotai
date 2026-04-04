@@ -2,21 +2,21 @@ import * as p from '@clack/prompts';
 import pc from 'picocolors';
 import { readdir, rm, lstat, unlink, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
-import { agents, detectInstalledAgents } from './lib/agents/index.ts';
-import { track } from './lib/telemetry.ts';
-import { removeSkillFromLock, getSkillFromLock } from './lib/lock/index.ts';
-import type { AgentType, ContextType, LockEntry } from './lib/types.ts';
+import { agents, detectInstalledAgents } from '../lib/agents/index.ts';
+import { track } from '../lib/telemetry.ts';
+import { removeSkillFromLock, getSkillFromLock } from '../lib/lock/index.ts';
+import type { AgentType, ContextType, LockEntry } from '../lib/types.ts';
 import {
   getInstallPath,
   getCanonicalPath,
   getCanonicalSkillsDir,
   sanitizeName,
-} from './lib/install/index.ts';
-import { readDotaiLock, removeLockEntry, writeDotaiLock } from './lib/lock/index.ts';
-import { removeSection } from './lib/install/index.ts';
-import { removeFromGitignore } from './lib/git/index.ts';
-import { consumeMultiValues, VALID_CONTEXT_TYPES } from './cli-parse.ts';
-import { CommandError } from './lib/command-result.ts';
+} from '../lib/install/index.ts';
+import { readDotaiLock, removeLockEntry, writeDotaiLock } from '../lib/lock/index.ts';
+import { removeSection } from '../lib/install/index.ts';
+import { removeFromGitignore } from '../lib/git/index.ts';
+import { consumeMultiValues, VALID_CONTEXT_TYPES } from '../cli-parse.ts';
+import { CommandError } from '../lib/command-result.ts';
 
 export interface RemoveOptions {
   global?: boolean;

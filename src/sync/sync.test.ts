@@ -3,7 +3,7 @@ import { mkdirSync, writeFileSync, rmSync, existsSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { runSync, parseSyncOptions } from './sync.ts';
-import { CommandError } from './lib/command-result.ts';
+import { CommandError } from '../lib/command-result.ts';
 
 vi.mock('@clack/prompts', async () => {
   const actual = await vi.importActual('@clack/prompts');

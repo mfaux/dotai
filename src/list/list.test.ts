@@ -2,9 +2,9 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { existsSync, rmSync, mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { tmpdir, homedir } from 'os';
-import { runCli } from './lib/test-utils.ts';
+import { runCli } from '../lib/test-utils.ts';
 import { parseListOptions } from './list.ts';
-import { shortenPath } from './lib/utils.ts';
+import { shortenPath } from '../lib/utils.ts';
 
 describe('list command', () => {
   let testDir: string;

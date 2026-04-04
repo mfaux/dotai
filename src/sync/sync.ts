@@ -2,21 +2,21 @@ import * as p from '@clack/prompts';
 import pc from 'picocolors';
 import { readdir, stat } from 'fs/promises';
 import { join } from 'path';
-import { parseSkillMd } from './lib/discovery/index.ts';
-import { installSkillForAgent, getCanonicalPath } from './lib/install/index.ts';
+import { parseSkillMd } from '../lib/discovery/index.ts';
+import { installSkillForAgent, getCanonicalPath } from '../lib/install/index.ts';
 import {
   detectInstalledAgents,
   agents,
   getUniversalAgents,
   getNonUniversalAgents,
-} from './lib/agents/index.ts';
-import { searchMultiselect } from './lib/prompts/search-multiselect.ts';
-import { addSkillToLocalLock, computeSkillFolderHash, readLocalLock } from './lib/lock/index.ts';
-import type { Skill, AgentType } from './lib/types.ts';
-import { CommandError } from './lib/command-result.ts';
-import { track } from './lib/telemetry.ts';
-import { shortenPath } from './lib/utils.ts';
-import { consumeMultiValues } from './cli-parse.ts';
+} from '../lib/agents/index.ts';
+import { searchMultiselect } from '../lib/prompts/search-multiselect.ts';
+import { addSkillToLocalLock, computeSkillFolderHash, readLocalLock } from '../lib/lock/index.ts';
+import type { Skill, AgentType } from '../lib/types.ts';
+import { CommandError } from '../lib/command-result.ts';
+import { track } from '../lib/telemetry.ts';
+import { shortenPath } from '../lib/utils.ts';
+import { consumeMultiValues } from '../cli-parse.ts';
 
 const isCancelled = (value: unknown): value is symbol => typeof value === 'symbol';
 

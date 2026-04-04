@@ -1,8 +1,8 @@
-import type { AgentType, ContextType, LockEntry, TargetAgent } from './lib/types.ts';
-import { agents } from './lib/agents/index.ts';
-import { listInstalledSkills, type InstalledSkill } from './lib/install/index.ts';
-import { getAllLockedSkills } from './lib/lock/index.ts';
-import { readDotaiLock, getLockEntriesByType, type DotaiLockFile } from './lib/lock/index.ts';
+import type { AgentType, ContextType, LockEntry, TargetAgent } from '../lib/types.ts';
+import { agents } from '../lib/agents/index.ts';
+import { listInstalledSkills, type InstalledSkill } from '../lib/install/index.ts';
+import { getAllLockedSkills } from '../lib/lock/index.ts';
+import { readDotaiLock, getLockEntriesByType, type DotaiLockFile } from '../lib/lock/index.ts';
 import {
   RESET,
   BOLD,
@@ -12,8 +12,8 @@ import {
   shortenPath,
   formatList,
   kebabToTitle,
-} from './lib/utils.ts';
-import { consumeMultiValues, parseTypeFlag } from './cli-parse.ts';
+} from '../lib/utils.ts';
+import { consumeMultiValues, parseTypeFlag } from '../cli-parse.ts';
 
 interface ListOptions {
   global?: boolean;

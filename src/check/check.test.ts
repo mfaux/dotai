@@ -1,17 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { findSkillUpdates } from './check.ts';
-import type { SkillLockEntry } from './lib/lock/index.ts';
+import type { SkillLockEntry } from '../lib/lock/index.ts';
 
 // Mock fetchSkillFolderHash from skill-lock.ts
-vi.mock('./lib/lock/skill-lock.ts', async (importOriginal) => {
-  const original = await importOriginal<typeof import('./lib/lock/skill-lock.ts')>();
+vi.mock('../lib/lock/skill-lock.ts', async (importOriginal) => {
+  const original = await importOriginal<typeof import('../lib/lock/skill-lock.ts')>();
   return {
     ...original,
     fetchSkillFolderHash: vi.fn(),
   };
 });
 
-import { fetchSkillFolderHash } from './lib/lock/index.ts';
+import { fetchSkillFolderHash } from '../lib/lock/index.ts';
 const mockFetch = vi.mocked(fetchSkillFolderHash);
 
 function makeEntry(overrides: Partial<SkillLockEntry> = {}): SkillLockEntry {

@@ -21,8 +21,8 @@ import {
   fetchSkillFolderHash,
   isPromptDismissed,
   dismissPrompt,
-} from './skill-lock.ts';
-import { addSkillToLocalLock, computeSkillFolderHash } from './local-lock.ts';
+} from './lib/lock/index.ts';
+import { addSkillToLocalLock, computeSkillFolderHash } from './lib/lock/index.ts';
 import type { Skill, AgentType, TargetAgent, ContextType } from './types.ts';
 import { parseAddOptions, type AddOptions } from './add-options.ts';
 export { parseAddOptions, type AddOptions } from './add-options.ts';

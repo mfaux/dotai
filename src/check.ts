@@ -4,7 +4,7 @@ import {
   getGitHubToken,
   readSkillLock,
   type SkillLockEntry,
-} from './skill-lock.ts';
+} from './lib/lock/index.ts';
 import { checkContextUpdates, updateContext } from './context-check.ts';
 import { track } from './telemetry.ts';
 import { RESET, DIM, TEXT } from './utils.ts';

@@ -6,7 +6,7 @@ import {
   writeDotaiLock,
   upsertLockEntry,
   computeContentHash,
-} from './dotai-lock.ts';
+} from './lib/lock/index.ts';
 import { loadModelOverrides } from './model-aliases.ts';
 import { TARGET_AGENTS } from './target-agents.ts';
 import { addToGitignore } from './lib/git/index.ts';

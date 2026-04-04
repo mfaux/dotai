@@ -16,7 +16,7 @@ import {
 } from './e2e-utils.ts';
 import { addPrompts, addAgents } from '../src/context-add.ts';
 import { checkContextUpdates, updateContext } from '../src/context-check.ts';
-import { computeContentHash } from '../src/dotai-lock.ts';
+import { computeContentHash } from '../src/lib/lock/index.ts';
 
 // ---------------------------------------------------------------------------
 // E2E Update Flow Tests

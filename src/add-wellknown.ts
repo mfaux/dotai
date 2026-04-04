@@ -6,8 +6,8 @@ import { getCanonicalPath, installWellKnownSkillForAgent } from './skill-install
 import { agents } from './agents.ts';
 import { track } from './telemetry.ts';
 import { wellKnownProvider, type WellKnownSkill } from './providers/index.ts';
-import { addSkillToLock } from './skill-lock.ts';
-import { addSkillToLocalLock, computeSkillFolderHash } from './local-lock.ts';
+import { addSkillToLock } from './lib/lock/index.ts';
+import { addSkillToLocalLock, computeSkillFolderHash } from './lib/lock/index.ts';
 import type { AgentType } from './types.ts';
 import { buildAgentSummaryLines } from './add-display.ts';
 import type { AddOptions } from './add-options.ts';

@@ -4,7 +4,7 @@ import { homedir } from 'os';
 import { execSync } from 'child_process';
 
 import { LockVersionError } from './lock-version-error.ts';
-import { fetchRepoTree } from './lib/git/index.ts';
+import { fetchRepoTree } from '../git/index.ts';
 
 const AGENTS_DIR = '.agents';
 const LOCK_FILE = '.skill-lock.json';

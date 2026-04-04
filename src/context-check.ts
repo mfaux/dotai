@@ -10,7 +10,7 @@ import {
   computeContentHash,
   upsertLockEntry,
   getLockEntriesByType,
-} from './dotai-lock.ts';
+} from './lib/lock/index.ts';
 import { loadModelOverrides } from './model-aliases.ts';
 import { TARGET_AGENTS } from './target-agents.ts';
 import type { ContextType, LockEntry, TargetAgent } from './types.ts';

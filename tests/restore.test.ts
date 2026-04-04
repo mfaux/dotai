@@ -5,7 +5,7 @@ import { tmpdir } from 'os';
 import { existsSync } from 'fs';
 import { runCli } from '../src/test-utils.ts';
 import { addPrompts, addAgents } from '../src/context-add.ts';
-import { writeDotaiLock, createEmptyLock, readDotaiLock } from '../src/dotai-lock.ts';
+import { writeDotaiLock, createEmptyLock, readDotaiLock } from '../src/lib/lock/index.ts';
 import { createTestSourceRepo } from './e2e-utils.ts';
 
 // ---------------------------------------------------------------------------

@@ -4,7 +4,7 @@ import { readdir, rm, lstat, unlink, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { agents, detectInstalledAgents } from './agents.ts';
 import { track } from './telemetry.ts';
-import { removeSkillFromLock, getSkillFromLock } from './skill-lock.ts';
+import { removeSkillFromLock, getSkillFromLock } from './lib/lock/index.ts';
 import type { AgentType, ContextType, LockEntry } from './types.ts';
 import {
   getInstallPath,
@@ -12,7 +12,7 @@ import {
   getCanonicalSkillsDir,
   sanitizeName,
 } from './skill-installer.ts';
-import { readDotaiLock, removeLockEntry, writeDotaiLock } from './dotai-lock.ts';
+import { readDotaiLock, removeLockEntry, writeDotaiLock } from './lib/lock/index.ts';
 import { removeSection } from './append-markers.ts';
 import { removeFromGitignore } from './lib/git/index.ts';
 import { consumeMultiValues, VALID_CONTEXT_TYPES } from './cli-parse.ts';

@@ -15,7 +15,7 @@ import {
   readDotaiLock,
   createEmptyLock,
   upsertLockEntry,
-} from '../src/dotai-lock.ts';
+} from '../src/lib/lock/index.ts';
 import type { TranspiledOutput, LockEntry, TargetAgent } from '../src/types.ts';
 import { mkdtempSync, rmSync } from 'fs';
 import { tmpdir } from 'os';

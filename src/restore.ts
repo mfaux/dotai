@@ -1,10 +1,10 @@
 import * as p from '@clack/prompts';
 import pc from 'picocolors';
-import { readLocalLock } from './local-lock.ts';
+import { readLocalLock } from './lib/lock/index.ts';
 import { runAdd } from './add.ts';
 import { runSync, parseSyncOptions } from './sync.ts';
 import { getUniversalAgents } from './agents.ts';
-import { readDotaiLock, getLockEntriesByType } from './dotai-lock.ts';
+import { readDotaiLock, getLockEntriesByType } from './lib/lock/index.ts';
 import { addPrompts, addAgents } from './context-add.ts';
 import { parseSource } from './source-parser.ts';
 import { cloneRepo, cleanupTempDir } from './lib/git/index.ts';

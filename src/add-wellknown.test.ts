@@ -53,11 +53,11 @@ vi.mock('./telemetry.ts', () => ({
   track: vi.fn(),
 }));
 
-vi.mock('./skill-lock.ts', () => ({
+vi.mock('./lib/lock/skill-lock.ts', () => ({
   addSkillToLock: vi.fn(),
 }));
 
-vi.mock('./local-lock.ts', () => ({
+vi.mock('./lib/lock/local-lock.ts', () => ({
   addSkillToLocalLock: vi.fn(),
   computeSkillFolderHash: vi.fn().mockResolvedValue('abc123'),
 }));
@@ -79,8 +79,8 @@ import { detectInstalledAgents } from './agents.ts';
 import { isSkillInstalled, installWellKnownSkillForAgent } from './skill-installer.ts';
 import { track } from './telemetry.ts';
 import { CommandError } from './command-result.ts';
-import { addSkillToLock } from './skill-lock.ts';
-import { addSkillToLocalLock, computeSkillFolderHash } from './local-lock.ts';
+import { addSkillToLock } from './lib/lock/index.ts';
+import { addSkillToLocalLock, computeSkillFolderHash } from './lib/lock/index.ts';
 import { isSourcePrivate } from './source-parser.ts';
 import { multiselect } from './add-agents.ts';
 

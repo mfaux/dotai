@@ -11,7 +11,7 @@ import {
   getNonUniversalAgents,
 } from './agents.ts';
 import { searchMultiselect } from './prompts/search-multiselect.ts';
-import { addSkillToLocalLock, computeSkillFolderHash, readLocalLock } from './local-lock.ts';
+import { addSkillToLocalLock, computeSkillFolderHash, readLocalLock } from './lib/lock/index.ts';
 import type { Skill, AgentType } from './types.ts';
 import { CommandError } from './command-result.ts';
 import { track } from './telemetry.ts';

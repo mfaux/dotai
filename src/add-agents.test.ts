@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { multiselect, promptForAgents, selectAgentsInteractive } from './add-agents.js';
-import * as skillLock from './skill-lock.js';
+import * as skillLock from './lib/lock/skill-lock.js';
 import * as searchMultiselectModule from './prompts/search-multiselect.js';
 import * as clack from '@clack/prompts';
 import * as agentsModule from './agents.js';
 
 // Mock dependencies
-vi.mock('./skill-lock.js');
+vi.mock('./lib/lock/skill-lock.js');
 vi.mock('./prompts/search-multiselect.js');
 vi.mock('@clack/prompts', async () => {
   const actual = await vi.importActual('@clack/prompts');

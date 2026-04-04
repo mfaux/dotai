@@ -11,9 +11,9 @@ import {
   upsertLockEntry,
   getLockEntriesByType,
 } from '../lock/index.ts';
-import { loadModelOverrides } from '../../model-aliases.ts';
+import { loadModelOverrides } from '../model-aliases.ts';
 import { TARGET_AGENTS } from '../agents/index.ts';
-import type { ContextType, LockEntry, TargetAgent } from '../../types.ts';
+import type { ContextType, LockEntry, TargetAgent } from '../types.ts';
 
 // ---------------------------------------------------------------------------
 // Context check/update — reads .dotai-lock.json and compares content hashes

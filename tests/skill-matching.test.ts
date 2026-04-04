@@ -10,7 +10,7 @@ import { mkdirSync, rmSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { filterSkills, parseSkillMd } from '../src/lib/discovery/index.ts';
-import type { Skill } from '../src/types.ts';
+import type { Skill } from '../src/lib/types.ts';
 
 // Mock skill factory
 function makeSkill(name: string, path: string = '/tmp/skill'): Skill {

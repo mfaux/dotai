@@ -5,7 +5,7 @@ import {
   claudeCodePromptTranspiler,
 } from './prompt-transpilers.ts';
 import { mergeOverrides } from '../parsers/index.ts';
-import type { CanonicalPrompt, DiscoveredItem } from '../../types.ts';
+import type { CanonicalPrompt, DiscoveredItem } from '../types.ts';
 
 // ---------------------------------------------------------------------------
 // Helpers

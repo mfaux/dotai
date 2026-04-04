@@ -1,4 +1,4 @@
-import type { ContextType } from './types.ts';
+import type { ContextType } from './lib/types.ts';
 
 /** Valid context types accepted by --type flags. */
 export const VALID_CONTEXT_TYPES: readonly ContextType[] = [

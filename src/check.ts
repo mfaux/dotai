@@ -6,8 +6,8 @@ import {
   type SkillLockEntry,
 } from './lib/lock/index.ts';
 import { checkContextUpdates, updateContext } from './lib/install/index.ts';
-import { track } from './telemetry.ts';
-import { RESET, DIM, TEXT } from './utils.ts';
+import { track } from './lib/telemetry.ts';
+import { RESET, DIM, TEXT } from './lib/utils.ts';
 
 // ============================================
 // Shared skill update detection

@@ -3,11 +3,11 @@ import pc from 'picocolors';
 import { existsSync } from 'fs';
 import { sep } from 'path';
 import { parseSource, getOwnerRepo, parseOwnerRepo, isRepoPrivate } from './lib/parsers/index.ts';
-import { shortenPath, formatList, kebabToTitle } from './utils.ts';
+import { shortenPath, formatList, kebabToTitle } from './lib/utils.ts';
 import { multiselect } from './add-agents.ts';
 export { promptForAgents } from './add-agents.ts';
 import { cloneRepo, cleanupTempDir, GitCloneError } from './lib/git/index.ts';
-import { CommandError } from './command-result.ts';
+import { CommandError } from './lib/command-result.ts';
 import {
   addPrompts,
   addAgents,
@@ -23,7 +23,7 @@ import {
 } from './lib/discovery/index.ts';
 import { installSkillForAgent, isSkillInstalled, getCanonicalPath } from './lib/install/index.ts';
 import { agents } from './lib/agents/index.ts';
-import { track, setVersion, fetchAuditData } from './telemetry.ts';
+import { track, setVersion, fetchAuditData } from './lib/telemetry.ts';
 import { handleWellKnownSkills } from './add-wellknown.ts';
 import {
   addSkillToLock,
@@ -32,7 +32,7 @@ import {
   dismissPrompt,
 } from './lib/lock/index.ts';
 import { addSkillToLocalLock, computeSkillFolderHash } from './lib/lock/index.ts';
-import type { Skill, AgentType, TargetAgent, ContextType } from './types.ts';
+import type { Skill, AgentType, TargetAgent, ContextType } from './lib/types.ts';
 import { parseAddOptions, type AddOptions } from './add-options.ts';
 export { parseAddOptions, type AddOptions } from './add-options.ts';
 import packageJson from '../package.json' with { type: 'json' };

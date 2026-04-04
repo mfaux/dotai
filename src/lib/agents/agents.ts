@@ -2,7 +2,7 @@ import { homedir } from 'os';
 import { join } from 'path';
 import { existsSync } from 'fs';
 import { xdgConfig } from 'xdg-basedir';
-import type { AgentConfig, AgentType } from '../../types.ts';
+import type { AgentConfig, AgentType } from '../types.ts';
 
 const home = homedir();
 // Use xdg-basedir (not env-paths) to match OpenCode behavior on all platforms.

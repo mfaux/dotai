@@ -2,7 +2,7 @@ import { readFile, writeFile, rename } from 'fs/promises';
 import { join } from 'path';
 import { createHash } from 'crypto';
 
-import type { LockEntry, ContextType, ContextFormat, TargetAgent } from '../../types.js';
+import type { LockEntry, ContextType, ContextFormat, TargetAgent } from '../types.js';
 import { LockVersionError } from './lock-version-error.ts';
 
 // ---------------------------------------------------------------------------

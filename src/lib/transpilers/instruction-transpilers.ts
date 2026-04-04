@@ -4,7 +4,7 @@ import type {
   DiscoveredItem,
   TargetAgent,
   TranspiledOutput,
-} from '../../types.ts';
+} from '../types.ts';
 import { parseInstructionContent } from '../parsers/index.ts';
 import { getTargetAgentConfig } from '../agents/index.ts';
 import { mergeOverrides } from '../parsers/index.ts';

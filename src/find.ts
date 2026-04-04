@@ -2,11 +2,11 @@ import * as readline from 'readline';
 import * as p from '@clack/prompts';
 import { runAdd } from './add.ts';
 import { parseAddOptions } from './add-options.ts';
-import { track } from './telemetry.ts';
+import { track } from './lib/telemetry.ts';
 import { isRepoPrivate, parseOwnerRepo } from './lib/parsers/index.ts';
 import { fetchRepoTree } from './lib/git/index.ts';
 import { discoverRemoteContext, type RemoteContextSummary } from './lib/discovery/index.ts';
-import { RESET, BOLD, DIM, TEXT, CYAN, MAGENTA, YELLOW } from './utils.ts';
+import { RESET, BOLD, DIM, TEXT, CYAN, MAGENTA, YELLOW } from './lib/utils.ts';
 
 // API endpoint for skills search
 const SEARCH_API_BASE = process.env.SKILLS_API_URL || 'https://skills.sh';

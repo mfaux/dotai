@@ -9,7 +9,7 @@ import {
   transpileAgentForAllAgents,
 } from './agent-transpilers.ts';
 import { TARGET_AGENTS } from '../agents/index.ts';
-import type { CanonicalAgent, DiscoveredItem, TargetAgent } from '../../types.ts';
+import type { CanonicalAgent, DiscoveredItem, TargetAgent } from '../types.ts';
 
 // ---------------------------------------------------------------------------
 // Helpers

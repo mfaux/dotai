@@ -11,7 +11,7 @@ import {
   computeContentHash,
 } from '../lock/index.ts';
 import type { DotaiLockFile } from '../lock/index.ts';
-import type { LockEntry, TargetAgent } from '../../types.ts';
+import type { LockEntry, TargetAgent } from '../types.ts';
 
 // ---------------------------------------------------------------------------
 // Helpers

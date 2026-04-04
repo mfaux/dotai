@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { resolveModel, getKnownModels, loadModelOverrides } from './model-aliases.ts';
 import type { TargetAgent } from './types.ts';
-import { TARGET_AGENTS } from './lib/agents/index.ts';
+import { TARGET_AGENTS } from './agents/index.ts';
 import { mkdtemp, writeFile, rm } from 'fs/promises';
 import { join } from 'path';
 import { tmpdir } from 'os';

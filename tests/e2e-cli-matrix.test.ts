@@ -19,7 +19,7 @@ import {
 import { addPrompts, addAgents } from '../src/lib/install/index.ts';
 import { removeCommand } from '../src/remove.ts';
 import { checkContextUpdates, updateContext } from '../src/lib/install/index.ts';
-import { runCli } from '../src/test-utils.ts';
+import { runCli } from '../src/lib/test-utils.ts';
 
 // ---------------------------------------------------------------------------
 // E2E CLI Matrix Tests

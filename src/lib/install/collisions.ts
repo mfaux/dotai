@@ -10,7 +10,7 @@ import type {
   ContextType,
   ContextFormat,
   TargetAgent,
-} from '../../types.ts';
+} from '../types.ts';
 
 // ---------------------------------------------------------------------------
 // Collision detection — Phase 5: Installer + Collision Safety

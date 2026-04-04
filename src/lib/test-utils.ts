@@ -8,7 +8,7 @@ function quoteArg(arg: string): string {
 }
 
 // const PROJECT_ROOT = join(import.meta.dirname, '..');
-const CLI_PATH = join(import.meta.dirname, 'cli.ts');
+const CLI_PATH = join(import.meta.dirname, '..', 'cli.ts');
 
 function stripAnsi(str: string): string {
   return str.replace(/\x1b\[[0-9;]*m/g, '');

@@ -1,18 +1,18 @@
 import * as p from '@clack/prompts';
 import pc from 'picocolors';
 import { isSourcePrivate } from './lib/parsers/index.ts';
-import { shortenPath, formatList } from './utils.ts';
+import { shortenPath, formatList } from './lib/utils.ts';
 import { getCanonicalPath, installWellKnownSkillForAgent } from './lib/install/index.ts';
 import { agents } from './lib/agents/index.ts';
-import { track } from './telemetry.ts';
-import { wellKnownProvider, type WellKnownSkill } from './providers/index.ts';
+import { track } from './lib/telemetry.ts';
+import { wellKnownProvider, type WellKnownSkill } from './lib/providers/index.ts';
 import { addSkillToLock } from './lib/lock/index.ts';
 import { addSkillToLocalLock, computeSkillFolderHash } from './lib/lock/index.ts';
-import type { AgentType } from './types.ts';
+import type { AgentType } from './lib/types.ts';
 import { buildAgentSummaryLines } from './add-display.ts';
 import type { AddOptions } from './add-options.ts';
 import { multiselect } from './add-agents.ts';
-import { CommandError } from './command-result.ts';
+import { CommandError } from './lib/command-result.ts';
 import {
   resolveInstallTargets,
   checkOverwrites,

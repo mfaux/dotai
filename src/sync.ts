@@ -10,12 +10,12 @@ import {
   getUniversalAgents,
   getNonUniversalAgents,
 } from './lib/agents/index.ts';
-import { searchMultiselect } from './prompts/search-multiselect.ts';
+import { searchMultiselect } from './lib/prompts/search-multiselect.ts';
 import { addSkillToLocalLock, computeSkillFolderHash, readLocalLock } from './lib/lock/index.ts';
-import type { Skill, AgentType } from './types.ts';
-import { CommandError } from './command-result.ts';
-import { track } from './telemetry.ts';
-import { shortenPath } from './utils.ts';
+import type { Skill, AgentType } from './lib/types.ts';
+import { CommandError } from './lib/command-result.ts';
+import { track } from './lib/telemetry.ts';
+import { shortenPath } from './lib/utils.ts';
 import { consumeMultiValues } from './cli-parse.ts';
 
 const isCancelled = (value: unknown): value is symbol => typeof value === 'symbol';

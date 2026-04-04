@@ -16,7 +16,7 @@ import { mkdtemp, rm, mkdir, writeFile, readFile } from 'fs/promises';
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { execSync } from 'child_process';
-import type { ContextType, LockEntry, TargetAgent } from '../src/types.ts';
+import type { ContextType, LockEntry, TargetAgent } from '../src/lib/types.ts';
 import type { DotaiLockFile } from '../src/lib/lock/index.ts';
 import { readDotaiLock } from '../src/lib/lock/index.ts';
 import { targetAgents } from '../src/lib/agents/index.ts';

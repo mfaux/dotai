@@ -16,7 +16,7 @@ import type {
   ContextType,
   ContextFormat,
   TargetAgent,
-} from '../../types.ts';
+} from '../types.ts';
 
 /** Assert exactly one collision and return it (avoids TS "possibly undefined" on collisions[0]). */
 function expectSingleCollision(collisions: Collision[]): Collision {

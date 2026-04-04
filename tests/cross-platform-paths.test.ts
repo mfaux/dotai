@@ -16,7 +16,7 @@ import {
   createEmptyLock,
   upsertLockEntry,
 } from '../src/lib/lock/index.ts';
-import type { TranspiledOutput, LockEntry, TargetAgent } from '../src/types.ts';
+import type { TranspiledOutput, LockEntry, TargetAgent } from '../src/lib/types.ts';
 import { mkdtempSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import { execSync } from 'child_process';

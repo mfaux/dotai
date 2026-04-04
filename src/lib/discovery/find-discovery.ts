@@ -1,4 +1,4 @@
-import type { ContextType } from '../../types.ts';
+import type { ContextType } from '../types.ts';
 import type { GitHubTreeEntry } from '../git/index.ts';
 import { targetAgents } from '../agents/index.ts';
 

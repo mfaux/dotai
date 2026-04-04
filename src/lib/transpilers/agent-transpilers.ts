@@ -5,11 +5,11 @@ import type {
   DiscoveredItem,
   TargetAgent,
   TranspiledOutput,
-} from '../../types.ts';
+} from '../types.ts';
 import { parseAgentContent } from '../parsers/index.ts';
 import { getTargetAgentConfig } from '../agents/index.ts';
-import { resolveModel, type ModelOverrides } from '../../model-aliases.ts';
-import { quoteYaml } from '../../utils.ts';
+import { resolveModel, type ModelOverrides } from '../model-aliases.ts';
+import { quoteYaml } from '../utils.ts';
 import { mergeOverrides } from '../parsers/index.ts';
 
 // ---------------------------------------------------------------------------

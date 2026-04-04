@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mkdir, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
-import { runCli } from '../src/test-utils.ts';
+import { runCli } from '../src/lib/test-utils.ts';
 import { createTempProjectDir } from './e2e-utils.ts';
 
 // ---------------------------------------------------------------------------

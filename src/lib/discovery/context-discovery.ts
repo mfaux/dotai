@@ -6,7 +6,7 @@ import {
   parsePromptContent,
 } from '../parsers/index.ts';
 import { targetAgents } from '../agents/index.ts';
-import type { ContextFormat, ContextType, DiscoveredItem, TargetAgent } from '../../types.ts';
+import type { ContextFormat, ContextType, DiscoveredItem, TargetAgent } from '../types.ts';
 
 // ---------------------------------------------------------------------------
 // Discovery constants

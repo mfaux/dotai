@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { addInstructions } from '../src/lib/install/index.ts';
-import type { TargetAgent } from '../src/types.ts';
+import type { TargetAgent } from '../src/lib/types.ts';
 import {
   createTempProjectDir,
   createTestSourceRepo,

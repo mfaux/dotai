@@ -7,8 +7,8 @@ import type {
   PlannedWrite,
   LockEntry,
   Collision,
-} from '../../types.ts';
-import type { ModelOverrides } from '../../model-aliases.ts';
+} from '../types.ts';
+import type { ModelOverrides } from '../model-aliases.ts';
 import {
   transpilePromptForAllAgents,
   transpileAgentForAllAgents,

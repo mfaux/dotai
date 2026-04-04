@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { WellKnownProvider, isValidSkillEntry } from '../src/providers/wellknown.ts';
+import { WellKnownProvider, isValidSkillEntry } from '../src/lib/providers/wellknown.ts';
 
 describe('WellKnownProvider', () => {
   const provider = new WellKnownProvider();

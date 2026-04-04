@@ -5,14 +5,14 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { runAdd, parseAddOptions, initTelemetry } from './add.ts';
 import { runCheck, runUpdate } from './check.ts';
-import { CommandError } from './command-result.ts';
+import { CommandError } from './lib/command-result.ts';
 import { runFind } from './find.ts';
 import { runInit } from './init.ts';
 import { runInstallFromLock } from './restore.ts';
 import { runList } from './list.ts';
 import { removeCommand, parseRemoveOptions } from './remove.ts';
 import { runSync, parseSyncOptions } from './sync.ts';
-import { RESET, BOLD, DIM, TEXT, YELLOW } from './utils.ts';
+import { RESET, BOLD, DIM, TEXT, YELLOW } from './lib/utils.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 

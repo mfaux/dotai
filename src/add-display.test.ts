@@ -9,8 +9,8 @@ import {
   ensureUniversalAgents,
   buildResultLines,
 } from './add-display.ts';
-import type { AgentType } from './types.ts';
-import type { AuditResponse, PartnerAudit } from './telemetry.ts';
+import type { AgentType } from './lib/types.ts';
+import type { AuditResponse, PartnerAudit } from './lib/telemetry.ts';
 
 // Helper to strip ANSI escape codes for easier assertion
 const stripAnsi = (s: string) => s.replace(/\x1b\[[0-9;]*m/g, '');

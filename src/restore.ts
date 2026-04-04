@@ -8,7 +8,7 @@ import { readDotaiLock, getLockEntriesByType } from './lib/lock/index.ts';
 import { addPrompts, addAgents } from './lib/install/index.ts';
 import { parseSource } from './lib/parsers/index.ts';
 import { cloneRepo, cleanupTempDir } from './lib/git/index.ts';
-import type { LockEntry, TargetAgent } from './types.ts';
+import type { LockEntry, TargetAgent } from './lib/types.ts';
 
 /**
  * Install all context from lock files:

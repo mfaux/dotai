@@ -18,7 +18,7 @@ import {
   LockVersionError,
 } from './dotai-lock.js';
 import type { DotaiLockFile } from './dotai-lock.js';
-import type { LockEntry } from '../../types.js';
+import type { LockEntry } from '../types.js';
 
 // ---------------------------------------------------------------------------
 // Test helpers

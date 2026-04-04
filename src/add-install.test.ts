@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { AddOptions } from './add-options.ts';
-import type { AgentType } from './types.ts';
+import type { AgentType } from './lib/types.ts';
 
 // --- Mocks ---
 
@@ -52,7 +52,7 @@ import {
 import { detectInstalledAgents, agents } from './lib/agents/index.ts';
 import { promptForAgents, selectAgentsInteractive } from './add-agents.ts';
 import { isSkillInstalled } from './lib/install/index.ts';
-import { CommandError } from './command-result.ts';
+import { CommandError } from './lib/command-result.ts';
 
 // --- Helpers ---
 

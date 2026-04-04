@@ -9,9 +9,11 @@ import type {
   Collision,
 } from './types.ts';
 import type { ModelOverrides } from './model-aliases.ts';
-import { transpilePromptForAllAgents } from './prompt-transpilers.ts';
-import { transpileAgentForAllAgents } from './agent-transpilers.ts';
-import { transpileInstructionForAllAgents } from './instruction-transpilers.ts';
+import {
+  transpilePromptForAllAgents,
+  transpileAgentForAllAgents,
+  transpileInstructionForAllAgents,
+} from './lib/transpilers/index.ts';
 import { checkCollisions, createPlannedWrite, filterBlockingCollisions } from './collisions.ts';
 import { upsertSection } from './append-markers.ts';
 

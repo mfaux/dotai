@@ -1,4 +1,4 @@
-import type { DiscoveredItem, TargetAgent, TranspiledOutput } from './types.ts';
+import type { DiscoveredItem, TargetAgent, TranspiledOutput } from '../../types.ts';
 
 /**
  * A transpiler converts a canonical context item into agent-specific output.

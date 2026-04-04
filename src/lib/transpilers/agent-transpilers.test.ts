@@ -8,8 +8,8 @@ import {
   transpileAgent,
   transpileAgentForAllAgents,
 } from './agent-transpilers.ts';
-import { TARGET_AGENTS } from './target-agents.ts';
-import type { CanonicalAgent, DiscoveredItem, TargetAgent } from './types.ts';
+import { TARGET_AGENTS } from '../../target-agents.ts';
+import type { CanonicalAgent, DiscoveredItem, TargetAgent } from '../../types.ts';
 
 // ---------------------------------------------------------------------------
 // Helpers

@@ -5,12 +5,12 @@ import type {
   DiscoveredItem,
   TargetAgent,
   TranspiledOutput,
-} from './types.ts';
-import { parsePromptContent } from './lib/parsers/index.ts';
-import { getTargetAgentConfig } from './target-agents.ts';
-import { resolveModel, type ModelOverrides } from './model-aliases.ts';
-import { quoteYaml } from './utils.ts';
-import { mergeOverrides } from './lib/parsers/index.ts';
+} from '../../types.ts';
+import { parsePromptContent } from '../parsers/index.ts';
+import { getTargetAgentConfig } from '../../target-agents.ts';
+import { resolveModel, type ModelOverrides } from '../../model-aliases.ts';
+import { quoteYaml } from '../../utils.ts';
+import { mergeOverrides } from '../parsers/index.ts';
 
 // ---------------------------------------------------------------------------
 // Prompt transpilers — canonical PROMPT.md → per-agent output

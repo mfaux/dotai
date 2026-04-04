@@ -4,10 +4,10 @@ import type {
   DiscoveredItem,
   TargetAgent,
   TranspiledOutput,
-} from './types.ts';
-import { parseInstructionContent } from './lib/parsers/index.ts';
-import { getTargetAgentConfig } from './target-agents.ts';
-import { mergeOverrides } from './lib/parsers/index.ts';
+} from '../../types.ts';
+import { parseInstructionContent } from '../parsers/index.ts';
+import { getTargetAgentConfig } from '../../target-agents.ts';
+import { mergeOverrides } from '../parsers/index.ts';
 
 // ---------------------------------------------------------------------------
 // Instruction transpilers — canonical INSTRUCTIONS.md → per-agent output

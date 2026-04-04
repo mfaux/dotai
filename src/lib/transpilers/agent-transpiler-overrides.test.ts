@@ -4,8 +4,8 @@ import {
   copilotAgentTranspiler,
   claudeCodeAgentTranspiler,
 } from './agent-transpilers.ts';
-import { mergeOverrides } from './lib/parsers/index.ts';
-import type { CanonicalAgent, DiscoveredItem } from './types.ts';
+import { mergeOverrides } from '../parsers/index.ts';
+import type { CanonicalAgent, DiscoveredItem } from '../../types.ts';
 
 // ---------------------------------------------------------------------------
 // Helpers

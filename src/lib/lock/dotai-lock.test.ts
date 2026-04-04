@@ -16,9 +16,9 @@ import {
   createEmptyLock,
   getCurrentVersion,
   LockVersionError,
-} from './dotai-lock.js';
-import type { DotaiLockFile } from './dotai-lock.js';
-import type { LockEntry } from '../types.js';
+} from './dotai-lock.ts';
+import type { DotaiLockFile } from './dotai-lock.ts';
+import type { LockEntry } from '../types.ts';
 
 // ---------------------------------------------------------------------------
 // Test helpers

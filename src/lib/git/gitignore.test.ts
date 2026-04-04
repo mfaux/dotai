@@ -4,7 +4,7 @@ import { join } from 'path';
 import { tmpdir } from 'os';
 import { existsSync } from 'fs';
 
-import { addToGitignore, removeFromGitignore, readManagedPaths } from './gitignore.js';
+import { addToGitignore, removeFromGitignore, readManagedPaths } from './gitignore.ts';
 
 // ---------------------------------------------------------------------------
 // Test helpers

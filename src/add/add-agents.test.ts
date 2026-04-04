@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { multiselect, promptForAgents, selectAgentsInteractive } from './add-agents.js';
-import * as skillLock from '../lib/lock/skill-lock.js';
-import * as searchMultiselectModule from '../lib/prompts/search-multiselect.js';
+import { multiselect, promptForAgents, selectAgentsInteractive } from './add-agents.ts';
+import * as skillLock from '../lib/lock/skill-lock.ts';
+import * as searchMultiselectModule from '../lib/prompts/search-multiselect.ts';
 import * as clack from '@clack/prompts';
-import * as agentsModule from '../lib/agents/agents.js';
+import * as agentsModule from '../lib/agents/agents.ts';
 
 // Mock dependencies
-vi.mock('../lib/lock/skill-lock.js');
-vi.mock('../lib/prompts/search-multiselect.js');
+vi.mock('../lib/lock/skill-lock.ts');
+vi.mock('../lib/prompts/search-multiselect.ts');
 vi.mock('@clack/prompts', async () => {
   const actual = await vi.importActual('@clack/prompts');
   return {

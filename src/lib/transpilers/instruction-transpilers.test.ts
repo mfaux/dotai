@@ -8,7 +8,7 @@ import {
   transpileInstruction,
   transpileInstructionForAllAgents,
 } from './instruction-transpilers.ts';
-import { TARGET_AGENTS } from '../../target-agents.ts';
+import { TARGET_AGENTS } from '../agents/index.ts';
 import type { CanonicalInstruction, DiscoveredItem, TargetAgent } from '../../types.ts';
 
 // ---------------------------------------------------------------------------

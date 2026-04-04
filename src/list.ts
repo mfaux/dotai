@@ -1,5 +1,5 @@
 import type { AgentType, ContextType, LockEntry, TargetAgent } from './types.ts';
-import { agents } from './agents.ts';
+import { agents } from './lib/agents/index.ts';
 import { listInstalledSkills, type InstalledSkill } from './lib/install/index.ts';
 import { getAllLockedSkills } from './lib/lock/index.ts';
 import { readDotaiLock, getLockEntriesByType, type DotaiLockFile } from './lib/lock/index.ts';

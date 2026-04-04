@@ -2,7 +2,7 @@ import * as p from '@clack/prompts';
 import pc from 'picocolors';
 import { readdir, rm, lstat, unlink, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
-import { agents, detectInstalledAgents } from './agents.ts';
+import { agents, detectInstalledAgents } from './lib/agents/index.ts';
 import { track } from './telemetry.ts';
 import { removeSkillFromLock, getSkillFromLock } from './lib/lock/index.ts';
 import type { AgentType, ContextType, LockEntry } from './types.ts';

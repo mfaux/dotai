@@ -9,7 +9,7 @@ import {
   agents,
   getUniversalAgents,
   getNonUniversalAgents,
-} from './agents.ts';
+} from './lib/agents/index.ts';
 import { searchMultiselect } from './prompts/search-multiselect.ts';
 import { addSkillToLocalLock, computeSkillFolderHash, readLocalLock } from './lib/lock/index.ts';
 import type { Skill, AgentType } from './types.ts';

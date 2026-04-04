@@ -18,8 +18,8 @@ vi.mock('@clack/prompts', async () => {
   };
 });
 
-vi.mock('./agents.ts', async () => {
-  const actual = await vi.importActual('./agents.ts');
+vi.mock('./lib/agents/agents.ts', async () => {
+  const actual = await vi.importActual('./lib/agents/agents.ts');
   return {
     ...actual,
     detectInstalledAgents: vi.fn(),
@@ -49,7 +49,7 @@ import {
   displayInstallResults,
   type InstallResult,
 } from './add-install.ts';
-import { detectInstalledAgents, agents } from './agents.ts';
+import { detectInstalledAgents, agents } from './lib/agents/index.ts';
 import { promptForAgents, selectAgentsInteractive } from './add-agents.ts';
 import { isSkillInstalled } from './lib/install/index.ts';
 import { CommandError } from './command-result.ts';

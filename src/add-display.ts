@@ -1,6 +1,6 @@
 import pc from 'picocolors';
 import { formatList } from './utils.ts';
-import { agents, getUniversalAgents, isUniversalAgent } from './agents.ts';
+import { agents, getUniversalAgents, isUniversalAgent } from './lib/agents/index.ts';
 import type { AgentType } from './types.ts';
 import type { InstallMode } from './lib/install/index.ts';
 import type { AuditResponse, PartnerAudit } from './telemetry.ts';

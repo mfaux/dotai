@@ -14,7 +14,7 @@ import {
   addInstructions,
   resolveTargetAgents,
 } from './lib/install/index.ts';
-import { TARGET_AGENTS } from './target-agents.ts';
+import { TARGET_AGENTS } from './lib/agents/index.ts';
 import {
   discoverSkills,
   getSkillDisplayName,
@@ -22,7 +22,7 @@ import {
   discover,
 } from './lib/discovery/index.ts';
 import { installSkillForAgent, isSkillInstalled, getCanonicalPath } from './lib/install/index.ts';
-import { agents } from './agents.ts';
+import { agents } from './lib/agents/index.ts';
 import { track, setVersion, fetchAuditData } from './telemetry.ts';
 import { handleWellKnownSkills } from './add-wellknown.ts';
 import {

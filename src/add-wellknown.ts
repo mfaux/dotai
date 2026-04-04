@@ -3,7 +3,7 @@ import pc from 'picocolors';
 import { isSourcePrivate } from './lib/parsers/index.ts';
 import { shortenPath, formatList } from './utils.ts';
 import { getCanonicalPath, installWellKnownSkillForAgent } from './lib/install/index.ts';
-import { agents } from './agents.ts';
+import { agents } from './lib/agents/index.ts';
 import { track } from './telemetry.ts';
 import { wellKnownProvider, type WellKnownSkill } from './providers/index.ts';
 import { addSkillToLock } from './lib/lock/index.ts';

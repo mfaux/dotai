@@ -1,4 +1,4 @@
-import type { TargetAgent, ContextType } from './types.ts';
+import type { TargetAgent, ContextType } from '../../types.ts';
 
 // ---------------------------------------------------------------------------
 // Target agent registry for dotai transpilation (skills, prompts, agents, instructions)

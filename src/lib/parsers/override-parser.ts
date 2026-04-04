@@ -1,5 +1,5 @@
 import type { TargetAgent } from '../../types.ts';
-import { TARGET_AGENTS } from '../../target-agents.ts';
+import { TARGET_AGENTS } from '../agents/index.ts';
 
 // ---------------------------------------------------------------------------
 // Shared override extraction for per-agent frontmatter overrides

@@ -2,7 +2,7 @@ import * as p from '@clack/prompts';
 import pc from 'picocolors';
 import { promptForAgents, selectAgentsInteractive } from './add-agents.ts';
 import { isSkillInstalled, type InstallMode } from './lib/install/index.ts';
-import { detectInstalledAgents, agents } from './agents.ts';
+import { detectInstalledAgents, agents } from './lib/agents/index.ts';
 import type { AgentType } from './types.ts';
 import { ensureUniversalAgents, buildResultLines } from './add-display.ts';
 import type { AddOptions } from './add-options.ts';

@@ -7,7 +7,7 @@ import {
   transpilePrompt,
   transpilePromptForAllAgents,
 } from './prompt-transpilers.ts';
-import { TARGET_AGENTS } from '../../target-agents.ts';
+import { TARGET_AGENTS } from '../agents/index.ts';
 import type { CanonicalPrompt, DiscoveredItem, TargetAgent } from '../../types.ts';
 
 // ---------------------------------------------------------------------------

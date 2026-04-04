@@ -6,7 +6,7 @@ import type {
   TranspiledOutput,
 } from '../../types.ts';
 import { parseInstructionContent } from '../parsers/index.ts';
-import { getTargetAgentConfig } from '../../target-agents.ts';
+import { getTargetAgentConfig } from '../agents/index.ts';
 import { mergeOverrides } from '../parsers/index.ts';
 
 // ---------------------------------------------------------------------------

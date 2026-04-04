@@ -25,8 +25,8 @@ vi.mock('./providers/index.ts', () => ({
   },
 }));
 
-vi.mock('./agents.ts', async () => {
-  const actual = await vi.importActual('./agents.ts');
+vi.mock('./lib/agents/agents.ts', async () => {
+  const actual = await vi.importActual('./lib/agents/agents.ts');
   return {
     ...actual,
     detectInstalledAgents: vi.fn(),
@@ -75,7 +75,7 @@ vi.mock('./lib/parsers/source-parser.ts', async () => {
 import * as p from '@clack/prompts';
 import { handleWellKnownSkills } from './add-wellknown.ts';
 import { wellKnownProvider } from './providers/index.ts';
-import { detectInstalledAgents } from './agents.ts';
+import { detectInstalledAgents } from './lib/agents/index.ts';
 import { isSkillInstalled, installWellKnownSkillForAgent } from './lib/install/index.ts';
 import { track } from './telemetry.ts';
 import { CommandError } from './command-result.ts';

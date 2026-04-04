@@ -1,7 +1,7 @@
 import * as p from '@clack/prompts';
 import pc from 'picocolors';
 import { searchMultiselect } from './prompts/search-multiselect.ts';
-import { agents, getUniversalAgents, getNonUniversalAgents } from './agents.ts';
+import { agents, getUniversalAgents, getNonUniversalAgents } from './lib/agents/index.ts';
 import { getLastSelectedAgents, saveSelectedAgents } from './lib/lock/index.ts';
 import type { AgentType } from './types.ts';
 

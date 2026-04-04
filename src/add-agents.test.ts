@@ -3,7 +3,7 @@ import { multiselect, promptForAgents, selectAgentsInteractive } from './add-age
 import * as skillLock from './lib/lock/skill-lock.js';
 import * as searchMultiselectModule from './prompts/search-multiselect.js';
 import * as clack from '@clack/prompts';
-import * as agentsModule from './agents.js';
+import * as agentsModule from './lib/agents/agents.js';
 
 // Mock dependencies
 vi.mock('./lib/lock/skill-lock.js');

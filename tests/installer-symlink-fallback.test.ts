@@ -21,7 +21,7 @@ import {
   installRemoteSkillForAgent,
   installWellKnownSkillForAgent,
 } from '../src/lib/install/index.ts';
-import { agents } from '../src/agents.ts';
+import { agents } from '../src/lib/agents/index.ts';
 import type { AgentType } from '../src/types.ts';
 import type { RemoteSkill } from '../src/types.ts';
 import type { WellKnownSkill } from '../src/providers/wellknown.ts';

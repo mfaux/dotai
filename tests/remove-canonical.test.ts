@@ -3,11 +3,11 @@ import { mkdir, rm, writeFile, lstat, symlink } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { removeCommand } from '../src/remove.ts';
-import * as agentsModule from '../src/agents.ts';
+import * as agentsModule from '../src/lib/agents/agents.ts';
 
 // Mock detectInstalledAgents
-vi.mock('../src/agents.ts', async () => {
-  const actual = await vi.importActual('../src/agents.ts');
+vi.mock('../src/lib/agents/agents.ts', async () => {
+  const actual = await vi.importActual('../src/lib/agents/agents.ts');
   return {
     ...actual,
     detectInstalledAgents: vi.fn(),

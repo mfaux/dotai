@@ -8,7 +8,7 @@ import {
   computeContentHash,
 } from '../lock/index.ts';
 import { loadModelOverrides } from '../../model-aliases.ts';
-import { TARGET_AGENTS } from '../../target-agents.ts';
+import { TARGET_AGENTS } from '../agents/index.ts';
 import { addToGitignore } from '../git/index.ts';
 import type { DiscoveredItem, LockEntry, TargetAgent } from '../../types.ts';
 

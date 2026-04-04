@@ -14,8 +14,8 @@ import {
   PROMPT_AGENTS,
   AGENT_AGENTS,
 } from './e2e-utils.ts';
-import { addPrompts, addAgents } from '../src/context-add.ts';
-import { checkContextUpdates, updateContext } from '../src/context-check.ts';
+import { addPrompts, addAgents } from '../src/lib/install/index.ts';
+import { checkContextUpdates, updateContext } from '../src/lib/install/index.ts';
 import { computeContentHash } from '../src/lib/lock/index.ts';
 
 // ---------------------------------------------------------------------------

@@ -1,8 +1,8 @@
 import pc from 'picocolors';
 import { resolve } from 'path';
-import { cloneRepo, cleanupTempDir } from './lib/git/index.ts';
-import { parseSource } from './lib/parsers/index.ts';
-import { discover, filterByType } from './lib/discovery/index.ts';
+import { cloneRepo, cleanupTempDir } from '../git/index.ts';
+import { parseSource } from '../parsers/index.ts';
+import { discover, filterByType } from '../discovery/index.ts';
 import { executeInstallPipeline } from './context-installer.ts';
 import {
   readDotaiLock,
@@ -10,10 +10,10 @@ import {
   computeContentHash,
   upsertLockEntry,
   getLockEntriesByType,
-} from './lib/lock/index.ts';
-import { loadModelOverrides } from './model-aliases.ts';
-import { TARGET_AGENTS } from './target-agents.ts';
-import type { ContextType, LockEntry, TargetAgent } from './types.ts';
+} from '../lock/index.ts';
+import { loadModelOverrides } from '../../model-aliases.ts';
+import { TARGET_AGENTS } from '../../target-agents.ts';
+import type { ContextType, LockEntry, TargetAgent } from '../../types.ts';
 
 // ---------------------------------------------------------------------------
 // Context check/update — reads .dotai-lock.json and compares content hashes

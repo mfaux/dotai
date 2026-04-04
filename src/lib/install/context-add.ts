@@ -1,16 +1,16 @@
 import pc from 'picocolors';
-import { discover, filterByType } from './lib/discovery/index.ts';
+import { discover, filterByType } from '../discovery/index.ts';
 import { executeInstallPipeline } from './context-installer.ts';
 import {
   readDotaiLock,
   writeDotaiLock,
   upsertLockEntry,
   computeContentHash,
-} from './lib/lock/index.ts';
-import { loadModelOverrides } from './model-aliases.ts';
-import { TARGET_AGENTS } from './target-agents.ts';
-import { addToGitignore } from './lib/git/index.ts';
-import type { DiscoveredItem, LockEntry, TargetAgent } from './types.ts';
+} from '../lock/index.ts';
+import { loadModelOverrides } from '../../model-aliases.ts';
+import { TARGET_AGENTS } from '../../target-agents.ts';
+import { addToGitignore } from '../git/index.ts';
+import type { DiscoveredItem, LockEntry, TargetAgent } from '../../types.ts';
 
 // ---------------------------------------------------------------------------
 // Context install — wires discovery → transpile → install pipeline

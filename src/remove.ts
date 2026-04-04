@@ -11,9 +11,9 @@ import {
   getCanonicalPath,
   getCanonicalSkillsDir,
   sanitizeName,
-} from './skill-installer.ts';
+} from './lib/install/index.ts';
 import { readDotaiLock, removeLockEntry, writeDotaiLock } from './lib/lock/index.ts';
-import { removeSection } from './append-markers.ts';
+import { removeSection } from './lib/install/index.ts';
 import { removeFromGitignore } from './lib/git/index.ts';
 import { consumeMultiValues, VALID_CONTEXT_TYPES } from './cli-parse.ts';
 import { CommandError } from './command-result.ts';

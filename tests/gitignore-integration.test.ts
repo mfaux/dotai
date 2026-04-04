@@ -3,7 +3,7 @@ import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
 import { relative } from 'path';
-import { addPrompts } from '../src/context-add.ts';
+import { addPrompts } from '../src/lib/install/index.ts';
 import { runCli } from '../src/test-utils.ts';
 import { readManagedPaths } from '../src/lib/git/index.ts';
 import { removeCommand } from '../src/remove.ts';

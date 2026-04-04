@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mkdir, writeFile, rm } from 'fs/promises';
 import { join } from 'path';
 import { tmpdir } from 'os';
-import { listInstalledSkills } from '../src/skill-installer.ts';
+import { listInstalledSkills } from '../src/lib/install/index.ts';
 import * as agentsModule from '../src/agents.ts';
 
 describe('listInstalledSkills', () => {

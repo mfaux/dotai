@@ -20,7 +20,7 @@ import {
   installSkillForAgent,
   installRemoteSkillForAgent,
   installWellKnownSkillForAgent,
-} from '../src/skill-installer.ts';
+} from '../src/lib/install/index.ts';
 import { agents } from '../src/agents.ts';
 import type { AgentType } from '../src/types.ts';
 import type { RemoteSkill } from '../src/types.ts';

@@ -16,7 +16,7 @@ import {
 } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { installSkillForAgent } from '../src/skill-installer.ts';
+import { installSkillForAgent } from '../src/lib/install/index.ts';
 
 /**
  * Check whether the OS allows creating symlinks without elevated privileges.

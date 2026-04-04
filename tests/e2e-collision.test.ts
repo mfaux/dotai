@@ -15,7 +15,7 @@ import {
   PROMPT_AGENTS,
   AGENT_AGENTS,
 } from './e2e-utils.ts';
-import { addPrompts, addAgents } from '../src/context-add.ts';
+import { addPrompts, addAgents } from '../src/lib/install/index.ts';
 
 // ---------------------------------------------------------------------------
 // E2E Collision and Force Tests

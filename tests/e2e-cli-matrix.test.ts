@@ -16,9 +16,9 @@ import {
   PROMPT_AGENTS,
   AGENT_AGENTS,
 } from './e2e-utils.ts';
-import { addPrompts, addAgents } from '../src/context-add.ts';
+import { addPrompts, addAgents } from '../src/lib/install/index.ts';
 import { removeCommand } from '../src/remove.ts';
-import { checkContextUpdates, updateContext } from '../src/context-check.ts';
+import { checkContextUpdates, updateContext } from '../src/lib/install/index.ts';
 import { runCli } from '../src/test-utils.ts';
 
 // ---------------------------------------------------------------------------

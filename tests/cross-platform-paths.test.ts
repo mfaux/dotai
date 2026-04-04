@@ -9,7 +9,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { join, resolve, sep } from 'path';
-import { createPlannedWrite } from '../src/collisions.ts';
+import { createPlannedWrite } from '../src/lib/install/index.ts';
 import {
   writeDotaiLock,
   readDotaiLock,

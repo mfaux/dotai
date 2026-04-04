@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mkdtempSync, writeFileSync, existsSync, readFileSync, rmSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
-import type { DiscoveredItem } from './types.ts';
+import type { DiscoveredItem } from '../../types.ts';
 import {
   planContextWrites,
   executeInstallPipeline,

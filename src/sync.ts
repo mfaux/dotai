@@ -3,7 +3,7 @@ import pc from 'picocolors';
 import { readdir, stat } from 'fs/promises';
 import { join } from 'path';
 import { parseSkillMd } from './lib/discovery/index.ts';
-import { installSkillForAgent, getCanonicalPath } from './skill-installer.ts';
+import { installSkillForAgent, getCanonicalPath } from './lib/install/index.ts';
 import {
   detectInstalledAgents,
   agents,

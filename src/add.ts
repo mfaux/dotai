@@ -8,7 +8,12 @@ import { multiselect } from './add-agents.ts';
 export { promptForAgents } from './add-agents.ts';
 import { cloneRepo, cleanupTempDir, GitCloneError } from './lib/git/index.ts';
 import { CommandError } from './command-result.ts';
-import { addPrompts, addAgents, addInstructions, resolveTargetAgents } from './context-add.ts';
+import {
+  addPrompts,
+  addAgents,
+  addInstructions,
+  resolveTargetAgents,
+} from './lib/install/index.ts';
 import { TARGET_AGENTS } from './target-agents.ts';
 import {
   discoverSkills,
@@ -16,7 +21,7 @@ import {
   filterSkills,
   discover,
 } from './lib/discovery/index.ts';
-import { installSkillForAgent, isSkillInstalled, getCanonicalPath } from './skill-installer.ts';
+import { installSkillForAgent, isSkillInstalled, getCanonicalPath } from './lib/install/index.ts';
 import { agents } from './agents.ts';
 import { track, setVersion, fetchAuditData } from './telemetry.ts';
 import { handleWellKnownSkills } from './add-wellknown.ts';

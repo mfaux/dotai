@@ -5,7 +5,7 @@ import {
   readSkillLock,
   type SkillLockEntry,
 } from './lib/lock/index.ts';
-import { checkContextUpdates, updateContext } from './context-check.ts';
+import { checkContextUpdates, updateContext } from './lib/install/index.ts';
 import { track } from './telemetry.ts';
 import { RESET, DIM, TEXT } from './utils.ts';
 

@@ -9,9 +9,9 @@ import {
   createEmptyLock,
   upsertLockEntry,
   computeContentHash,
-} from './lib/lock/index.ts';
-import type { DotaiLockFile } from './lib/lock/index.ts';
-import type { LockEntry, TargetAgent } from './types.ts';
+} from '../lock/index.ts';
+import type { DotaiLockFile } from '../lock/index.ts';
+import type { LockEntry, TargetAgent } from '../../types.ts';
 
 // ---------------------------------------------------------------------------
 // Helpers

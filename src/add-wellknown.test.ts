@@ -33,8 +33,8 @@ vi.mock('./agents.ts', async () => {
   };
 });
 
-vi.mock('./skill-installer.ts', async () => {
-  const actual = await vi.importActual('./skill-installer.ts');
+vi.mock('./lib/install/skill-installer.ts', async () => {
+  const actual = await vi.importActual('./lib/install/skill-installer.ts');
   return {
     ...actual,
     isSkillInstalled: vi.fn().mockResolvedValue(false),
@@ -76,7 +76,7 @@ import * as p from '@clack/prompts';
 import { handleWellKnownSkills } from './add-wellknown.ts';
 import { wellKnownProvider } from './providers/index.ts';
 import { detectInstalledAgents } from './agents.ts';
-import { isSkillInstalled, installWellKnownSkillForAgent } from './skill-installer.ts';
+import { isSkillInstalled, installWellKnownSkillForAgent } from './lib/install/index.ts';
 import { track } from './telemetry.ts';
 import { CommandError } from './command-result.ts';
 import { addSkillToLock } from './lib/lock/index.ts';

@@ -7,13 +7,13 @@ import type {
   PlannedWrite,
   LockEntry,
   Collision,
-} from './types.ts';
-import type { ModelOverrides } from './model-aliases.ts';
+} from '../../types.ts';
+import type { ModelOverrides } from '../../model-aliases.ts';
 import {
   transpilePromptForAllAgents,
   transpileAgentForAllAgents,
   transpileInstructionForAllAgents,
-} from './lib/transpilers/index.ts';
+} from '../transpilers/index.ts';
 import { checkCollisions, createPlannedWrite, filterBlockingCollisions } from './collisions.ts';
 import { upsertSection } from './append-markers.ts';
 

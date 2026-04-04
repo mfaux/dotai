@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { parseAddOptions } from './add-options.ts';
-import { resolveTargetAgents } from './context-add.ts';
+import { resolveTargetAgents } from './lib/install/index.ts';
 
 // ---------------------------------------------------------------------------
 // parseAddOptions — basic flags

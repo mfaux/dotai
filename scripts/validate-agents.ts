@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { agents } from '../src/agents.ts';
+import { agents } from '../src/lib/agents/agents.ts';
 
 let hasErrors = false;
 

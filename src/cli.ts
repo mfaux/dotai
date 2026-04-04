@@ -3,7 +3,7 @@
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { runAdd, parseAddOptions, initTelemetry } from './add.ts';
+import { runAdd, parseAddOptions, initTelemetry } from './add/index.ts';
 import { runCheck, runUpdate } from './check.ts';
 import { CommandError } from './lib/command-result.ts';
 import { runFind } from './find.ts';

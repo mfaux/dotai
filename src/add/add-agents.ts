@@ -1,9 +1,9 @@
 import * as p from '@clack/prompts';
 import pc from 'picocolors';
-import { searchMultiselect } from './lib/prompts/search-multiselect.ts';
-import { agents, getUniversalAgents, getNonUniversalAgents } from './lib/agents/index.ts';
-import { getLastSelectedAgents, saveSelectedAgents } from './lib/lock/index.ts';
-import type { AgentType } from './lib/types.ts';
+import { searchMultiselect } from '../lib/prompts/search-multiselect.ts';
+import { agents, getUniversalAgents, getNonUniversalAgents } from '../lib/agents/index.ts';
+import { getLastSelectedAgents, saveSelectedAgents } from '../lib/lock/index.ts';
+import type { AgentType } from '../lib/types.ts';
 
 // Helper to check if a value is a cancel symbol (works with both clack and our custom prompts)
 const isCancelled = (value: unknown): value is symbol => typeof value === 'symbol';

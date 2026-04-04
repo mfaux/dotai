@@ -1,5 +1,5 @@
-import type { ContextType } from './lib/types.ts';
-import { consumeMultiValues } from './cli-parse.ts';
+import type { ContextType } from '../lib/types.ts';
+import { consumeMultiValues } from '../cli-parse.ts';
 
 export interface AddOptions {
   global?: boolean;

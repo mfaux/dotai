@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { AddOptions } from './add-options.ts';
-import type { AgentType } from './lib/types.ts';
+import type { AgentType } from '../lib/types.ts';
 
 // --- Mocks ---
 
@@ -18,8 +18,8 @@ vi.mock('@clack/prompts', async () => {
   };
 });
 
-vi.mock('./lib/agents/agents.ts', async () => {
-  const actual = await vi.importActual('./lib/agents/agents.ts');
+vi.mock('../lib/agents/agents.ts', async () => {
+  const actual = await vi.importActual('../lib/agents/agents.ts');
   return {
     ...actual,
     detectInstalledAgents: vi.fn(),
@@ -32,8 +32,8 @@ vi.mock('./add-agents.ts', () => ({
   selectAgentsInteractive: vi.fn(),
 }));
 
-vi.mock('./lib/install/skill-installer.ts', async () => {
-  const actual = await vi.importActual('./lib/install/skill-installer.ts');
+vi.mock('../lib/install/skill-installer.ts', async () => {
+  const actual = await vi.importActual('../lib/install/skill-installer.ts');
   return {
     ...actual,
     isSkillInstalled: vi.fn(),
@@ -49,10 +49,10 @@ import {
   displayInstallResults,
   type InstallResult,
 } from './add-install.ts';
-import { detectInstalledAgents, agents } from './lib/agents/index.ts';
+import { detectInstalledAgents, agents } from '../lib/agents/index.ts';
 import { promptForAgents, selectAgentsInteractive } from './add-agents.ts';
-import { isSkillInstalled } from './lib/install/index.ts';
-import { CommandError } from './lib/command-result.ts';
+import { isSkillInstalled } from '../lib/install/index.ts';
+import { CommandError } from '../lib/command-result.ts';
 
 // --- Helpers ---
 

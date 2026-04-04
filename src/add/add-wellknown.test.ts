@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import type { WellKnownSkill } from './lib/providers/index.ts';
+import type { WellKnownSkill } from '../lib/providers/index.ts';
 import type { AddOptions } from './add-options.ts';
-import type { AgentType } from './lib/types.ts';
+import type { AgentType } from '../lib/types.ts';
 
 // --- Mocks ---
 
@@ -18,23 +18,23 @@ vi.mock('@clack/prompts', async () => {
   };
 });
 
-vi.mock('./lib/providers/index.ts', () => ({
+vi.mock('../lib/providers/index.ts', () => ({
   wellKnownProvider: {
     fetchAllSkills: vi.fn(),
     getSourceIdentifier: vi.fn().mockReturnValue('wellknown/example.com'),
   },
 }));
 
-vi.mock('./lib/agents/agents.ts', async () => {
-  const actual = await vi.importActual('./lib/agents/agents.ts');
+vi.mock('../lib/agents/agents.ts', async () => {
+  const actual = await vi.importActual('../lib/agents/agents.ts');
   return {
     ...actual,
     detectInstalledAgents: vi.fn(),
   };
 });
 
-vi.mock('./lib/install/skill-installer.ts', async () => {
-  const actual = await vi.importActual('./lib/install/skill-installer.ts');
+vi.mock('../lib/install/skill-installer.ts', async () => {
+  const actual = await vi.importActual('../lib/install/skill-installer.ts');
   return {
     ...actual,
     isSkillInstalled: vi.fn().mockResolvedValue(false),
@@ -49,21 +49,21 @@ vi.mock('./add-agents.ts', () => ({
   selectAgentsInteractive: vi.fn(),
 }));
 
-vi.mock('./lib/telemetry.ts', () => ({
+vi.mock('../lib/telemetry.ts', () => ({
   track: vi.fn(),
 }));
 
-vi.mock('./lib/lock/skill-lock.ts', () => ({
+vi.mock('../lib/lock/skill-lock.ts', () => ({
   addSkillToLock: vi.fn(),
 }));
 
-vi.mock('./lib/lock/local-lock.ts', () => ({
+vi.mock('../lib/lock/local-lock.ts', () => ({
   addSkillToLocalLock: vi.fn(),
   computeSkillFolderHash: vi.fn().mockResolvedValue('abc123'),
 }));
 
-vi.mock('./lib/parsers/source-parser.ts', async () => {
-  const actual = await vi.importActual('./lib/parsers/source-parser.ts');
+vi.mock('../lib/parsers/source-parser.ts', async () => {
+  const actual = await vi.importActual('../lib/parsers/source-parser.ts');
   return {
     ...actual,
     isSourcePrivate: vi.fn().mockResolvedValue(false),
@@ -74,14 +74,14 @@ vi.mock('./lib/parsers/source-parser.ts', async () => {
 
 import * as p from '@clack/prompts';
 import { handleWellKnownSkills } from './add-wellknown.ts';
-import { wellKnownProvider } from './lib/providers/index.ts';
-import { detectInstalledAgents } from './lib/agents/index.ts';
-import { isSkillInstalled, installWellKnownSkillForAgent } from './lib/install/index.ts';
-import { track } from './lib/telemetry.ts';
-import { CommandError } from './lib/command-result.ts';
-import { addSkillToLock } from './lib/lock/index.ts';
-import { addSkillToLocalLock, computeSkillFolderHash } from './lib/lock/index.ts';
-import { isSourcePrivate } from './lib/parsers/index.ts';
+import { wellKnownProvider } from '../lib/providers/index.ts';
+import { detectInstalledAgents } from '../lib/agents/index.ts';
+import { isSkillInstalled, installWellKnownSkillForAgent } from '../lib/install/index.ts';
+import { track } from '../lib/telemetry.ts';
+import { CommandError } from '../lib/command-result.ts';
+import { addSkillToLock } from '../lib/lock/index.ts';
+import { addSkillToLocalLock, computeSkillFolderHash } from '../lib/lock/index.ts';
+import { isSourcePrivate } from '../lib/parsers/index.ts';
 import { multiselect } from './add-agents.ts';
 
 // --- Helpers ---

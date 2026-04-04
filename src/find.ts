@@ -1,7 +1,7 @@
 import * as readline from 'readline';
 import * as p from '@clack/prompts';
-import { runAdd } from './add.ts';
-import { parseAddOptions } from './add-options.ts';
+import { runAdd } from './add/add.ts';
+import { parseAddOptions } from './add/add-options.ts';
 import { track } from './lib/telemetry.ts';
 import { isRepoPrivate, parseOwnerRepo } from './lib/parsers/index.ts';
 import { fetchRepoTree } from './lib/git/index.ts';

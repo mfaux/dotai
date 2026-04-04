@@ -1,13 +1,13 @@
 import * as p from '@clack/prompts';
 import pc from 'picocolors';
 import { promptForAgents, selectAgentsInteractive } from './add-agents.ts';
-import { isSkillInstalled, type InstallMode } from './lib/install/index.ts';
-import { detectInstalledAgents, agents } from './lib/agents/index.ts';
-import type { AgentType } from './lib/types.ts';
+import { isSkillInstalled, type InstallMode } from '../lib/install/index.ts';
+import { detectInstalledAgents, agents } from '../lib/agents/index.ts';
+import type { AgentType } from '../lib/types.ts';
 import { ensureUniversalAgents, buildResultLines } from './add-display.ts';
 import type { AddOptions } from './add-options.ts';
-import { shortenPath, formatList, kebabToTitle } from './lib/utils.ts';
-import { CommandError } from './lib/command-result.ts';
+import { shortenPath, formatList, kebabToTitle } from '../lib/utils.ts';
+import { CommandError } from '../lib/command-result.ts';
 
 export interface InstallResult {
   skill: string;

@@ -2,8 +2,8 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { existsSync, rmSync, mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
-import { runCli } from './lib/test-utils.ts';
-import { shouldInstallInternalSkills } from './lib/discovery/index.ts';
+import { runCli } from '../lib/test-utils.ts';
+import { shouldInstallInternalSkills } from '../lib/discovery/index.ts';
 import { parseAddOptions } from './add.ts';
 
 describe('add command', () => {

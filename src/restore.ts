@@ -1,7 +1,7 @@
 import * as p from '@clack/prompts';
 import pc from 'picocolors';
 import { readLocalLock } from './lib/lock/index.ts';
-import { runAdd } from './add.ts';
+import { runAdd } from './add/add.ts';
 import { runSync, parseSyncOptions } from './sync.ts';
 import { getUniversalAgents } from './lib/agents/index.ts';
 import { readDotaiLock, getLockEntriesByType } from './lib/lock/index.ts';

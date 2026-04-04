@@ -2,40 +2,40 @@ import * as p from '@clack/prompts';
 import pc from 'picocolors';
 import { existsSync } from 'fs';
 import { sep } from 'path';
-import { parseSource, getOwnerRepo, parseOwnerRepo, isRepoPrivate } from './lib/parsers/index.ts';
-import { shortenPath, formatList, kebabToTitle } from './lib/utils.ts';
+import { parseSource, getOwnerRepo, parseOwnerRepo, isRepoPrivate } from '../lib/parsers/index.ts';
+import { shortenPath, formatList, kebabToTitle } from '../lib/utils.ts';
 import { multiselect } from './add-agents.ts';
 export { promptForAgents } from './add-agents.ts';
-import { cloneRepo, cleanupTempDir, GitCloneError } from './lib/git/index.ts';
-import { CommandError } from './lib/command-result.ts';
+import { cloneRepo, cleanupTempDir, GitCloneError } from '../lib/git/index.ts';
+import { CommandError } from '../lib/command-result.ts';
 import {
   addPrompts,
   addAgents,
   addInstructions,
   resolveTargetAgents,
-} from './lib/install/index.ts';
-import { TARGET_AGENTS } from './lib/agents/index.ts';
+} from '../lib/install/index.ts';
+import { TARGET_AGENTS } from '../lib/agents/index.ts';
 import {
   discoverSkills,
   getSkillDisplayName,
   filterSkills,
   discover,
-} from './lib/discovery/index.ts';
-import { installSkillForAgent, isSkillInstalled, getCanonicalPath } from './lib/install/index.ts';
-import { agents } from './lib/agents/index.ts';
-import { track, setVersion, fetchAuditData } from './lib/telemetry.ts';
+} from '../lib/discovery/index.ts';
+import { installSkillForAgent, isSkillInstalled, getCanonicalPath } from '../lib/install/index.ts';
+import { agents } from '../lib/agents/index.ts';
+import { track, setVersion, fetchAuditData } from '../lib/telemetry.ts';
 import { handleWellKnownSkills } from './add-wellknown.ts';
 import {
   addSkillToLock,
   fetchSkillFolderHash,
   isPromptDismissed,
   dismissPrompt,
-} from './lib/lock/index.ts';
-import { addSkillToLocalLock, computeSkillFolderHash } from './lib/lock/index.ts';
-import type { Skill, AgentType, TargetAgent, ContextType } from './lib/types.ts';
+} from '../lib/lock/index.ts';
+import { addSkillToLocalLock, computeSkillFolderHash } from '../lib/lock/index.ts';
+import type { Skill, AgentType, TargetAgent, ContextType } from '../lib/types.ts';
 import { parseAddOptions, type AddOptions } from './add-options.ts';
 export { parseAddOptions, type AddOptions } from './add-options.ts';
-import packageJson from '../package.json' with { type: 'json' };
+import packageJson from '../../package.json' with { type: 'json' };
 import { buildSecurityLines, buildAgentSummaryLines } from './add-display.ts';
 import {
   resolveInstallTargets,

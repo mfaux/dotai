@@ -5,7 +5,7 @@ import { existsSync } from 'fs';
 import { relative } from 'path';
 import { addPrompts } from '../src/context-add.ts';
 import { runCli } from '../src/test-utils.ts';
-import { readManagedPaths } from '../src/gitignore.ts';
+import { readManagedPaths } from '../src/lib/git/index.ts';
 import { removeCommand } from '../src/remove.ts';
 import {
   createTempProjectDir,

@@ -4,7 +4,7 @@ import { join } from 'path';
 import { tmpdir } from 'os';
 import { runCli } from './test-utils.ts';
 import { parseListOptions } from './list.ts';
-import { addToGitignore, readManagedPaths } from './gitignore.ts';
+import { addToGitignore, readManagedPaths } from './lib/git/index.ts';
 
 // ---------------------------------------------------------------------------
 // Helpers

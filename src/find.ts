@@ -4,7 +4,7 @@ import { runAdd } from './add.ts';
 import { parseAddOptions } from './add-options.ts';
 import { track } from './telemetry.ts';
 import { isRepoPrivate, parseOwnerRepo } from './source-parser.ts';
-import { fetchRepoTree } from './github-trees.ts';
+import { fetchRepoTree } from './lib/git/index.ts';
 import { discoverRemoteContext, type RemoteContextSummary } from './find-discovery.ts';
 import { RESET, BOLD, DIM, TEXT, CYAN, MAGENTA, YELLOW } from './utils.ts';
 

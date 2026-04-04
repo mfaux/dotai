@@ -6,7 +6,7 @@ import { parseSource, getOwnerRepo, parseOwnerRepo, isRepoPrivate } from './sour
 import { shortenPath, formatList, kebabToTitle } from './utils.ts';
 import { multiselect } from './add-agents.ts';
 export { promptForAgents } from './add-agents.ts';
-import { cloneRepo, cleanupTempDir, GitCloneError } from './git.ts';
+import { cloneRepo, cleanupTempDir, GitCloneError } from './lib/git/index.ts';
 import { CommandError } from './command-result.ts';
 import { addPrompts, addAgents, addInstructions, resolveTargetAgents } from './context-add.ts';
 import { TARGET_AGENTS } from './target-agents.ts';

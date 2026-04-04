@@ -14,7 +14,7 @@ import {
 } from './skill-installer.ts';
 import { readDotaiLock, removeLockEntry, writeDotaiLock } from './dotai-lock.ts';
 import { removeSection } from './append-markers.ts';
-import { removeFromGitignore } from './gitignore.ts';
+import { removeFromGitignore } from './lib/git/index.ts';
 import { consumeMultiValues, VALID_CONTEXT_TYPES } from './cli-parse.ts';
 import { CommandError } from './command-result.ts';
 

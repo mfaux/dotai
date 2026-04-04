@@ -1,5 +1,5 @@
 import type { ContextType } from './types.ts';
-import type { GitHubTreeEntry } from './github-trees.ts';
+import type { GitHubTreeEntry } from './lib/git/index.ts';
 import { targetAgents } from './target-agents.ts';
 
 export interface RemoteContextItem {

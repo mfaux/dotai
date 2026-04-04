@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 
-vi.mock('./skill-lock.ts', () => ({
+vi.mock('../../skill-lock.ts', () => ({
   getGitHubToken: () => null,
 }));
 

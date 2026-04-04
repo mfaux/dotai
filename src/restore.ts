@@ -7,7 +7,7 @@ import { getUniversalAgents } from './agents.ts';
 import { readDotaiLock, getLockEntriesByType } from './dotai-lock.ts';
 import { addPrompts, addAgents } from './context-add.ts';
 import { parseSource } from './source-parser.ts';
-import { cloneRepo, cleanupTempDir } from './git.ts';
+import { cloneRepo, cleanupTempDir } from './lib/git/index.ts';
 import type { LockEntry, TargetAgent } from './types.ts';
 
 /**

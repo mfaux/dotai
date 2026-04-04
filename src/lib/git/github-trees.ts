@@ -1,4 +1,4 @@
-import { getGitHubToken } from './skill-lock.ts';
+import { getGitHubToken } from '../../skill-lock.ts';
 
 export interface GitHubTreeEntry {
   path: string;

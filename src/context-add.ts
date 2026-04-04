@@ -9,7 +9,7 @@ import {
 } from './dotai-lock.ts';
 import { loadModelOverrides } from './model-aliases.ts';
 import { TARGET_AGENTS } from './target-agents.ts';
-import { addToGitignore } from './gitignore.ts';
+import { addToGitignore } from './lib/git/index.ts';
 import type { DiscoveredItem, LockEntry, TargetAgent } from './types.ts';
 
 // ---------------------------------------------------------------------------

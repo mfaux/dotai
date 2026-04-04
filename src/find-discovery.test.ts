@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { discoverRemoteContext } from './find-discovery.ts';
-import type { GitHubTreeEntry } from './github-trees.ts';
+import type { GitHubTreeEntry } from './lib/git/index.ts';
 
 function blob(path: string): GitHubTreeEntry {
   return { path, type: 'blob', sha: 'abc123' };

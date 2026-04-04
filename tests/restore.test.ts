@@ -3,9 +3,9 @@ import { mkdtemp, rm, mkdir, writeFile, readFile } from 'fs/promises';
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { existsSync } from 'fs';
-import { runCli } from '../src/test-utils.ts';
-import { addPrompts, addAgents } from '../src/context-add.ts';
-import { writeDotaiLock, createEmptyLock, readDotaiLock } from '../src/dotai-lock.ts';
+import { runCli } from '../src/lib/test-utils.ts';
+import { addPrompts, addAgents } from '../src/lib/install/index.ts';
+import { writeDotaiLock, createEmptyLock, readDotaiLock } from '../src/lib/lock/index.ts';
 import { createTestSourceRepo } from './e2e-utils.ts';
 
 // ---------------------------------------------------------------------------

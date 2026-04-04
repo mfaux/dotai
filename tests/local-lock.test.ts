@@ -9,8 +9,8 @@ import {
   removeSkillFromLocalLock,
   computeSkillFolderHash,
   getLocalLockPath,
-} from '../src/local-lock.ts';
-import { LockVersionError } from '../src/lock-version-error.ts';
+} from '../src/lib/lock/index.ts';
+import { LockVersionError } from '../src/lib/lock/index.ts';
 
 describe('local-lock', () => {
   describe('getLocalLockPath', () => {

@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
-import { runCli } from '../src/test-utils.ts';
+import { runCli } from '../src/lib/test-utils.ts';
 
 describe('experimental_sync command', () => {
   let testDir: string;

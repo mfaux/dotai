@@ -9,14 +9,14 @@
 
 import { describe, it, expect } from 'vitest';
 import { join, resolve, sep } from 'path';
-import { createPlannedWrite } from '../src/collisions.ts';
+import { createPlannedWrite } from '../src/lib/install/index.ts';
 import {
   writeDotaiLock,
   readDotaiLock,
   createEmptyLock,
   upsertLockEntry,
-} from '../src/dotai-lock.ts';
-import type { TranspiledOutput, LockEntry, TargetAgent } from '../src/types.ts';
+} from '../src/lib/lock/index.ts';
+import type { TranspiledOutput, LockEntry, TargetAgent } from '../src/lib/types.ts';
 import { mkdtempSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import { execSync } from 'child_process';

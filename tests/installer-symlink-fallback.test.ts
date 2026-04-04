@@ -20,11 +20,11 @@ import {
   installSkillForAgent,
   installRemoteSkillForAgent,
   installWellKnownSkillForAgent,
-} from '../src/skill-installer.ts';
-import { agents } from '../src/agents.ts';
-import type { AgentType } from '../src/types.ts';
-import type { RemoteSkill } from '../src/types.ts';
-import type { WellKnownSkill } from '../src/providers/wellknown.ts';
+} from '../src/lib/install/index.ts';
+import { agents } from '../src/lib/agents/index.ts';
+import type { AgentType } from '../src/lib/types.ts';
+import type { RemoteSkill } from '../src/lib/types.ts';
+import type { WellKnownSkill } from '../src/lib/providers/wellknown.ts';
 
 async function makeSkillSource(root: string, name: string): Promise<string> {
   const dir = join(root, 'source-skill');

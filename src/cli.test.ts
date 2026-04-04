@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { runCli, runCliOutput, stripLogo, hasLogo } from './test-utils.ts';
+import { runCli, runCliOutput, stripLogo, hasLogo } from './lib/test-utils.ts';
 
 describe('dotai CLI', () => {
   describe('--help', () => {

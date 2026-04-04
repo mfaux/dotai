@@ -1,0 +1,46 @@
+export {
+  type DotaiLockFile,
+  type ReadLockResult,
+  getDotaiLockPath,
+  readDotaiLock,
+  writeDotaiLock,
+  findLockEntry,
+  upsertLockEntry,
+  removeLockEntry,
+  getLockEntriesByType,
+  getLockEntriesBySource,
+  computeContentHash,
+  createEmptyLock,
+  getCurrentVersion,
+  LockVersionError,
+} from './dotai-lock.ts';
+
+export {
+  type SkillLockEntry,
+  type DismissedPrompts,
+  type SkillLockFile,
+  getSkillLockPath,
+  readSkillLock,
+  writeSkillLock,
+  getGitHubToken,
+  fetchSkillFolderHash,
+  addSkillToLock,
+  removeSkillFromLock,
+  getSkillFromLock,
+  getAllLockedSkills,
+  isPromptDismissed,
+  dismissPrompt,
+  getLastSelectedAgents,
+  saveSelectedAgents,
+} from './skill-lock.ts';
+
+export {
+  type LocalSkillLockEntry,
+  type LocalSkillLockFile,
+  getLocalLockPath,
+  readLocalLock,
+  writeLocalLock,
+  computeSkillFolderHash,
+  addSkillToLocalLock,
+  removeSkillFromLocalLock,
+} from './local-lock.ts';

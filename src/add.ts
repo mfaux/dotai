@@ -10,8 +10,12 @@ import { cloneRepo, cleanupTempDir, GitCloneError } from './lib/git/index.ts';
 import { CommandError } from './command-result.ts';
 import { addPrompts, addAgents, addInstructions, resolveTargetAgents } from './context-add.ts';
 import { TARGET_AGENTS } from './target-agents.ts';
-import { discoverSkills, getSkillDisplayName, filterSkills } from './skill-discovery.ts';
-import { discover } from './context-discovery.ts';
+import {
+  discoverSkills,
+  getSkillDisplayName,
+  filterSkills,
+  discover,
+} from './lib/discovery/index.ts';
 import { installSkillForAgent, isSkillInstalled, getCanonicalPath } from './skill-installer.ts';
 import { agents } from './agents.ts';
 import { track, setVersion, fetchAuditData } from './telemetry.ts';

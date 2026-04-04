@@ -2,7 +2,7 @@ import pc from 'picocolors';
 import { resolve } from 'path';
 import { cloneRepo, cleanupTempDir } from './lib/git/index.ts';
 import { parseSource } from './lib/parsers/index.ts';
-import { discover, filterByType } from './context-discovery.ts';
+import { discover, filterByType } from './lib/discovery/index.ts';
 import { executeInstallPipeline } from './context-installer.ts';
 import {
   readDotaiLock,

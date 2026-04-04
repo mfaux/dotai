@@ -2,7 +2,7 @@ import * as p from '@clack/prompts';
 import pc from 'picocolors';
 import { readdir, stat } from 'fs/promises';
 import { join } from 'path';
-import { parseSkillMd } from './skill-discovery.ts';
+import { parseSkillMd } from './lib/discovery/index.ts';
 import { installSkillForAgent, getCanonicalPath } from './skill-installer.ts';
 import {
   detectInstalledAgents,

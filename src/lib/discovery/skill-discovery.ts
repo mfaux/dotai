@@ -1,8 +1,8 @@
 import { readdir, readFile, stat } from 'fs/promises';
 import { join, basename, dirname, resolve } from 'path';
 import matter from 'gray-matter';
-import type { Skill } from './types.ts';
-import { getPluginSkillPaths, getPluginGroupings } from './plugin-manifest.ts';
+import type { Skill } from '../../types.ts';
+import { getPluginSkillPaths, getPluginGroupings } from '../../plugin-manifest.ts';
 
 const SKIP_DIRS = ['node_modules', '.git', 'dist', 'build', '__pycache__'];
 

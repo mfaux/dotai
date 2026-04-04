@@ -5,7 +5,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mkdirSync, rmSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
-import { discoverSkills } from '../src/skill-discovery.ts';
+import { discoverSkills } from '../src/lib/discovery/index.ts';
 
 describe('discoverSkills with plugin manifests', () => {
   let testDir: string;

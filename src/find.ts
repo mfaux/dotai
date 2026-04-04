@@ -5,7 +5,7 @@ import { parseAddOptions } from './add-options.ts';
 import { track } from './telemetry.ts';
 import { isRepoPrivate, parseOwnerRepo } from './lib/parsers/index.ts';
 import { fetchRepoTree } from './lib/git/index.ts';
-import { discoverRemoteContext, type RemoteContextSummary } from './find-discovery.ts';
+import { discoverRemoteContext, type RemoteContextSummary } from './lib/discovery/index.ts';
 import { RESET, BOLD, DIM, TEXT, CYAN, MAGENTA, YELLOW } from './utils.ts';
 
 // API endpoint for skills search

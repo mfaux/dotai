@@ -17,7 +17,7 @@ import type { Skill, AgentType, RemoteSkill } from './types.ts';
 import type { WellKnownSkill } from './providers/wellknown.ts';
 import { agents, detectInstalledAgents, isUniversalAgent } from './agents.ts';
 import { AGENTS_DIR, SKILLS_SUBDIR } from './constants.ts';
-import { parseSkillMd } from './skill-discovery.ts';
+import { parseSkillMd } from './lib/discovery/index.ts';
 
 export type InstallMode = 'symlink' | 'copy';
 

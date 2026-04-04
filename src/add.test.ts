@@ -3,7 +3,7 @@ import { existsSync, rmSync, mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { runCli } from './test-utils.ts';
-import { shouldInstallInternalSkills } from './skill-discovery.ts';
+import { shouldInstallInternalSkills } from './lib/discovery/index.ts';
 import { parseAddOptions } from './add.ts';
 
 describe('add command', () => {

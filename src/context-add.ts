@@ -1,5 +1,5 @@
 import pc from 'picocolors';
-import { discover, filterByType } from './context-discovery.ts';
+import { discover, filterByType } from './lib/discovery/index.ts';
 import { executeInstallPipeline } from './context-installer.ts';
 import {
   readDotaiLock,

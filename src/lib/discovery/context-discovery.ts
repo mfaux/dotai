@@ -4,9 +4,9 @@ import {
   parseAgentContent,
   parseInstructionContent,
   parsePromptContent,
-} from './lib/parsers/index.ts';
-import { targetAgents } from './target-agents.ts';
-import type { ContextFormat, ContextType, DiscoveredItem, TargetAgent } from './types.ts';
+} from '../parsers/index.ts';
+import { targetAgents } from '../../target-agents.ts';
+import type { ContextFormat, ContextType, DiscoveredItem, TargetAgent } from '../../types.ts';
 
 // ---------------------------------------------------------------------------
 // Discovery constants

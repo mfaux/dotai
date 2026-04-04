@@ -1,6 +1,6 @@
 import { join, resolve } from 'path';
 import { getPluginGroupings } from '../src/plugin-manifest.ts';
-import { discoverSkills } from '../src/skill-discovery.ts';
+import { discoverSkills } from '../src/lib/discovery/index.ts';
 import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 import { mkdir, writeFile, rm } from 'fs/promises';
 import { mkdirSync, writeFileSync, rmSync } from 'fs';

@@ -1,6 +1,6 @@
 import * as p from '@clack/prompts';
 import pc from 'picocolors';
-import { isSourcePrivate } from './source-parser.ts';
+import { isSourcePrivate } from './lib/parsers/index.ts';
 import { shortenPath, formatList } from './utils.ts';
 import { getCanonicalPath, installWellKnownSkillForAgent } from './skill-installer.ts';
 import { agents } from './agents.ts';

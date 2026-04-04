@@ -62,8 +62,8 @@ vi.mock('./lib/lock/local-lock.ts', () => ({
   computeSkillFolderHash: vi.fn().mockResolvedValue('abc123'),
 }));
 
-vi.mock('./source-parser.ts', async () => {
-  const actual = await vi.importActual('./source-parser.ts');
+vi.mock('./lib/parsers/source-parser.ts', async () => {
+  const actual = await vi.importActual('./lib/parsers/source-parser.ts');
   return {
     ...actual,
     isSourcePrivate: vi.fn().mockResolvedValue(false),
@@ -81,7 +81,7 @@ import { track } from './telemetry.ts';
 import { CommandError } from './command-result.ts';
 import { addSkillToLock } from './lib/lock/index.ts';
 import { addSkillToLocalLock, computeSkillFolderHash } from './lib/lock/index.ts';
-import { isSourcePrivate } from './source-parser.ts';
+import { isSourcePrivate } from './lib/parsers/index.ts';
 import { multiselect } from './add-agents.ts';
 
 // --- Helpers ---

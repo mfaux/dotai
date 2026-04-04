@@ -6,11 +6,11 @@ import type {
   TargetAgent,
   TranspiledOutput,
 } from './types.ts';
-import { parsePromptContent } from './prompt-parser.ts';
+import { parsePromptContent } from './lib/parsers/index.ts';
 import { getTargetAgentConfig } from './target-agents.ts';
 import { resolveModel, type ModelOverrides } from './model-aliases.ts';
 import { quoteYaml } from './utils.ts';
-import { mergeOverrides } from './override-parser.ts';
+import { mergeOverrides } from './lib/parsers/index.ts';
 
 // ---------------------------------------------------------------------------
 // Prompt transpilers — canonical PROMPT.md → per-agent output

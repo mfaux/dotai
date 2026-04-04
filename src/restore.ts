@@ -6,7 +6,7 @@ import { runSync, parseSyncOptions } from './sync.ts';
 import { getUniversalAgents } from './agents.ts';
 import { readDotaiLock, getLockEntriesByType } from './lib/lock/index.ts';
 import { addPrompts, addAgents } from './context-add.ts';
-import { parseSource } from './source-parser.ts';
+import { parseSource } from './lib/parsers/index.ts';
 import { cloneRepo, cleanupTempDir } from './lib/git/index.ts';
 import type { LockEntry, TargetAgent } from './types.ts';
 

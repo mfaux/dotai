@@ -1,11 +1,11 @@
 import matter from 'gray-matter';
-import type { CanonicalInstruction, InstructionOverrideFields, TargetAgent } from './types.ts';
+import type { CanonicalInstruction, InstructionOverrideFields, TargetAgent } from '../../types.ts';
 import {
   SUPPORTED_SCHEMA_VERSION,
   validateName,
   validateDescription,
   validateSchemaVersion,
-} from './validation.ts';
+} from '../../validation.ts';
 import { extractOverrides } from './override-parser.ts';
 
 // ---------------------------------------------------------------------------

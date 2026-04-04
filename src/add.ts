@@ -2,7 +2,7 @@ import * as p from '@clack/prompts';
 import pc from 'picocolors';
 import { existsSync } from 'fs';
 import { sep } from 'path';
-import { parseSource, getOwnerRepo, parseOwnerRepo, isRepoPrivate } from './source-parser.ts';
+import { parseSource, getOwnerRepo, parseOwnerRepo, isRepoPrivate } from './lib/parsers/index.ts';
 import { shortenPath, formatList, kebabToTitle } from './utils.ts';
 import { multiselect } from './add-agents.ts';
 export { promptForAgents } from './add-agents.ts';

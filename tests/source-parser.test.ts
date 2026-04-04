@@ -8,7 +8,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { platform } from 'os';
-import { parseSource, getOwnerRepo } from '../src/source-parser.ts';
+import { parseSource, getOwnerRepo } from '../src/lib/parsers/index.ts';
 
 const isWindows = platform() === 'win32';
 

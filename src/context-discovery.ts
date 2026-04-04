@@ -1,8 +1,10 @@
 import { readdir, readFile, stat } from 'fs/promises';
 import { join, resolve, sep } from 'path';
-import { parseAgentContent } from './agent-parser.ts';
-import { parseInstructionContent } from './instruction-parser.ts';
-import { parsePromptContent } from './prompt-parser.ts';
+import {
+  parseAgentContent,
+  parseInstructionContent,
+  parsePromptContent,
+} from './lib/parsers/index.ts';
 import { targetAgents } from './target-agents.ts';
 import type { ContextFormat, ContextType, DiscoveredItem, TargetAgent } from './types.ts';
 

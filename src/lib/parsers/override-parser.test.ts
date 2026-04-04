@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { extractOverrides, mergeOverrides } from './override-parser.ts';
-import type { CanonicalPrompt, TargetAgent } from './types.ts';
+import type { CanonicalPrompt, TargetAgent } from '../../types.ts';
 
 // ---------------------------------------------------------------------------
 // extractOverrides

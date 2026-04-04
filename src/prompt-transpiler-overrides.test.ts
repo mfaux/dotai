@@ -4,7 +4,7 @@ import {
   copilotPromptTranspiler,
   claudeCodePromptTranspiler,
 } from './prompt-transpilers.ts';
-import { mergeOverrides } from './override-parser.ts';
+import { mergeOverrides } from './lib/parsers/index.ts';
 import type { CanonicalPrompt, DiscoveredItem } from './types.ts';
 
 // ---------------------------------------------------------------------------

@@ -6,11 +6,11 @@ import type {
   TargetAgent,
   TranspiledOutput,
 } from './types.ts';
-import { parseAgentContent } from './agent-parser.ts';
+import { parseAgentContent } from './lib/parsers/index.ts';
 import { getTargetAgentConfig } from './target-agents.ts';
 import { resolveModel, type ModelOverrides } from './model-aliases.ts';
 import { quoteYaml } from './utils.ts';
-import { mergeOverrides } from './override-parser.ts';
+import { mergeOverrides } from './lib/parsers/index.ts';
 
 // ---------------------------------------------------------------------------
 // Agent transpilers — canonical AGENT.md → per-agent output

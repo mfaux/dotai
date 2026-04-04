@@ -5,9 +5,9 @@ import type {
   TargetAgent,
   TranspiledOutput,
 } from './types.ts';
-import { parseInstructionContent } from './instruction-parser.ts';
+import { parseInstructionContent } from './lib/parsers/index.ts';
 import { getTargetAgentConfig } from './target-agents.ts';
-import { mergeOverrides } from './override-parser.ts';
+import { mergeOverrides } from './lib/parsers/index.ts';
 
 // ---------------------------------------------------------------------------
 // Instruction transpilers — canonical INSTRUCTIONS.md → per-agent output

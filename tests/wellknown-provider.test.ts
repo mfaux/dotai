@@ -183,7 +183,7 @@ describe('WellKnownProvider', () => {
 
 describe('parseSource with well-known URLs', async () => {
   // Import parseSource after provider is defined
-  const { parseSource } = await import('../src/source-parser.ts');
+  const { parseSource } = await import('../src/lib/parsers/source-parser.ts');
 
   it('should parse arbitrary URL as well-known type', () => {
     const result = parseSource('https://example.com');
